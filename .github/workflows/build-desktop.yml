@@ -57,8 +57,11 @@ jobs:
           fetch-depth: 0
 
       - name: Checkout submodules
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT || secrets.PERSONAL_ACCESS_TOKEN || github.token }}
         run: |
           git config core.quotepath false
+          git config --global url."https://x-access-token:${GH_TOKEN}@github.com/".insteadOf "https://github.com/"
           git submodule update --init --recursive
 
       - name: Setup pnpm
