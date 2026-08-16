@@ -7,10 +7,6 @@ on:
       - 'v*'
     branches:
       - main
-    paths:
-      - 'PH-Motopeças-Ponto-Frontend/**'
-      - 'packages/shared/**'
-      - '.github/workflows/build-desktop.yml'
 
 permissions:
   contents: write
