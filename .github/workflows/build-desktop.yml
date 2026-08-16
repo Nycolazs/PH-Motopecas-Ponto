@@ -57,6 +57,7 @@ jobs:
           fetch-depth: 0
 
       - name: Checkout submodules
+        shell: bash
         env:
           GH_TOKEN: ${{ secrets.GH_PAT || secrets.PERSONAL_ACCESS_TOKEN || github.token }}
         run: |
