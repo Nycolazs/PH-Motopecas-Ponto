@@ -1,0 +1,4 @@
+interface:
+  display_name: "PH-Ponto Security Review"
+  short_description: "Review PH-Ponto security boundaries"
+  default_prompt: "Use $security-review to audit a PH-Ponto security-sensitive change."

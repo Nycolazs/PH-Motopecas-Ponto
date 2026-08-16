@@ -1,0 +1,4 @@
+interface:
+  display_name: "PH-Ponto Architecture"
+  short_description: "Guide PH-Ponto architecture decisions"
+  default_prompt: "Use $architecture to design or review a PH-Ponto architectural change."

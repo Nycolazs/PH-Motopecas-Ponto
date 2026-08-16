@@ -1,0 +1,4 @@
+interface:
+  display_name: "PH-Ponto PostgreSQL Model"
+  short_description: "Evolve the PH-Ponto PostgreSQL schema"
+  default_prompt: "Use $postgres-data-model to design a PH-Ponto migration safely."

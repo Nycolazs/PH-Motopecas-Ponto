@@ -1,0 +1,10 @@
+node_modules
+dist
+coverage
+out
+release
+.playwright-browsers
+**/src/generated
+pnpm-lock.yaml
+.agents
+condexto.md

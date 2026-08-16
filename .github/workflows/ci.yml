@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18-alpine@sha256:a1d02e4bd40c94d3bf2bdd3678c137388e76d9efcd23c285e9429d336a834b44
+        env:
+          POSTGRES_DB: ph_ponto_test
+          POSTGRES_USER: ph_ponto
+          POSTGRES_PASSWORD: ph_ponto_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ph_ponto -d ph_ponto_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://ph_ponto:ph_ponto_test@localhost:5432/ph_ponto_test?schema=public
+      API_PORT: 3000
+      JWT_SECRET: ci-access-secret-at-least-32-characters
+      JWT_REFRESH_SECRET: ci-refresh-secret-at-least-32-characters
+      APP_TIMEZONE: America/Fortaleza
+      INITIAL_ADMIN_USERNAME: ci-admin
+      INITIAL_ADMIN_PASSWORD: ci-password-not-used-in-production
+      API_BASE_URL: http://localhost:3000
+      DESKTOP_DEV_ORIGIN: http://localhost:5173
+      UPLOAD_DIR: ./data/uploads
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
+        with:
+          version: 11.21.0
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm audit --audit-level=high
+      - run: pnpm db:generate
+      - run: pnpm db:migrate:deploy
+      - run: pnpm check
+      - run: pnpm test:integration
+      - run: pnpm --filter @ph-ponto/desktop e2e:install:ci
+      - run: pnpm test:e2e

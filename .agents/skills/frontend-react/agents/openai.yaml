@@ -1,0 +1,4 @@
+interface:
+  display_name: "PH-Ponto React Frontend"
+  short_description: "Build PH-Ponto React renderer features"
+  default_prompt: "Use $frontend-react to implement a PH-Ponto renderer feature."

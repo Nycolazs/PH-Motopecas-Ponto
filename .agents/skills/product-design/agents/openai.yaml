@@ -1,0 +1,4 @@
+interface:
+  display_name: "PH-Ponto Product Design"
+  short_description: "Design accessible PH-Ponto interfaces"
+  default_prompt: "Use $product-design to design or review a PH-Ponto user flow."

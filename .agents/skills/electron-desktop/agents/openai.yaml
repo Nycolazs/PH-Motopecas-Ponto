@@ -1,0 +1,4 @@
+interface:
+  display_name: "PH-Ponto Electron Desktop"
+  short_description: "Build and secure the Electron desktop app"
+  default_prompt: "Use $electron-desktop to implement or review PH-Ponto Electron integration."

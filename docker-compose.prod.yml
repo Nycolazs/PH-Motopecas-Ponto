@@ -1,0 +1,71 @@
+name: ph-ponto-prod
+
+services:
+  postgres:
+    image: postgres:18-alpine@sha256:a1d02e4bd40c94d3bf2bdd3678c137388e76d9efcd23c285e9429d336a834b44
+    command: ['postgres', '-c', 'timezone=UTC']
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-ph_ponto}
+      POSTGRES_USER: ${POSTGRES_USER:-ph_ponto}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      TZ: UTC
+    ports:
+      - '127.0.0.1:${POSTGRES_PORT:-55432}:5432'
+    volumes:
+      - postgres_prod_data:/var/lib/postgresql
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}']
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 5s
+
+  api:
+    image: ${API_IMAGE:-ghcr.io/nycolazs/ph-ponto/api:latest}
+    restart: unless-stopped
+    init: true
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER:-ph_ponto}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-ph_ponto}?schema=public
+      API_PORT: 3000
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      APP_TIMEZONE: ${APP_TIMEZONE:-America/Fortaleza}
+      INITIAL_ADMIN_USERNAME: ${INITIAL_ADMIN_USERNAME:-admin}
+      INITIAL_ADMIN_PASSWORD: ${INITIAL_ADMIN_PASSWORD}
+      API_BASE_URL: ${API_BASE_URL:-https://ponto.phmotopecas.com.br}
+      DESKTOP_DEV_ORIGIN: ${DESKTOP_DEV_ORIGIN:-http://localhost:5173}
+      UPLOAD_DIR: /data/uploads
+    ports:
+      - '127.0.0.1:${API_PORT:-3000}:3000'
+    volumes:
+      - uploads_prod_data:/data/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000/health/ready').then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
+  # Watchtower checks GHCR for updated images every 5 minutes and rolls out updates automatically
+  watchtower:
+    image: containrrr/watchtower:latest
+    restart: unless-stopped
+    environment:
+      WATCHTOWER_POLL_INTERVAL: 300
+      WATCHTOWER_CLEANUP: 'true'
+      WATCHTOWER_INCLUDE_RESTARTING: 'true'
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+volumes:
+  postgres_prod_data:
+  uploads_prod_data:

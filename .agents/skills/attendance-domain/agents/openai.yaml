@@ -1,0 +1,4 @@
+interface:
+  display_name: "PH-Ponto Attendance Domain"
+  short_description: "Implement attendance rules and calculations"
+  default_prompt: "Use $attendance-domain to implement or verify an attendance rule."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "PH-Ponto NestJS Backend"
+  short_description: "Build secure PH-Ponto NestJS modules"
+  default_prompt: "Use $nestjs-backend to implement a PH-Ponto API feature."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "PH-Ponto QA and Release"
+  short_description: "Validate PH-Ponto release readiness"
+  default_prompt: "Use $qa-release to test and assess PH-Ponto release readiness."
