@@ -4,6 +4,14 @@
   "outputDirectory": "PH-Motopeças-Ponto-Frontend/dist/renderer",
   "installCommand": "pnpm install",
   "framework": "vite",
+  "env": {
+    "VITE_API_BASE_URL": "https://phmotopecas-api.yacacode.com"
+  },
+  "build": {
+    "env": {
+      "VITE_API_BASE_URL": "https://phmotopecas-api.yacacode.com"
+    }
+  },
   "rewrites": [
     {
       "source": "/(.*)",
