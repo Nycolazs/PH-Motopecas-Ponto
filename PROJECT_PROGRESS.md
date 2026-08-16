@@ -238,17 +238,23 @@ curl http://127.0.0.1:3000/health/ready
     - Admin UI live pending badge on navigation sidebar and prominent alert banner on the Operational Dashboard;
     - Full automated validation gate `pnpm check` passing 100% (204/204 unit tests, 24/24 integration tests, strict TypeScript, zero ESLint warnings, Prettier, Vite production bundles, and NestJS compilation);
     - Standardized date formatting to Brazilian format (`DD/MM/AAAA`) across all views, forms, modals, tables, and reports using a custom `DateInput` component and `formatDateBR` helper;
-    - Added modern, fluid animations and micro-interactions across Employee and Admin interfaces (page entrance slides, spring modal animations, smooth card hovers, button click feedbacks, badge pulses, and subtle transitions).
+    - Added modern, fluid animations and micro-interactions across Employee and Admin interfaces (page entrance slides, spring modal animations, smooth card hovers, button click feedbacks, badge pulses, and subtle transitions);
+    - Implemented Employee & Admin Self-Service Password Change:
+      - Backend endpoint `POST /users/me/change-password` with `ChangeOwnPasswordDto`, Argon2id current password verification, 8-character minimum policy, transaction update, and `USER_PASSWORD_RESET` / `ADMIN_PASSWORD_RESET` audit trail;
+      - Frontend `ChangePasswordModal` with current password check, new password visibility toggles, real-time match and length validators, and fluid toast notification;
+      - Added password change quick-action in Employee desktop navigation bar, employee home greeting card, and Admin sidebar profile;
+      - Added unit tests in `users.service.spec.ts` and `change-password-modal.test.tsx` (209/209 unit tests passing);
+    - Integrated official PH Motopeças Branding & Icons:
+      - Installed official wide brand logo (`phmotos-logo.png`) into `Brand` component, `LoginPage` hero panel, `AdminLayout` sidebar header, `EmployeeLayout` topbar, and `AdminReportsPage` printable reports header;
+      - Installed official application icon (`apple-icon.png` / `app-icon.png`) into `index.html` (favicon and apple-touch-icon) and native Electron `BrowserWindow` icon;
+      - Full quality check `pnpm check` passing 100% with 0 warnings/errors.
 
 ## Handoff Notes
 
 All user requests and core requirements for PH-Ponto have been delivered and verified:
 
-1. **Brazilian Date Formatting (`DD/MM/AAAA`):** All date inputs, tables, summary cards, and modals display dates strictly in `DD/MM/AAAA` format with a custom date picker.
-2. **Animations & Transitions:** Fluid page entrances, spring modals, hover lifts, pulse badges, and button micro-interactions implemented across both Employee and Admin portals.
-3. **Employee Time Punch Adjustment Requests & Admin Approval:** Fully implemented with employee request submission modals in Electron, real-time status tracking, dedicated admin review page with approval/rejection notes, immutable punch adjustment execution, and audit logging.
-4. **Frontend-to-Backend Request Verification:** 100% of all API endpoints and Zod contract schemas were verified and pass without errors.
-5. **Electron Desktop Client:** Strictly for employees, equipped with background auto-updates via GitHub Releases.
-6. **Admin Web Portal:** Dedicated browser interface for administrators.
-7. **Backend API & Continuous Updates:** Zero-downtime containerized updates via GitHub Actions, GHCR, Watchtower, and automated Prisma migrations.
-8. **Quality Assurance:** 204 unit tests and 24 integration tests pass with 0 errors across all workspaces (`pnpm check` = 0 errors).
+1. **Opção de Trocar a Própria Senha:** Funcionários e administradores agora podem alterar sua própria senha diretamente pelo sistema com validação de senha atual, verificação de força (mínimo 8 caracteres), confirmação e criptografia Argon2id.
+2. **Logotipo e Ícone Oficiais da PH Motopeças:** O logotipo oficial (`phmotos-logo.png`) e o ícone (`apple-icon.png`) foram integrados na tela de login, cabeçalhos, barra lateral administrativa, relatórios impressos, favicon do navegador e ícone da janela nativa do Electron.
+3. **Formatação de Datas Brasileira (`DD/MM/AAAA`):** Todas as telas, formulários e relatórios utilizam estritamente o formato `DD/MM/AAAA`.
+4. **Solicitações de Ajuste de Ponto:** Fluxo completo com envio pelo funcionário no Electron e aprovação/rejeição no Painel Web Admin.
+5. **Garantia de Qualidade:** 209 testes unitários e 24 testes de integração passando com 100% de sucesso (`pnpm check` = 0 erros).
