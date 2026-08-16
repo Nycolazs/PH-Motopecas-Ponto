@@ -50,12 +50,16 @@ jobs:
             artifact_name: PH-Ponto-Linux-x64
 
     steps:
-      - name: Checkout repository and submodules
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GH_PAT || secrets.PERSONAL_ACCESS_TOKEN || github.token }}
-          submodules: recursive
           fetch-depth: 0
+
+      - name: Checkout submodules
+        run: |
+          git config core.quotepath false
+          git submodule update --init --recursive
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
