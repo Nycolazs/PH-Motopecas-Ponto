@@ -1,0 +1,105 @@
+name: Build Desktop Clients
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+    branches:
+      - main
+    paths:
+      - 'PH-Motopeças-Ponto-Frontend/**'
+      - 'packages/shared/**'
+      - '.github/workflows/build-desktop.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  build-desktop:
+    name: Build (${{ matrix.platform.name }})
+    runs-on: ${{ matrix.platform.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - name: Windows (x64)
+            os: windows-latest
+            package_cmd: pnpm package:windows
+            artifact_pattern: |
+              PH-Motopeças-Ponto-Frontend/release/PH-Ponto-Setup-*.exe
+              PH-Motopeças-Ponto-Frontend/release/latest.yml
+            artifact_name: PH-Ponto-Windows-x64
+
+          - name: macOS (Apple Silicon & Intel)
+            os: macos-latest
+            package_cmd: pnpm package:mac
+            artifact_pattern: |
+              PH-Motopeças-Ponto-Frontend/release/PH-Ponto-*.dmg
+              PH-Motopeças-Ponto-Frontend/release/PH-Ponto-*.zip
+              PH-Motopeças-Ponto-Frontend/release/latest-mac.yml
+            artifact_name: PH-Ponto-macOS
+
+          - name: Linux (AppImage & DEB)
+            os: ubuntu-latest
+            package_cmd: pnpm package:linux
+            artifact_pattern: |
+              PH-Motopeças-Ponto-Frontend/release/PH-Ponto-*.AppImage
+              PH-Motopeças-Ponto-Frontend/release/PH-Ponto-*.deb
+              PH-Motopeças-Ponto-Frontend/release/latest-linux.yml
+            artifact_name: PH-Ponto-Linux-x64
+
+    steps:
+      - name: Checkout repository and submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.21.0
+
+      - name: Setup Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run frontend unit tests
+        run: pnpm test:frontend
+
+      - name: Package Desktop Client (${{ matrix.platform.name }})
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ${{ matrix.platform.package_cmd }}
+
+      - name: Upload Artifact (${{ matrix.platform.name }})
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.platform.artifact_name }}
+          path: ${{ matrix.platform.artifact_pattern }}
+          if-no-files-found: warn
+
+  release:
+    name: Publish GitHub Release
+    needs: build-desktop
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all built artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-artifacts
+
+      - name: Create Release and Upload Binaries
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release-artifacts/**/*
+          generate_release_notes: true
