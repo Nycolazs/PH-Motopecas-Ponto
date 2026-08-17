@@ -1,5 +1,5 @@
 import { execSync } from 'node:child_process';
-import { cpSync, existsSync, mkdirSync, readdirSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, readdirSync, rmSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -10,45 +10,24 @@ const frontendSrc = resolve(frontendDir, 'src');
 
 // 1. Ensure frontend repository files are present
 if (!existsSync(frontendSrc)) {
-  console.log('[vercel-build] Frontend source missing, fetching submodule or repository...');
+  console.log('[vercel-build] Frontend source missing in Vercel clone. Fetching frontend repository directly...');
   try {
-    execSync('git submodule update --init --recursive', {
-      cwd: rootDir,
-      stdio: 'inherit',
-    });
-  } catch (err) {
-    console.warn(
-      '[vercel-build] git submodule update failed, fallback to direct git clone...',
-      err.message,
-    );
-  }
-
-  if (!existsSync(frontendSrc)) {
-    try {
-      execSync(
-        'git clone --depth 1 https://github.com/Nycolazs/PH-Motopecas-Ponto-Frontend.git "PH-Motopeças-Ponto-Frontend"',
-        {
-          cwd: rootDir,
-          stdio: 'inherit',
-        },
-      );
-    } catch (cloneErr) {
-      console.error('[vercel-build] Direct clone failed:', cloneErr.message);
+    if (existsSync(frontendDir)) {
+      rmSync(frontendDir, { recursive: true, force: true });
     }
+    execSync(
+      'git clone --depth 1 https://github.com/Nycolazs/PH-Motopecas-Ponto-Frontend.git "PH-Motopeças-Ponto-Frontend"',
+      {
+        cwd: rootDir,
+        stdio: 'inherit',
+      },
+    );
+  } catch (err) {
+    console.error('[vercel-build] Direct clone failed:', err.message);
   }
 }
 
-// 2. Ensure frontend is on latest main branch
-try {
-  execSync('git checkout main && git pull origin main', {
-    cwd: frontendDir,
-    stdio: 'ignore',
-  });
-} catch {
-  // Ignored if detached HEAD or offline
-}
-
-// 3. Build shared package
+// 2. Build shared package if present
 try {
   console.log('[vercel-build] Building shared package...');
   execSync('pnpm --filter @ph-ponto/shared build', {
@@ -59,14 +38,14 @@ try {
   console.warn('[vercel-build] Shared package build note:', e.message);
 }
 
-// 4. Install & Build frontend directly
-console.log('[vercel-build] Building frontend with Vite...');
+// 3. Install & Build frontend directly
+console.log('[vercel-build] Installing and building frontend with Vite...');
 execSync('pnpm install --no-frozen-lockfile && pnpm build', {
   cwd: frontendDir,
   stdio: 'inherit',
 });
 
-// 5. Populate root dist, public, and renderer
+// 4. Populate root dist, public, and renderer
 const frontendDist = resolve(frontendDir, 'dist');
 const rootDist = resolve(rootDir, 'dist');
 const rootPublic = resolve(rootDir, 'public');
@@ -87,6 +66,4 @@ if (existsSync(frontendDist)) {
   }
 }
 
-console.log(
-  '[vercel-build] Build complete! Root dist, public and renderer populated successfully.',
-);
+console.log('[vercel-build] Build complete! Root dist, public and renderer populated successfully.');
