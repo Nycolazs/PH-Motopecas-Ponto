@@ -5,29 +5,29 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const rootDir = resolve(__dirname, '..');
-const frontendDir = resolve(rootDir, 'PH-Motopeças-Ponto-Frontend');
-const frontendSrc = resolve(frontendDir, 'src');
 
-// 1. Ensure frontend repository files are present
-if (!existsSync(frontendSrc)) {
-  console.log('[vercel-build] Frontend source missing in Vercel clone. Fetching frontend repository directly...');
-  try {
+// 1. Locate or clone frontend directory in pure ASCII path
+let frontendDir = resolve(rootDir, 'PH-Motopeças-Ponto-Frontend');
+if (!existsSync(resolve(frontendDir, 'src'))) {
+  frontendDir = resolve(rootDir, '.vercel_frontend');
+  if (!existsSync(resolve(frontendDir, 'src'))) {
+    console.log('[vercel-build] Fetching frontend source from GitHub...');
     if (existsSync(frontendDir)) {
       rmSync(frontendDir, { recursive: true, force: true });
     }
     execSync(
-      'git clone --depth 1 https://github.com/Nycolazs/PH-Motopecas-Ponto-Frontend.git "PH-Motopeças-Ponto-Frontend"',
+      'git clone --depth 1 https://github.com/Nycolazs/PH-Motopecas-Ponto-Frontend.git .vercel_frontend',
       {
         cwd: rootDir,
         stdio: 'inherit',
       },
     );
-  } catch (err) {
-    console.error('[vercel-build] Direct clone failed:', err.message);
   }
 }
 
-// 2. Build shared package if present
+console.log('[vercel-build] Using frontend directory:', frontendDir);
+
+// 2. Build shared package if present in root
 try {
   console.log('[vercel-build] Building shared package...');
   execSync('pnpm --filter @ph-ponto/shared build', {
@@ -35,7 +35,7 @@ try {
     stdio: 'inherit',
   });
 } catch (e) {
-  console.warn('[vercel-build] Shared package build note:', e.message);
+  console.warn('[vercel-build] Shared package note:', e.message);
 }
 
 // 3. Install & Build frontend directly
