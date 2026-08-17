@@ -29,10 +29,12 @@ if (!sourceDir && existsSync(resolve(rootDir, 'dist'))) {
 
 if (sourceDir) {
   const rootDist = resolve(rootDir, 'dist');
+  const rootPublic = resolve(rootDir, 'public');
   const rootRenderer = resolve(rootDir, 'renderer');
   const rootDistRenderer = resolve(rootDir, 'dist', 'renderer');
 
   mkdirSync(rootDist, { recursive: true });
+  mkdirSync(rootPublic, { recursive: true });
   mkdirSync(rootRenderer, { recursive: true });
   mkdirSync(rootDistRenderer, { recursive: true });
 
@@ -40,12 +42,13 @@ if (sourceDir) {
     if (item !== 'main' && item !== 'preload' && item !== 'shared' && item !== 'renderer') {
       const src = resolve(sourceDir, item);
       cpSync(src, resolve(rootDist, item), { recursive: true });
+      cpSync(src, resolve(rootPublic, item), { recursive: true });
       cpSync(src, resolve(rootRenderer, item), { recursive: true });
       cpSync(src, resolve(rootDistRenderer, item), { recursive: true });
     }
   }
 
   console.log(
-    '[copy-web-dist] Successfully populated root dist, renderer, and dist/renderer for Vercel.',
+    '[copy-web-dist] Successfully populated root dist, public, renderer, and dist/renderer for Vercel.',
   );
 }
