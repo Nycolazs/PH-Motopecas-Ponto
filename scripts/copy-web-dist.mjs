@@ -9,6 +9,7 @@ const sourceDir = resolve(rootDir, 'PH-Motopeças-Ponto-Frontend', 'dist', 'rend
 if (existsSync(sourceDir)) {
   const rootDist = resolve(rootDir, 'dist');
   const rootRenderer = resolve(rootDir, 'renderer');
+  const rootDistRenderer = resolve(rootDir, 'dist', 'renderer');
 
   mkdirSync(rootDist, { recursive: true });
   cpSync(sourceDir, rootDist, { recursive: true });
@@ -16,7 +17,10 @@ if (existsSync(sourceDir)) {
   mkdirSync(rootRenderer, { recursive: true });
   cpSync(sourceDir, rootRenderer, { recursive: true });
 
+  mkdirSync(rootDistRenderer, { recursive: true });
+  cpSync(sourceDir, rootDistRenderer, { recursive: true });
+
   console.log(
-    `[copy-web-dist] Successfully copied web build to root dist and renderer directories.`,
+    `[copy-web-dist] Successfully populated root dist, renderer, and dist/renderer for Vercel.`,
   );
 }
