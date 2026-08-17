@@ -15,6 +15,9 @@ if (!existsSync(frontendSrc)) {
       stdio: 'inherit',
     });
   } catch (error) {
-    console.warn('[prepare-submodules] Note: Could not update git submodules via CLI:', error.message);
+    console.warn(
+      '[prepare-submodules] Note: Could not update git submodules via CLI:',
+      error.message,
+    );
   }
 }

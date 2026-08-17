@@ -137,7 +137,7 @@ importers:
   PH-Motopeças-Ponto-Frontend:
     dependencies:
       '@ph-ponto/shared':
-        specifier: workspace:*
+        specifier: file:./packages/shared
         version: link:../packages/shared
       '@tanstack/react-query':
         specifier: ^5.101.4

@@ -43,7 +43,7 @@
     "prebuild:desktop": "pnpm shared:build",
     "build:desktop": "pnpm --filter @ph-ponto/desktop build",
     "prebuild:frontend": "pnpm shared:build",
-    "build:web": "node scripts/prepare-submodules.mjs && pnpm shared:build && pnpm --filter @ph-ponto/desktop build:renderer && node scripts/copy-web-dist.mjs",
+    "build:web": "node scripts/build-frontend-vercel.mjs",
     "build:admin": "pnpm build:web",
     "prepackage:windows": "pnpm shared:build",
     "package:windows": "pnpm --filter @ph-ponto/desktop package:windows",
