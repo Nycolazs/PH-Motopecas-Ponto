@@ -1,6 +1,6 @@
 [submodule "PH-Motopeças-Ponto-Backend"]
 	path = PH-Motopeças-Ponto-Backend
-	url = ../PH-Motopecas-Ponto-Backend.git
+	url = https://github.com/Nycolazs/PH-Motopecas-Ponto-Backend.git
 [submodule "PH-Motopeças-Ponto-Frontend"]
 	path = PH-Motopeças-Ponto-Frontend
-	url = ../PH-Motopecas-Ponto-Frontend.git
+	url = https://github.com/Nycolazs/PH-Motopecas-Ponto-Frontend.git
