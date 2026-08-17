@@ -1,17 +1,37 @@
-import { cpSync, existsSync, mkdirSync, readdirSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, readdirSync, statSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const rootDir = resolve(__dirname, '..');
-const frontendDist = resolve(rootDir, 'PH-Motopeças-Ponto-Frontend', 'dist');
-const rootDist = resolve(rootDir, 'dist');
-const rootRenderer = resolve(rootDir, 'renderer');
-const rootDistRenderer = resolve(rootDir, 'dist', 'renderer');
 
-const sourceDir = existsSync(frontendDist) ? frontendDist : existsSync(rootDist) ? rootDist : null;
+let sourceDir = null;
+const directFrontendDist = resolve(rootDir, 'PH-Motopeças-Ponto-Frontend', 'dist');
+if (existsSync(directFrontendDist)) {
+  sourceDir = directFrontendDist;
+} else {
+  // Find any frontend directory case-insensitively / NFC normalized
+  for (const entry of readdirSync(rootDir)) {
+    const fullPath = resolve(rootDir, entry);
+    if (statSync(fullPath).isDirectory() && entry.toLowerCase().includes('frontend')) {
+      const candidateDist = resolve(fullPath, 'dist');
+      if (existsSync(candidateDist)) {
+        sourceDir = candidateDist;
+        break;
+      }
+    }
+  }
+}
+
+if (!sourceDir && existsSync(resolve(rootDir, 'dist'))) {
+  sourceDir = resolve(rootDir, 'dist');
+}
 
 if (sourceDir) {
+  const rootDist = resolve(rootDir, 'dist');
+  const rootRenderer = resolve(rootDir, 'renderer');
+  const rootDistRenderer = resolve(rootDir, 'dist', 'renderer');
+
   mkdirSync(rootDist, { recursive: true });
   mkdirSync(rootRenderer, { recursive: true });
   mkdirSync(rootDistRenderer, { recursive: true });
