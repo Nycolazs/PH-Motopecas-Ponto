@@ -43,7 +43,7 @@ importers:
         specifier: ^8.2.1
         version: 8.2.1(@types/node@25.9.5)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.50.0)(tsx@4.23.12)
 
-  PH-Motopeças-Ponto-Backend:
+  apps/api:
     dependencies:
       '@nestjs/common':
         specifier: ^11.2.1
@@ -65,7 +65,7 @@ importers:
         version: 11.4.6(@nestjs/common@11.2.1(class-transformer@0.5.1)(class-validator@0.15.1)(reflect-metadata@0.2.2)(rxjs@7.8.2)(supports-color@8.1.1))(@nestjs/core@11.2.1)(class-transformer@0.5.1)(class-validator@0.15.1)(reflect-metadata@0.2.2)
       '@ph-ponto/shared':
         specifier: workspace:*
-        version: link:../packages/shared
+        version: link:../../packages/shared
       '@prisma/adapter-pg':
         specifier: ^7.9.1
         version: 7.9.1
@@ -134,11 +134,11 @@ importers:
         specifier: ^4.1.10
         version: 4.1.10(@types/node@24.13.3)(jsdom@27.4.0(@noble/hashes@2.3.0)(supports-color@8.1.1))(vite@8.2.1(@types/node@24.13.3)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.50.0)(tsx@4.23.12))
 
-  PH-Motopeças-Ponto-Frontend:
+  apps/desktop:
     dependencies:
       '@ph-ponto/shared':
-        specifier: file:./packages/shared
-        version: link:../packages/shared
+        specifier: workspace:*
+        version: link:../../packages/shared
       '@tanstack/react-query':
         specifier: ^5.101.4
         version: 5.101.4(react@19.2.8)
@@ -188,6 +188,9 @@ importers:
       '@types/react-dom':
         specifier: ^19.2.2
         version: 19.2.4(@types/react@19.2.18)
+      '@types/semver':
+        specifier: ^7.5.8
+        version: 7.8.0
       '@vitejs/plugin-react':
         specifier: ^6.0.5
         version: 6.0.5(vite@8.2.1(@types/node@24.13.3)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.50.0)(tsx@4.23.12))
@@ -1502,6 +1505,9 @@ packages:
 
   '@types/responselike@1.0.3':
     resolution: {integrity: sha512-H/+L+UkTV33uf49PH5pCAUBVPNj2nDBXTN+qS1dOwyyg24l3CcicicCA7ca+HMvJBZcFgl5r8e+RR6elsb4Lyw==}
+
+  '@types/semver@7.8.0':
+    resolution: {integrity: sha512-1mAINjtQCXXeLkJ9ehXkwOcBpqtLxiVtKhpUf83DdRNdQKV0iXZpaHYqRr7nj+wvxuJzoAmAwXI+sCNMv1CzLQ==}
 
   '@types/send@1.2.1':
     resolution: {integrity: sha512-arsCikDvlU99zl1g69TcAB3mzZPpxgw0UQnaHeC1Nwb015xp8bknZv5rIfri9xTOcMuaVgvabfIRA7PSZVuZIQ==}
@@ -5747,6 +5753,8 @@ snapshots:
   '@types/responselike@1.0.3':
     dependencies:
       '@types/node': 24.13.3
+
+  '@types/semver@7.8.0': {}
 
   '@types/send@1.2.1':
     dependencies:

@@ -1,0 +1,85 @@
+name: CI/CD Pipeline (Build on GitHub & Deploy to Server)
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    name: 🧪 Verify & Build on GitHub Cloud
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.22.0
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma Client
+        run: pnpm --filter @ph-ponto/api db:generate
+
+      - name: Build Shared Packages
+        run: pnpm --filter @ph-ponto/shared build
+
+      - name: Typecheck TypeScript
+        run: pnpm --filter @ph-ponto/api typecheck
+
+      - name: Run Tests
+        run: pnpm vitest run
+
+      - name: Build Backend Application
+        run: pnpm --filter @ph-ponto/api build
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ph-ponto-backend-build
+          path: |
+            dist/
+            packages/shared/dist/
+            prisma/
+            prisma.config.ts
+            package.json
+            pnpm-lock.yaml
+            pnpm-workspace.yaml
+          retention-days: 7
+
+  deploy:
+    name: 🚀 Deploy to Backend Server
+    needs: build-and-test
+    runs-on: self-hosted
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies and apply migrations
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm --filter @ph-ponto/shared build
+          pnpm --filter @ph-ponto/api build
+          pnpm --filter @ph-ponto/api db:migrate:deploy
+
+      - name: Restart PH-Ponto Backend Service
+        run: |
+          systemctl --user restart ph-ponto-backend.service
+
+      - name: Verify Health Check
+        run: |
+          sleep 5
+          curl -f -s http://127.0.0.1:3333/health/ready || (sleep 10 && curl -f -s http://127.0.0.1:3333/health/ready)

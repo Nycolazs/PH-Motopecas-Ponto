@@ -1,30 +1,31 @@
-import { cpSync, existsSync, mkdirSync, readdirSync, statSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, readdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const rootDir = resolve(__dirname, '..');
 
+const candidates = [
+  resolve(rootDir, 'apps', 'desktop', 'dist'),
+  resolve(rootDir, 'PH-Motopeças-Ponto-Frontend', 'dist'),
+  resolve(rootDir, 'dist'),
+];
+
 let sourceDir = null;
-const directFrontendDist = resolve(rootDir, 'PH-Motopeças-Ponto-Frontend', 'dist');
-if (existsSync(directFrontendDist)) {
-  sourceDir = directFrontendDist;
-} else {
-  // Find any frontend directory case-insensitively / NFC normalized
-  for (const entry of readdirSync(rootDir)) {
-    const fullPath = resolve(rootDir, entry);
-    if (statSync(fullPath).isDirectory() && entry.toLowerCase().includes('frontend')) {
-      const candidateDist = resolve(fullPath, 'dist');
-      if (existsSync(candidateDist)) {
-        sourceDir = candidateDist;
-        break;
-      }
-    }
+for (const cand of candidates) {
+  if (existsSync(cand) && existsSync(resolve(cand, 'index.html'))) {
+    sourceDir = cand;
+    break;
   }
 }
 
-if (!sourceDir && existsSync(resolve(rootDir, 'dist'))) {
-  sourceDir = resolve(rootDir, 'dist');
+if (!sourceDir) {
+  for (const cand of candidates) {
+    if (existsSync(cand)) {
+      sourceDir = cand;
+      break;
+    }
+  }
 }
 
 if (sourceDir) {
@@ -49,6 +50,6 @@ if (sourceDir) {
   }
 
   console.log(
-    '[copy-web-dist] Successfully populated root dist, public, renderer, and dist/renderer for Vercel.',
+    `[copy-web-dist] Successfully populated root dist, public, and renderer from ${sourceDir}.`,
   );
 }

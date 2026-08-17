@@ -1,0 +1,423 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "esm"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  ADMIN
+  EMPLOYEE
+}
+
+enum SessionRevocationReason {
+  LOGOUT
+  REFRESH_REUSE
+  USER_DEACTIVATED
+  PASSWORD_RESET
+  ROLE_CHANGED
+  EXPIRED
+  ADMIN_ACTION
+}
+
+enum AvatarMimeType {
+  IMAGE_JPEG
+  IMAGE_PNG
+  IMAGE_WEBP
+}
+
+enum Weekday {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
+enum CalendarExceptionOperation {
+  UPSERT
+  RETRACT
+}
+
+enum CalendarExceptionKind {
+  HOLIDAY
+  CLOSED
+  SPECIAL_HOURS
+}
+
+enum AdjustmentRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum TimePunchKind {
+  CLOCK_IN
+  CLOCK_OUT
+}
+
+enum TimePunchOrigin {
+  EMPLOYEE
+  ADMIN_INSERTION
+}
+
+enum IdempotencyOperation {
+  CREATE_TIME_PUNCH
+  INSERT_TIME_PUNCH
+  ADJUST_TIME_PUNCH
+  CREATE_ADJUSTMENT_REQUEST
+  APPROVE_ADJUSTMENT_REQUEST
+  REJECT_ADJUSTMENT_REQUEST
+  CREATE_USER
+  UPDATE_USER
+  RESET_PASSWORD
+  CREATE_SCHEDULE
+  UPSERT_CALENDAR_EXCEPTION
+  RETRACT_CALENDAR_EXCEPTION
+  UPLOAD_AVATAR
+  REMOVE_AVATAR
+  UPDATE_SETTING
+  EXPORT_REPORT
+}
+
+enum IdempotencyStatus {
+  PROCESSING
+  COMPLETED
+}
+
+enum AuditAction {
+  LOGIN_SUCCEEDED
+  LOGIN_FAILED
+  LOGOUT
+  REFRESH_REUSED
+  USER_CREATED
+  USER_UPDATED
+  USER_ACTIVATED
+  USER_DEACTIVATED
+  USER_PASSWORD_RESET
+  AVATAR_UPLOADED
+  AVATAR_REPLACED
+  AVATAR_REMOVED
+  ADMIN_CREATED
+  ADMIN_UPDATED
+  ADMIN_ACTIVATED
+  ADMIN_DEACTIVATED
+  ADMIN_PASSWORD_RESET
+  SCHEDULE_CREATED
+  CALENDAR_EXCEPTION_CREATED
+  CALENDAR_EXCEPTION_UPDATED
+  CALENDAR_EXCEPTION_RETRACTED
+  TIME_PUNCH_CORRECTED
+  TIME_PUNCH_INSERTED
+  ADJUSTMENT_REQUEST_CREATED
+  ADJUSTMENT_REQUEST_APPROVED
+  ADJUSTMENT_REQUEST_REJECTED
+  SETTING_UPDATED
+  REPORT_EXPORTED
+}
+
+enum AuditOutcome {
+  SUCCESS
+  FAILURE
+}
+
+enum AuditTargetType {
+  AUTH_SESSION
+  USER
+  AVATAR
+  SCHEDULE
+  CALENDAR_EXCEPTION
+  TIME_PUNCH
+  ADJUSTMENT_REQUEST
+  SETTING
+  REPORT
+}
+
+model User {
+  id              String   @id @default(uuid()) @db.Uuid
+  name            String   @db.VarChar(120)
+  login           String   @unique @db.Citext
+  normalizedLogin String   @unique @map("normalized_login") @db.VarChar(64)
+  passwordHash    String   @map("password_hash") @db.VarChar(255)
+  role            UserRole
+  isActive        Boolean  @default(true) @map("is_active")
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  avatar                     Avatar?
+  refreshSessions            RefreshSession[]
+  createdScheduleVersions    BusinessScheduleVersion[]    @relation("ScheduleCreatedBy")
+  createdExceptionRevisions  CalendarExceptionRevision[]  @relation("ExceptionCreatedBy")
+  employeePunches            TimePunch[]                  @relation("EmployeePunches")
+  insertedPunches            TimePunch[]                  @relation("PunchInsertedBy")
+  timeAdjustments            TimeAdjustment[]             @relation("AdjustmentAdmin")
+  adjustmentRequests         TimePunchAdjustmentRequest[] @relation("AdjustmentRequester")
+  reviewedAdjustmentRequests TimePunchAdjustmentRequest[] @relation("AdjustmentReviewer")
+  idempotencyRecords         IdempotencyRecord[]
+  auditEvents                AuditLog[]                   @relation("AuditActor")
+  updatedSettings            AppSetting[]                 @relation("SettingUpdatedBy")
+
+  @@index([role, isActive])
+  @@map("users")
+}
+
+model Avatar {
+  id        String         @id @default(uuid()) @db.Uuid
+  userId    String         @unique @map("user_id") @db.Uuid
+  objectKey String         @unique @map("object_key") @db.VarChar(255)
+  mimeType  AvatarMimeType @map("mime_type")
+  byteSize  Int            @map("byte_size")
+  width     Int
+  height    Int
+  checksum  String         @db.Char(64)
+  createdAt DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime       @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@index([checksum])
+  @@map("avatars")
+}
+
+model RefreshSession {
+  id                  String                   @id @default(uuid()) @db.Uuid
+  userId              String                   @map("user_id") @db.Uuid
+  familyId            String                   @map("family_id") @db.Uuid
+  tokenHash           String                   @unique @map("token_hash") @db.Char(64)
+  expiresAt           DateTime                 @map("expires_at") @db.Timestamptz(6)
+  absoluteExpiresAt   DateTime                 @map("absolute_expires_at") @db.Timestamptz(6)
+  rotatedAt           DateTime?                @map("rotated_at") @db.Timestamptz(6)
+  replacedBySessionId String?                  @unique @map("replaced_by_session_id") @db.Uuid
+  revokedAt           DateTime?                @map("revoked_at") @db.Timestamptz(6)
+  revocationReason    SessionRevocationReason? @map("revocation_reason")
+  lastUsedAt          DateTime?                @map("last_used_at") @db.Timestamptz(6)
+  deviceName          String?                  @map("device_name") @db.VarChar(120)
+  userAgent           String?                  @map("user_agent") @db.VarChar(512)
+  ipHash              String?                  @map("ip_hash") @db.Char(64)
+  createdAt           DateTime                 @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user       User            @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  replacedBy RefreshSession? @relation("SessionRotation", fields: [replacedBySessionId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  replaces   RefreshSession? @relation("SessionRotation")
+
+  @@index([userId])
+  @@index([familyId])
+  @@index([familyId, revokedAt])
+  @@index([expiresAt])
+  @@map("refresh_sessions")
+}
+
+model LoginThrottle {
+  keyHash         String    @id @map("key_hash") @db.Char(64)
+  attempts        Int       @default(1)
+  windowStartedAt DateTime  @map("window_started_at") @db.Timestamptz(6)
+  blockedUntil    DateTime? @map("blocked_until") @db.Timestamptz(6)
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([updatedAt])
+  @@map("login_throttles")
+}
+
+model BusinessScheduleVersion {
+  id            String   @id @default(uuid()) @db.Uuid
+  effectiveDate DateTime @unique @map("effective_date") @db.Date
+  note          String?  @db.VarChar(240)
+  createdById   String   @map("created_by_id") @db.Uuid
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  createdBy User                  @relation("ScheduleCreatedBy", fields: [createdById], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  days      BusinessScheduleDay[]
+
+  @@index([effectiveDate(sort: Desc)])
+  @@map("business_schedule_versions")
+}
+
+model BusinessScheduleDay {
+  id                String  @id @default(uuid()) @db.Uuid
+  scheduleVersionId String  @map("schedule_version_id") @db.Uuid
+  weekday           Weekday
+  isOpen            Boolean @map("is_open")
+  openingMinute     Int?    @map("opening_minute") @db.SmallInt
+  closingMinute     Int?    @map("closing_minute") @db.SmallInt
+  lunchEnabled      Boolean @default(false) @map("lunch_enabled")
+  lunchStartMinute  Int?    @map("lunch_start_minute") @db.SmallInt
+  lunchEndMinute    Int?    @map("lunch_end_minute") @db.SmallInt
+
+  scheduleVersion BusinessScheduleVersion @relation(fields: [scheduleVersionId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@unique([scheduleVersionId, weekday])
+  @@index([scheduleVersionId])
+  @@map("business_schedule_days")
+}
+
+model CalendarException {
+  id           String   @id @default(uuid()) @db.Uuid
+  businessDate DateTime @unique @map("business_date") @db.Date
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  revisions CalendarExceptionRevision[]
+
+  @@index([businessDate(sort: Desc)])
+  @@map("calendar_exceptions")
+}
+
+model CalendarExceptionRevision {
+  id                  String                     @id @default(uuid()) @db.Uuid
+  calendarExceptionId String                     @map("calendar_exception_id") @db.Uuid
+  sequence            Int
+  operation           CalendarExceptionOperation
+  kind                CalendarExceptionKind?
+  name                String?                    @db.VarChar(120)
+  openingMinute       Int?                       @map("opening_minute") @db.SmallInt
+  closingMinute       Int?                       @map("closing_minute") @db.SmallInt
+  lunchEnabled        Boolean                    @default(false) @map("lunch_enabled")
+  lunchStartMinute    Int?                       @map("lunch_start_minute") @db.SmallInt
+  lunchEndMinute      Int?                       @map("lunch_end_minute") @db.SmallInt
+  createdById         String                     @map("created_by_id") @db.Uuid
+  createdAt           DateTime                   @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  calendarException CalendarException @relation(fields: [calendarExceptionId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  createdBy         User              @relation("ExceptionCreatedBy", fields: [createdById], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@unique([calendarExceptionId, sequence])
+  @@index([calendarExceptionId, sequence(sort: Desc)])
+  @@index([createdById, createdAt(sort: Desc)])
+  @@map("calendar_exception_revisions")
+}
+
+model IdempotencyRecord {
+  id                 String               @id @default(uuid()) @db.Uuid
+  actorId            String               @map("actor_id") @db.Uuid
+  operation          IdempotencyOperation
+  keyHash            String               @map("key_hash") @db.Char(64)
+  requestFingerprint String               @map("request_fingerprint") @db.Char(64)
+  status             IdempotencyStatus    @default(PROCESSING)
+  responseStatus     Int?                 @map("response_status") @db.SmallInt
+  responseBody       Json?                @map("response_body")
+  expiresAt          DateTime             @map("expires_at") @db.Timestamptz(6)
+  createdAt          DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime             @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  actor          User            @relation(fields: [actorId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  timePunch      TimePunch?
+  timeAdjustment TimeAdjustment?
+
+  @@unique([actorId, operation, keyHash])
+  @@index([expiresAt])
+  @@index([status, updatedAt])
+  @@map("idempotency_records")
+}
+
+model TimePunch {
+  id                  String          @id @default(uuid()) @db.Uuid
+  employeeId          String          @map("employee_id") @db.Uuid
+  occurredAt          DateTime        @map("occurred_at") @db.Timestamptz(6)
+  kind                TimePunchKind
+  origin              TimePunchOrigin
+  createdByAdminId    String?         @map("created_by_admin_id") @db.Uuid
+  insertionReason     String?         @map("insertion_reason") @db.VarChar(500)
+  idempotencyRecordId String          @unique @map("idempotency_record_id") @db.Uuid
+  createdAt           DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  employee          User                          @relation("EmployeePunches", fields: [employeeId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  createdByAdmin    User?                         @relation("PunchInsertedBy", fields: [createdByAdminId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  idempotencyRecord IdempotencyRecord             @relation(fields: [idempotencyRecordId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  adjustments       TimeAdjustment[]
+  adjustmentRequests TimePunchAdjustmentRequest[]
+
+  @@unique([employeeId, occurredAt])
+  @@index([employeeId, occurredAt, id])
+  @@index([occurredAt])
+  @@index([createdByAdminId, createdAt])
+  @@map("time_punches")
+}
+
+model TimeAdjustment {
+  id                  String   @id @default(uuid()) @db.Uuid
+  timePunchId         String   @map("time_punch_id") @db.Uuid
+  sequence            Int
+  previousOccurredAt  DateTime @map("previous_occurred_at") @db.Timestamptz(6)
+  correctedOccurredAt DateTime @map("corrected_occurred_at") @db.Timestamptz(6)
+  reason              String   @db.VarChar(500)
+  adminId             String   @map("admin_id") @db.Uuid
+  idempotencyRecordId String   @unique @map("idempotency_record_id") @db.Uuid
+  createdAt           DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  timePunch         TimePunch                   @relation(fields: [timePunchId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  admin             User                        @relation("AdjustmentAdmin", fields: [adminId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  idempotencyRecord IdempotencyRecord           @relation(fields: [idempotencyRecordId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  adjustmentRequest TimePunchAdjustmentRequest?
+
+  @@unique([timePunchId, sequence])
+  @@index([timePunchId, createdAt(sort: Desc)])
+  @@index([adminId, createdAt(sort: Desc)])
+  @@map("time_adjustments")
+}
+
+model TimePunchAdjustmentRequest {
+  id                  String                  @id @default(uuid()) @db.Uuid
+  timePunchId         String                  @map("time_punch_id") @db.Uuid
+  employeeId          String                  @map("employee_id") @db.Uuid
+  status              AdjustmentRequestStatus @default(PENDING)
+  requestedOccurredAt DateTime                @map("requested_occurred_at") @db.Timestamptz(6)
+  currentOccurredAt   DateTime                @map("current_occurred_at") @db.Timestamptz(6)
+  currentSequence     Int                     @map("current_sequence")
+  reason              String                  @db.VarChar(500)
+  reviewedById        String?                 @map("reviewed_by_id") @db.Uuid
+  reviewComment       String?                 @map("review_comment") @db.VarChar(500)
+  reviewedAt          DateTime?               @map("reviewed_at") @db.Timestamptz(6)
+  timeAdjustmentId    String?                 @unique @map("time_adjustment_id") @db.Uuid
+  createdAt           DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime                @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  timePunch      TimePunch       @relation(fields: [timePunchId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  employee       User            @relation("AdjustmentRequester", fields: [employeeId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  reviewedBy     User?           @relation("AdjustmentReviewer", fields: [reviewedById], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  timeAdjustment TimeAdjustment? @relation(fields: [timeAdjustmentId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@index([employeeId, status, createdAt(sort: Desc)])
+  @@index([status, createdAt(sort: Desc)])
+  @@index([timePunchId])
+  @@map("time_punch_adjustment_requests")
+}
+
+model AuditLog {
+  id          String          @id @default(uuid()) @db.Uuid
+  actorId     String?         @map("actor_id") @db.Uuid
+  action      AuditAction
+  outcome     AuditOutcome    @default(SUCCESS)
+  targetType  AuditTargetType @map("target_type")
+  targetId    String?         @map("target_id") @db.VarChar(120)
+  requestId   String?         @map("request_id") @db.VarChar(64)
+  ipHash      String?         @map("ip_hash") @db.Char(64)
+  userAgent   String?         @map("user_agent") @db.VarChar(512)
+  beforeState Json?           @map("before_state")
+  afterState  Json?           @map("after_state")
+  metadata    Json?
+  createdAt   DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  actor User? @relation("AuditActor", fields: [actorId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@index([createdAt(sort: Desc)])
+  @@index([actorId, createdAt(sort: Desc)])
+  @@index([targetType, targetId, createdAt(sort: Desc)])
+  @@index([action, createdAt(sort: Desc)])
+  @@map("audit_logs")
+}
+
+model AppSetting {
+  key         String   @id @db.VarChar(100)
+  value       Json
+  updatedById String   @map("updated_by_id") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  updatedBy User @relation("SettingUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@map("app_settings")
+}

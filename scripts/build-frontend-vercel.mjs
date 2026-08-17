@@ -66,4 +66,6 @@ if (existsSync(frontendDist)) {
   }
 }
 
-console.log('[vercel-build] Build complete! Root dist, public and renderer populated successfully.');
+console.log(
+  '[vercel-build] Build complete! Root dist, public and renderer populated successfully.',
+);

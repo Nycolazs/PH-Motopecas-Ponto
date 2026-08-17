@@ -7,6 +7,7 @@ export default tseslint.config(
     ignores: [
       '**/node_modules/**',
       '**/dist/**',
+      '**/public/**',
       '**/renderer/**',
       '**/coverage/**',
       '**/out/**',
@@ -14,6 +15,9 @@ export default tseslint.config(
       '.playwright-browsers/**',
       '**/src/generated/**',
       '.agents/**',
+      'PH-Motopeças-Ponto-Frontend/**',
+      'PH-Motopeças-Ponto-Backend/**',
+      '.vercel_frontend/**',
     ],
   },
   eslint.configs.recommended,

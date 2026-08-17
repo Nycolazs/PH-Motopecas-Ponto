@@ -1,0 +1,15 @@
+packages:
+  - '.'
+  - 'packages/*'
+
+allowBuilds:
+  electron: true
+  electron-builder: true
+  electron-winstaller: true
+  esbuild: true
+
+onlyBuiltDependencies:
+  - electron
+  - electron-builder
+  - electron-winstaller
+  - esbuild

@@ -1,6 +1,5 @@
 packages:
-  - PH-Motopeças-Ponto-Backend
-  - PH-Motopeças-Ponto-Frontend
+  - apps/*
   - packages/*
 
 injectWorkspacePackages: true

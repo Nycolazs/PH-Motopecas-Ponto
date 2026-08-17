@@ -1,0 +1,145 @@
+{
+  "name": "@ph-ponto/desktop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Secure Electron desktop client for PH-Ponto",
+  "author": "PH Motopeças <contato@phmotopecas.com.br>",
+  "license": "UNLICENSED",
+  "type": "module",
+  "main": "dist/main/index.js",
+  "scripts": {
+    "dev": "pnpm build:electron && concurrently --kill-others-on-fail --names renderer,electron-code,electron --prefix-colors cyan,magenta,blue \"vite --host 127.0.0.1\" \"tsc -p tsconfig.electron.json --watch --preserveWatchOutput\" \"wait-on http://127.0.0.1:5173 dist/main/index.js dist/preload/index.cjs && cross-env VITE_DEV_SERVER_URL=http://localhost:5173 electron .\"",
+    "build": "vite build && node scripts/copy-dist.mjs",
+    "postbuild": "node scripts/copy-dist.mjs",
+    "build:all": "pnpm build:electron && pnpm build:renderer",
+    "build:electron": "node scripts/clean-build.mjs electron && tsc -p tsconfig.electron.build.json",
+    "build:renderer": "node scripts/clean-build.mjs renderer && vite build && node scripts/copy-dist.mjs",
+    "build:web": "vite build && node scripts/copy-dist.mjs",
+    "typecheck": "tsc -p tsconfig.electron.json --noEmit && tsc -p tsconfig.renderer.json --noEmit && tsc -p tsconfig.config.json --noEmit",
+    "test": "vitest run",
+    "e2e:install": "cross-env PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers playwright install chromium",
+    "e2e:install:ci": "cross-env PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers playwright install --with-deps chromium",
+    "test:e2e": "cross-env PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers playwright test",
+    "package:windows": "pnpm build:all && electron-builder --win nsis --x64 --publish never",
+    "package:mac": "pnpm build:all && electron-builder --mac dmg zip --publish never",
+    "package:linux": "pnpm build:all && electron-builder --linux AppImage deb --x64 --publish never"
+  },
+  "dependencies": {
+    "@ph-ponto/shared": "workspace:*",
+    "@tanstack/react-query": "^5.101.4",
+    "electron-updater": "^6.8.9",
+    "lucide-react": "^1.31.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "react-hook-form": "^7.63.0",
+    "react-router-dom": "^7.9.1",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.62.1",
+    "@tailwindcss/vite": "^4.3.3",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/node": "^24.10.0",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "@types/semver": "^7.5.8",
+    "@vitejs/plugin-react": "^6.0.5",
+    "concurrently": "^9.2.1",
+    "cross-env": "^10.1.0",
+    "electron": "^43.4.0",
+    "electron-builder": "^26.0.12",
+    "jsdom": "^27.0.0",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^6.0.3",
+    "vite": "^8.2.1",
+    "vitest": "^4.1.10",
+    "wait-on": "^9.0.1"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Nycolazs/PH-Motopecas-Ponto-Frontend.git"
+  },
+  "build": {
+    "appId": "com.phmotopecas.phponto",
+    "productName": "PH-Ponto",
+    "executableName": "ph-ponto",
+    "asar": true,
+    "directories": {
+      "output": "release"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "Nycolazs",
+      "repo": "PH-Motopecas-Ponto-Frontend"
+    },
+    "files": [
+      "dist/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "artifactName": "PH-Ponto-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowElevation": false,
+      "allowToChangeInstallationDirectory": false,
+      "createDesktopShortcut": "always",
+      "createStartMenuShortcut": true,
+      "shortcutName": "PH-Ponto"
+    },
+    "mac": {
+      "category": "public.app-category.business",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        }
+      ],
+      "artifactName": "PH-Ponto-${version}-${arch}.${ext}"
+    },
+    "linux": {
+      "category": "Office",
+      "executableName": "ph-ponto",
+      "maintainer": "PH Motopeças <contato@phmotopecas.com.br>",
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "deb",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "artifactName": "PH-Ponto-${version}-${arch}.${ext}"
+    }
+  }
+}

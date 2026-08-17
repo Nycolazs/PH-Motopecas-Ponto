@@ -51,6 +51,6 @@ PH-Motopeças-Ponto-Backend/prisma/dev.db
 frontend/.vite/
 frontend/build/
 frontend/release/
-PH-Motopeças-Ponto-Frontend/.vite/
-PH-Motopeças-Ponto-Frontend/build/
-PH-Motopeças-Ponto-Frontend/release/
+PH-Motopeças-Ponto-Frontend/
+PH-Motopeças-Ponto-Backend/
+.vercel_frontend/

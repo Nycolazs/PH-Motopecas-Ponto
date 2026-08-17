@@ -1,5 +1,9 @@
 node_modules
 dist
+public
+renderer
+**/public/**
+**/renderer/**
 coverage
 out
 release
