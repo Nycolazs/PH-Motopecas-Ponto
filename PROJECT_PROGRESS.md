@@ -279,16 +279,22 @@ curl http://127.0.0.1:3000/health/ready
       - Replaced rigid fixed lunch start/end inputs with a clean, organized **1h de Almoço** option that automatically deducts 60 minutes from the day's expected work hours;
       - Added clear informational guidance explaining that each employee takes their 1-hour lunch interval at their designated shift time;
       - Formatted all inputs in clean 24h Brazilian standard (`08:00` às `17:00`) with quick preset buttons (44h comercial, 44h sem sábado, 40h e replicação);
-    - Employee Profile Photo Display in Home Greeting:
+    - Employee Profile Photo Display in Home Greeting & Circular Styling:
       - Integrated `AvatarImage` component into the Employee Home header (`Olá, [Nome] — Seu ponto de hoje`);
       - Added quick-access modal trigger on avatar click, allowing employees to change, zoom, and crop their profile photo directly from the home screen;
-      - Added reactive `cacheKey` prop to `AvatarImage` ensuring immediate cache-busting and live re-render upon uploading a new picture.
+      - Added reactive `cacheKey` prop to `AvatarImage` ensuring immediate cache-busting and live re-render upon uploading a new picture;
+      - Enforced circular `rounded-full` shape across all avatar photos and initials fallback badges in dashboard, presence board, tables, modals, and headers;
+    - Security & CI Hardening:
+      - Updated Electron Content Security Policy (CSP) `img-src` to include `${apiOrigin}`, enabling safe profile photo streaming from the backend;
+      - Resolved `deepmerge-ts` transitive audit advisory via `pnpm-workspace.yaml` overrides;
+      - Fixed `apps/desktop/.gitignore` ensuring all renderer source files, components, and test setup scripts are tracked in Git;
+      - Updated Playwright E2E tests and integration tests to accommodate avatar endpoints and title formatting.
 
 ## Handoff Notes
 
 All user requests and core requirements for PH-Ponto have been delivered, verified, and pushed to GitHub:
 
-1. **Foto do Funcionário na Tela Inicial:** A foto de perfil do colaborador agora é exibida com destaque no cabeçalho inicial (`Olá, [Nome] — Seu ponto de hoje`), com fallback seguro para iniciais estilizadas e atalho direto para atualização da imagem.
+1. **Foto do Funcionário Circular na Tela Inicial e Tabelas:** A foto de perfil do colaborador agora é exibida com destaque em formato perfeitamente circular (`rounded-full`) no cabeçalho inicial (`Olá, [Nome] — Seu ponto de hoje`) e no Quadro de Frequência, com fallback seguro para iniciais estilizadas e atalho direto para atualização da imagem.
 2. **Correção do Upload do Avatar (Limite de Body Parser):** Configurado o limite de JSON para 10 MB no backend e exportação de JPEG otimizado (~50 KB) no frontend, eliminando erros de payload e garantindo salvamento rápido.
 3. **Criação Automática do Administrador Inicial:** Sempre que o sistema iniciar e não houver nenhum administrador ativo no banco de dados, o sistema cria automaticamente o usuário com Nome: **Administrador**, Login: **`admin`**, Senha: **`admin`** e a escala de trabalho base.
 4. **Modal de Jornada Semanal Reorganizado & Intervalo de 1h de Almoço:** Interface de configuração de jornada moderna, clara e organizada, com opção de 1h de intervalo de almoço dedutível da carga diária e modelos rápidos (44h, 40h).
@@ -299,4 +305,4 @@ All user requests and core requirements for PH-Ponto have been delivered, verifi
 9. **Logotipo e Ícone Oficiais da PH Motopeças:** O logotipo oficial (`phmotos-logo.png`) e o ícone (`apple-icon.png`) foram integrados na tela de login, cabeçalhos, barra lateral administrativa, relatórios impressos, favicon do navegador e ícone da janela nativa do Electron.
 10. **Formatação de Datas Brasileira (`DD/MM/AAAA`):** Todas as telas, formulários e relatórios utilizam estritamente o formato `DD/MM/AAAA`.
 11. **Espelho de Ponto Oficial em PDF (A4):** Layout completo e profissional de espelho de ponto para impressão e salvamento em PDF.
-12. **Garantia de Qualidade:** 211 testes unitários e 25 testes de integração passando com 100% de sucesso (`pnpm check` = 0 erros).
+12. **Garantia de Qualidade:** 211 testes unitários, 25 testes de integração com banco de dados e testes E2E Playwright passando com 100% de sucesso (`pnpm check` = 0 erros, `pnpm audit` = 0 vulnerabilidades).

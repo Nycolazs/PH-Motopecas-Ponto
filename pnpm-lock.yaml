@@ -5732,10 +5732,11 @@ snapshots:
   '@types/node@25.9.5':
     dependencies:
       undici-types: 7.24.6
+    optional: true
 
   '@types/pg@8.21.0':
     dependencies:
-      '@types/node': 25.9.5
+      '@types/node': 24.13.3
       pg-protocol: 1.16.0
       pg-types: 2.2.0
 
@@ -8665,7 +8666,8 @@ snapshots:
 
   undici-types@7.18.2: {}
 
-  undici-types@7.24.6: {}
+  undici-types@7.24.6:
+    optional: true
 
   undici@6.28.0: {}
 

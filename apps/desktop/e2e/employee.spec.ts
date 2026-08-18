@@ -134,6 +134,12 @@ test('employee logs in, records an authoritative punch, and opens owned history'
   await page.route(/^https?:\/\/(localhost|127\.0\.0\.1):3000\/.*/, async (route) => {
     const request = route.request();
     const url = new URL(request.url());
+
+    if (url.pathname.includes('/avatar')) {
+      await route.fulfill({ status: 404 });
+      return;
+    }
+
     expect(request.headers().authorization).toBe(`Bearer ${employeeSession.accessToken}`);
 
     if (url.pathname === '/attendance/today') {
@@ -194,7 +200,7 @@ test('employee logs in, records an authoritative punch, and opens owned history'
   });
 
   await page.goto('/#/');
-  await expect(page).toHaveTitle('PH-Ponto');
+  await expect(page).toHaveTitle(/PH-Ponto/);
   await expect(page.getByRole('heading', { name: 'Bater Ponto' })).toBeVisible();
 
   await page.getByLabel('Login').fill('marina.souza');

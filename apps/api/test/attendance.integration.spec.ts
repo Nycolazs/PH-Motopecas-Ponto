@@ -119,18 +119,18 @@ describe('attendance schedules and calendar exceptions with real PostgreSQL', ()
       },
     });
 
-    const [adminLogin, employeeLogin] = await Promise.all([
-      request(app.getHttpServer())
-        .post('/auth/login')
-        .set('X-Request-Id', `attendance-admin-${randomUUID()}`)
-        .send({ login: 'admin.attendance', password: ADMIN_PASSWORD })
-        .expect(200),
-      request(app.getHttpServer())
-        .post('/auth/login')
-        .set('X-Request-Id', `attendance-employee-${randomUUID()}`)
-        .send({ login: 'employee.attendance', password: EMPLOYEE_PASSWORD })
-        .expect(200),
-    ]);
+    const adminLogin = await request(app.getHttpServer())
+      .post('/auth/login')
+      .set('X-Request-Id', `attendance-admin-${randomUUID()}`)
+      .send({ login: 'admin.attendance', password: ADMIN_PASSWORD })
+      .expect(200);
+
+    const employeeLogin = await request(app.getHttpServer())
+      .post('/auth/login')
+      .set('X-Request-Id', `attendance-employee-${randomUUID()}`)
+      .send({ login: 'employee.attendance', password: EMPLOYEE_PASSWORD })
+      .expect(200);
+
     adminAccessToken = adminLogin.body.accessToken as string;
     employeeAccessToken = employeeLogin.body.accessToken as string;
   });
