@@ -37,6 +37,7 @@ services:
       INITIAL_ADMIN_USERNAME: ${INITIAL_ADMIN_USERNAME:-admin}
       INITIAL_ADMIN_PASSWORD: ${INITIAL_ADMIN_PASSWORD:-development-bootstrap-password-change-me}
       API_BASE_URL: ${API_BASE_URL:-http://localhost:3000}
+      ADMIN_WEB_ORIGIN: ${ADMIN_WEB_ORIGIN:-*}
       DESKTOP_DEV_ORIGIN: ${DESKTOP_DEV_ORIGIN:-http://localhost:5173}
       UPLOAD_DIR: /data/uploads
     ports:
