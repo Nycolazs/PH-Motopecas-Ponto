@@ -17,13 +17,17 @@ function getApiBaseUrl(): string {
   if (import.meta.env.DEV) {
     return 'http://localhost:3000';
   }
-  if (
-    typeof window !== 'undefined' &&
-    (window.location.hostname === 'localhost' ||
-      window.location.hostname === '127.0.0.1' ||
-      window.location.hostname === '0.0.0.0')
-  ) {
-    return 'http://127.0.0.1:3000';
+  if (typeof window !== 'undefined' && window.location?.hostname) {
+    const hostname = window.location.hostname;
+    const protocol = window.location.protocol === 'https:' ? 'https:' : 'http:';
+    if (
+      hostname === 'localhost' ||
+      hostname === '127.0.0.1' ||
+      hostname === '0.0.0.0' ||
+      /^(\d{1,3}\.){3}\d{1,3}$/.test(hostname)
+    ) {
+      return `${protocol}//${hostname}:3000`;
+    }
   }
   return 'https://phmotopecas-api.yacacode.com';
 }
