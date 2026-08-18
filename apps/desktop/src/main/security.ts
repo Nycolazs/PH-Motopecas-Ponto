@@ -148,7 +148,7 @@ export function createContentSecurityPolicy(
     "default-src 'self'",
     developmentOrigin === undefined ? "script-src 'self'" : "script-src 'self' 'unsafe-inline'",
     developmentOrigin === undefined ? "style-src 'self'" : "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data: blob:",
+    `img-src 'self' data: blob: ${apiOrigin}`,
     `connect-src 'self' ${apiOrigin}${developmentConnections}`,
     "font-src 'self'",
     "object-src 'none'",
