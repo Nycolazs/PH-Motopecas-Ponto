@@ -35,31 +35,7 @@ function AppRoutes(): React.JSX.Element {
     );
   }
 
-  const isDesktop = typeof window !== 'undefined' && window.phPonto !== undefined;
-
-  // Desktop App: strictly for EMPLOYEE
-  if (isDesktop) {
-    if (session.user.role !== 'EMPLOYEE') {
-      return (
-        <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="*" element={<Navigate to="/login" replace />} />
-        </Routes>
-      );
-    }
-
-    return (
-      <Routes>
-        <Route element={<EmployeeLayout />}>
-          <Route index element={<EmployeeHomePage />} />
-          <Route path="historico" element={<HistoryPage />} />
-        </Route>
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    );
-  }
-
-  // Web Browser: strictly for ADMIN
+  // Admin routes (available in both Desktop and Web)
   if (session.user.role === 'ADMIN') {
     return (
       <Routes>
@@ -79,10 +55,14 @@ function AppRoutes(): React.JSX.Element {
     );
   }
 
+  // Employee routes (available in both Desktop and Web)
   return (
     <Routes>
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="*" element={<Navigate to="/login" replace />} />
+      <Route element={<EmployeeLayout />}>
+        <Route index element={<EmployeeHomePage />} />
+        <Route path="historico" element={<HistoryPage />} />
+      </Route>
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }
