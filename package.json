@@ -21,6 +21,8 @@
     "dev:desktop": "pnpm --filter @ph-ponto/desktop dev",
     "predev:frontend": "pnpm shared:build",
     "dev:frontend": "pnpm --filter @ph-ponto/desktop dev",
+    "predev:web": "pnpm shared:build",
+    "dev:web": "pnpm --filter @ph-ponto/desktop dev:web",
     "lint": "eslint . --max-warnings=0",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

@@ -3,11 +3,12 @@ node_modules/
 .pnpm-store/
 
 # Build outputs
-dist/
-renderer/
-build/
-out/
-release/
+/dist/
+/renderer/
+/build/
+/out/
+/release/
+packages/*/dist/
 *.tsbuildinfo
 .vite/
 
