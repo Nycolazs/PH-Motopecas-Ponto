@@ -109,6 +109,7 @@ function isAllowedHttpHost(hostname: string): boolean {
     if (p0 === 10) return true;
     if (p0 === 192 && p1 === 168) return true;
     if (p0 === 172 && p1 !== undefined && p1 >= 16 && p1 <= 31) return true;
+    if (p0 === 100 && p1 !== undefined && p1 >= 64 && p1 <= 127) return true;
     if (p0 === 127) return true;
   }
   return false;
