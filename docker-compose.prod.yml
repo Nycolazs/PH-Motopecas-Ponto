@@ -55,6 +55,23 @@ services:
       retries: 12
       start_period: 20s
 
+  web:
+    build:
+      context: .
+      dockerfile: apps/desktop/Dockerfile
+    restart: unless-stopped
+    ports:
+      - '${WEB_BIND_IP:-0.0.0.0}:${WEB_PORT:-5173}:80'
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'wget', '-q', '--spider', 'http://127.0.0.1:80/']
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 10s
+
   # Watchtower checks GHCR for updated images every 5 minutes and rolls out updates automatically
   watchtower:
     image: containrrr/watchtower:latest
