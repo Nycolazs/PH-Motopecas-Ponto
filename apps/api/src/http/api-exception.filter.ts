@@ -30,6 +30,10 @@ const defaultProblems: Record<number, Pick<SafeExceptionPayload, 'code' | 'messa
     code: 'RATE_LIMITED',
     message: 'Muitas tentativas. Tente novamente em instantes.',
   },
+  [HttpStatus.PAYLOAD_TOO_LARGE]: {
+    code: 'PAYLOAD_TOO_LARGE',
+    message: 'O arquivo enviado excede o tamanho máximo permitido de 2 MB.',
+  },
   [HttpStatus.INTERNAL_SERVER_ERROR]: {
     code: 'INTERNAL_SERVER_ERROR',
     message: 'Não foi possível concluir a solicitação.',
@@ -85,8 +89,14 @@ export class ApiExceptionFilter implements ExceptionFilter {
     const context = host.switchToHttp();
     const request = context.getRequest<Request>();
     const response = context.getResponse<Response>();
-    const status =
+    const errorName = exception instanceof Error ? exception.name : 'UnknownError';
+    let status =
       exception instanceof HttpException ? exception.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR;
+
+    if (errorName === 'PayloadTooLargeError') {
+      status = HttpStatus.PAYLOAD_TOO_LARGE;
+    }
+
     const safePayload =
       exception instanceof HttpException ? readSafePayload(exception.getResponse()) : undefined;
     const fallback = defaultProblems[status] ?? defaultProblems[HttpStatus.INTERNAL_SERVER_ERROR]!;
@@ -100,7 +110,6 @@ export class ApiExceptionFilter implements ExceptionFilter {
     };
 
     if (!(exception instanceof HttpException) || status >= HttpStatus.INTERNAL_SERVER_ERROR) {
-      const errorName = exception instanceof Error ? exception.name : 'UnknownError';
       this.logger.error({
         event: 'http_request_failed',
         errorName,

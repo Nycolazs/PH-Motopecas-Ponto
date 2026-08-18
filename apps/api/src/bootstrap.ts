@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { PRODUCT_NAME } from '@ph-ponto/shared';
+import { json, urlencoded } from 'express';
 import helmet from 'helmet';
 
 import type { EnvironmentVariables } from './config/environment.js';
@@ -36,6 +37,8 @@ export function configureApplication(app: NestExpressApplication): void {
   }
 
   app.set('trust proxy', config.get('TRUST_PROXY_COUNT', { infer: true }));
+  app.use(json({ limit: '10mb' }));
+  app.use(urlencoded({ extended: true, limit: '10mb' }));
   app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
   app.enableCors({
     credentials: false,
