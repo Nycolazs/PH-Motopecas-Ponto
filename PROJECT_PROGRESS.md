@@ -94,11 +94,14 @@ READY_FOR_RELEASE
 
 ## Currently Working On
 
-- Local execution active and ready for interactive user testing.
+- Local Electron client in execution, pointed and authenticated directly to the production backend on `http://100.73.175.88:3000` (Tailscale private network).
+- Production stack (PostgreSQL, Backend API, Frontend Web) running in isolated Docker containers on remote server (`187.40.218.102`).
+- Auto-deploy pipeline active via cron, syncing GitHub commits to server containers automatically.
 
 ## Next Steps
 
-- User interactive testing of Employee and Admin workflows.
+- Proceed with Cloudflare Tunnel configuration or Zero Trust token setup when provided by the user.
+- Interactive end-to-end testing of time punch, employee management, and report generation flows.
 
 ## Architecture Decisions
 
