@@ -180,13 +180,19 @@ export class AttendanceService implements AttendanceSummaryResolver {
           punchesByEmployee.set(p.employeeId, list);
         }
 
+        const targetEmployees = activeEmployees.filter((emp) => {
+          if (!emp.createdAt) return true;
+          const empHireDate = businessDateFromInstant(emp.createdAt);
+          return compareBusinessDates(businessDate, empHireDate) >= 0;
+        });
+
         const employeeStatuses: EmployeeTodayStatusViewDto[] = [];
         let clockedInTodayCount = 0;
         let currentlyWorkingCount = 0;
         let incompleteCount = 0;
         let notClockedInCount = 0;
 
-        for (const emp of activeEmployees) {
+        for (const emp of targetEmployees) {
           const punches = punchesByEmployee.get(emp.id) ?? [];
           const empHireDate = businessDateFromInstant(emp.createdAt);
           let empExpectation = expectation;
@@ -239,7 +245,7 @@ export class AttendanceService implements AttendanceSummaryResolver {
 
         return {
           businessDate,
-          totalActiveEmployees: activeEmployees.length,
+          totalActiveEmployees: targetEmployees.length,
           clockedInTodayCount,
           currentlyWorkingCount,
           incompleteCount,
@@ -590,21 +596,16 @@ export class AttendanceService implements AttendanceSummaryResolver {
           punchesByDate.set(businessDate, datePunches);
         }
 
-        return dates.map((businessDate) => {
-          let expectation = resolveExpectation({
+        const applicableDates = hireBusinessDate
+          ? dates.filter((d) => compareBusinessDates(d, hireBusinessDate) >= 0)
+          : dates;
+
+        const allSummaries = applicableDates.map((businessDate) => {
+          const expectation = resolveExpectation({
             businessDate,
             scheduleVersions,
             exceptionRevisions,
           });
-
-          if (hireBusinessDate && compareBusinessDates(businessDate, hireBusinessDate) < 0) {
-            expectation = {
-              ...expectation,
-              expectedMinutes: 0,
-              isOpen: false,
-              calendarStatus: 'DAY_OFF',
-            };
-          }
 
           return calculateDailyAttendance({
             businessDate,
@@ -612,6 +613,16 @@ export class AttendanceService implements AttendanceSummaryResolver {
             punches: punchesByDate.get(businessDate) ?? [],
             isFinalized: classifyBusinessDate(businessDate, evaluationInstant) === 'FINALIZED',
           });
+        });
+
+        return allSummaries.filter((summary) => {
+          const isRegularClosedDayWithoutPunches =
+            !summary.expectation.isOpen &&
+            summary.expectation.source === 'WEEKLY_SCHEDULE' &&
+            summary.punchCount === 0 &&
+            summary.expectation.calendarStatus === 'DAY_OFF' &&
+            !summary.expectation.exceptionName;
+          return !isRegularClosedDayWithoutPunches;
         });
       },
       { isolationLevel: 'RepeatableRead', maxWait: 5_000, timeout: 10_000 },

@@ -99,11 +99,11 @@ describe('validateEnvironment', () => {
       validateEnvironment({
         ...validEnvironment,
         JWT_SECRET: invalidSecret,
-        INITIAL_ADMIN_PASSWORD: 'short',
+        INITIAL_ADMIN_PASSWORD: 'sh',
       });
     } catch (error) {
       expect(String(error)).not.toContain(invalidSecret);
-      expect(String(error)).not.toContain('short');
+      expect(String(error)).not.toContain('sh');
     }
   });
 

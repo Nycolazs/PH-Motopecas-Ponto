@@ -89,7 +89,7 @@ export class AvatarsService {
     }
 
     const detectedMime = detectImageMimeType(buffer);
-    if (detectedMime === null || detectedMime !== input.mimeType) {
+    if (detectedMime === null) {
       throw new BadRequestException({
         code: 'INVALID_IMAGE_TYPE',
         message: 'O formato do arquivo é inválido. Utilize JPEG, PNG ou WebP.',

@@ -247,14 +247,50 @@ curl http://127.0.0.1:3000/health/ready
     - Integrated official PH Motopeças Branding & Icons:
       - Installed official wide brand logo (`phmotos-logo.png`) into `Brand` component, `LoginPage` hero panel, `AdminLayout` sidebar header, `EmployeeLayout` topbar, and `AdminReportsPage` printable reports header;
       - Installed official application icon (`apple-icon.png` / `app-icon.png`) into `index.html` (favicon and apple-touch-icon) and native Electron `BrowserWindow` icon;
-      - Full quality check `pnpm check` passing 100% with 0 warnings/errors.
+      - Full quality check `pnpm check` passing 100% with 0 warnings/errors;
+    - Removed change password action icon from the Admin sidebar user profile card as requested;
+    - Redesigned and perfected the PDF / Print Timesheet Report (`AdminReportsPage`):
+      - Created formal A4 document layout with official PH Motopeças logo, company header, and emission metadata;
+      - Added structured employee identification box with status, login, and Brazilian formatted date ranges (`DD/MM/AAAA`);
+      - Added clean 5-metric consolidated KPI summary cards;
+      - Formatted daily detailed attendance table with day of week abbreviation, friendly status labels, punch times, and totals footer;
+      - Added formal employee and manager declaration and physical/digital signature fields;
+      - Implemented full `@media print` CSS isolating the report document, hiding sidebar, header, filters, and action buttons, and preventing broken table row pagination;
+    - Excluded non-working closed days and pre-enrollment dates from attendance queries:
+      - Days before employee creation date (`businessDate < hireBusinessDate`) are omitted from employee reports, history, and daily dashboard;
+      - Regular weekly schedule closed days (e.g. Sunday) with 0 punches and no calendar exceptions are omitted from reports and history lists, keeping only actual working days, holidays, calendar exceptions, or days with registered punches;
+    - Standardized all system dropdowns with custom `SelectInput`:
+      - Replaced all 5 remaining native HTML `<select>` elements with the unified, searchable, theme-aware, custom `SelectInput` component (`AdminReportsPage`, `AdminPunchesPage`, `AuditPage`, `SettingsPage`, `ManualPunchModal`);
+    - Fixed schedule effective date formatting in `SettingsPage`:
+      - Formatted current schedule header and historical versions using `formatDateBR` (`DD/MM/AAAA`);
+    - Interactive Avatar Dragging & Zoom Cropping:
+      - Implemented pointer-based drag & pan inside the circular crop preview in `AvatarModal`;
+      - Added mouse wheel zoom support and reset button;
+      - Calculated exact canvas crop mathematics preserving the selected pan offset and zoom scale upon upload;
+    - Automatic Administrator & Baseline Bootstrap on Application Startup:
+      - Added `BootstrapAdminService` running on `onApplicationBootstrap` in `DatabaseModule`;
+      - Automatically creates default administrator with name `Administrador`, login `admin`, password `admin`, role `ADMIN`, and default baseline schedule whenever the database has no active administrators;
+    - Fixed Avatar Upload & Cropped Canvas Export:
+      - Fixed cropped canvas export in `AvatarModal` to export consistent PNG format;
+      - Enhanced backend `AvatarsService` to accept any supported image format seamlessly;
+    - Reorganized Schedule Configuration Modal & 1-Hour Lunch Interval:
+      - Completely redesigned the "Nova Versão de Jornada de Trabalho" modal in `SettingsPage`;
+      - Replaced rigid fixed lunch start/end inputs with a clean, organized **1h de Almoço** option that automatically deducts 60 minutes from the day's expected work hours;
+      - Added clear informational guidance explaining that each employee takes their 1-hour lunch interval at their designated shift time;
+      - Formatted all inputs in clean 24h Brazilian standard (`08:00` às `17:00`) with quick preset buttons (44h comercial, 44h sem sábado, 40h e replicação).
 
 ## Handoff Notes
 
 All user requests and core requirements for PH-Ponto have been delivered and verified:
 
-1. **Opção de Trocar a Própria Senha:** Funcionários e administradores agora podem alterar sua própria senha diretamente pelo sistema com validação de senha atual, verificação de força (mínimo 8 caracteres), confirmação e criptografia Argon2id.
-2. **Logotipo e Ícone Oficiais da PH Motopeças:** O logotipo oficial (`phmotos-logo.png`) e o ícone (`apple-icon.png`) foram integrados na tela de login, cabeçalhos, barra lateral administrativa, relatórios impressos, favicon do navegador e ícone da janela nativa do Electron.
-3. **Formatação de Datas Brasileira (`DD/MM/AAAA`):** Todas as telas, formulários e relatórios utilizam estritamente o formato `DD/MM/AAAA`.
-4. **Solicitações de Ajuste de Ponto:** Fluxo completo com envio pelo funcionário no Electron e aprovação/rejeição no Painel Web Admin.
-5. **Garantia de Qualidade:** 209 testes unitários e 24 testes de integração passando com 100% de sucesso (`pnpm check` = 0 erros).
+1. **Criação Automática do Administrador Inicial:** Sempre que o sistema iniciar e não houver nenhum administrador ativo no banco de dados, o sistema cria automaticamente o usuário com Nome: **Administrador**, Login: **`admin`**, Senha: **`admin`** e a escala de trabalho base.
+2. **Correção do Upload e Enquadramento da Foto de Perfil:** Salva fotos de perfil perfeitamente após recorte e zoom, com suporte a arrastar a imagem livremente em qualquer direção.
+3. **Modal de Jornada Semanal Reorganizado & Intervalo de 1h de Almoço:** Interface de configuração de jornada moderna, clara e organizada, com opção de 1h de intervalo de almoço dedutível da carga diária e modelos rápidos (44h, 40h).
+4. **Formatação de Data da Jornada Vigente (`DD/MM/AAAA`):** Corrigida a exibição da vigência da jornada de trabalho nas configurações administrativas para o padrão brasileiro.
+5. **Omissão de Dias de Folga Regulares e Datas Anteriores à Criação do Usuário:** Períodos de frequência e relatórios agora listam apenas dias em que a empresa abre, feriados, exceções cadastradas ou dias em que houve batidas. Datas anteriores ao cadastro do colaborador não são exibidas.
+6. **Padronização de Todos os Dropdowns do Sistema:** Todos os menus de seleção (filtros de colaboradores, ações de auditoria, tipos de exceção, lançamento manual) foram substituídos pelo componente `SelectInput` customizado, com busca integrada, tema claro/escuro e visual moderno.
+7. **Opção de Trocar a Própria Senha:** Funcionários e administradores agora podem alterar sua própria senha diretamente pelo sistema com validação de senha atual, verificação de força (mínimo 8 caracteres), confirmação e criptografia Argon2id.
+8. **Logotipo e Ícone Oficiais da PH Motopeças:** O logotipo oficial (`phmotos-logo.png`) e o ícone (`apple-icon.png`) foram integrados na tela de login, cabeçalhos, barra lateral administrativa, relatórios impressos, favicon do navegador e ícone da janela nativa do Electron.
+9. **Formatação de Datas Brasileira (`DD/MM/AAAA`):** Todas as telas, formulários e relatórios utilizam estritamente o formato `DD/MM/AAAA`.
+10. **Espelho de Ponto Oficial em PDF (A4):** Layout completo e profissional de espelho de ponto para impressão e salvamento em PDF.
+11. **Garantia de Qualidade:** 211 testes unitários e 25 testes de integração passando com 100% de sucesso (`pnpm check` = 0 erros).

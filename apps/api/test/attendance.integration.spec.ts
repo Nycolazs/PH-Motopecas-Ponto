@@ -147,7 +147,7 @@ describe('attendance schedules and calendar exceptions with real PostgreSQL', ()
       .auth(employeeAccessToken, { type: 'bearer' })
       .expect(200);
 
-    expect(response.body.days).toHaveLength(7);
+    expect(response.body.days).toHaveLength(6);
     expect(response.body.days[0]).toMatchObject({
       businessDate: '2026-01-05',
       expectedMinutes: 480,
@@ -161,15 +161,9 @@ describe('attendance schedules and calendar exceptions with real PostgreSQL', ()
       balanceMinutes: -240,
       status: 'MISSING_HOURS',
     });
-    expect(response.body.days[6]).toMatchObject({
-      businessDate: '2026-01-11',
-      expectedMinutes: 0,
-      balanceMinutes: 0,
-      status: 'DAY_OFF',
-    });
     expect(response.body.totals).toMatchObject({
-      finalizedDayCount: 7,
-      completeDayCount: 7,
+      finalizedDayCount: 6,
+      completeDayCount: 6,
       expectedMinutes: 2_640,
       missingMinutes: 2_640,
     });
@@ -366,11 +360,6 @@ describe('attendance schedules and calendar exceptions with real PostgreSQL', ()
     expect(historyRes.body.totals.expectedMinutes).toBe(0);
     expect(historyRes.body.totals.missingMinutes).toBe(0);
     expect(historyRes.body.totals.balanceMinutes).toBe(0);
-    expect(
-      historyRes.body.days.every(
-        (d: { expectedMinutes: number; status: string }) =>
-          d.expectedMinutes === 0 && d.status === 'DAY_OFF',
-      ),
-    ).toBe(true);
+    expect(historyRes.body.days).toHaveLength(0);
   });
 });

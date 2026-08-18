@@ -449,7 +449,7 @@ describe('authoritative and idempotent time punches with real PostgreSQL', () =>
       .query({ month: '2026-01' })
       .auth(employeeAccessToken, { type: 'bearer' })
       .expect(200);
-    expect(monthly.body.days).toHaveLength(20);
+    expect(monthly.body.days).toHaveLength(17);
     expect(monthly.body.days.at(-1)).toMatchObject({
       businessDate: '2026-01-20',
       isFinalized: false,

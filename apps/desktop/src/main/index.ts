@@ -50,7 +50,8 @@ const developmentOrigin = app.isPackaged
   ? undefined
   : validateDevelopmentOrigin(process.env.VITE_DEV_SERVER_URL ?? DEFAULT_DEVELOPMENT_ORIGIN);
 const apiBaseUrl = validateApiBaseUrl(
-  process.env.API_BASE_URL ?? 'https://phmotopecas-api.yacacode.com',
+  process.env.API_BASE_URL ??
+    (app.isPackaged ? 'https://phmotopecas-api.yacacode.com' : 'http://localhost:3000'),
 );
 const trustedWebContentsIds = new Set<number>();
 
