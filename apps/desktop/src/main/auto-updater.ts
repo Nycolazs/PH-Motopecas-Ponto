@@ -4,7 +4,25 @@ import electronUpdaterPkg, { type AppUpdater } from 'electron-updater';
 const autoUpdater: AppUpdater = (electronUpdaterPkg as unknown as { autoUpdater: AppUpdater })
   .autoUpdater;
 
-const UPDATE_CHECK_INTERVAL_MS = 2 * 60 * 60 * 1000; // Check every 2 hours
+let lastCheckTime = 0;
+const MIN_CHECK_INTERVAL_MS = 15 * 60 * 1000; // 15 minutes throttle
+
+export function triggerBackgroundUpdateCheck(): void {
+  if (!app.isPackaged) {
+    return;
+  }
+  const now = Date.now();
+  if (now - lastCheckTime < MIN_CHECK_INTERVAL_MS) {
+    return;
+  }
+  lastCheckTime = now;
+
+  Promise.resolve().then(() => {
+    autoUpdater.checkForUpdates().catch((err: Error) => {
+      console.warn('[AutoUpdater] Verificação silenciosa em segundo plano:', err.message);
+    });
+  });
+}
 
 export function setupAutoUpdater(): void {
   // Only execute update checks in packaged production builds
@@ -18,12 +36,12 @@ export function setupAutoUpdater(): void {
     autoUpdater.allowPrerelease = false;
 
     autoUpdater.on('checking-for-update', () => {
-      console.log('[AutoUpdater] Verificando atualizações no GitHub...');
+      console.log('[AutoUpdater] Verificando atualizações no GitHub em segundo plano...');
     });
 
     autoUpdater.on('update-available', (info) => {
       console.log(
-        `[AutoUpdater] Nova versão disponível (${info.version}). Baixando em segundo plano...`,
+        `[AutoUpdater] Nova versão detectada (${info.version}). Baixando em segundo plano sem interromper o usuário...`,
       );
     });
 
@@ -37,23 +55,19 @@ export function setupAutoUpdater(): void {
 
     autoUpdater.on('update-downloaded', (info) => {
       console.log(
-        `[AutoUpdater] Versão ${info.version} baixada com sucesso. Será aplicada ao reiniciar.`,
+        `[AutoUpdater] Versão ${info.version} baixada com sucesso em segundo plano. Será aplicada na próxima reinicialização.`,
       );
     });
 
-    // Initial check after 10 seconds of app start
+    // Initial check delayed to 45 seconds after start to ensure 0% impact on startup speed
     setTimeout(() => {
-      autoUpdater.checkForUpdatesAndNotify().catch((err: Error) => {
-        console.warn('[AutoUpdater] Falha na verificação inicial:', err.message);
-      });
-    }, 10_000);
+      triggerBackgroundUpdateCheck();
+    }, 45_000);
 
-    // Periodic check
+    // Periodic check every 2 hours
     setInterval(() => {
-      autoUpdater.checkForUpdatesAndNotify().catch((err: Error) => {
-        console.warn('[AutoUpdater] Falha na verificação periódica:', err.message);
-      });
-    }, UPDATE_CHECK_INTERVAL_MS);
+      triggerBackgroundUpdateCheck();
+    }, 2 * 60 * 60 * 1000);
   } catch (err) {
     console.warn('[AutoUpdater] Inicialização ignorada:', err);
   }

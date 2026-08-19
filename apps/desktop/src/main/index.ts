@@ -17,7 +17,7 @@ import { APP_INFO_CHANNEL, type AppInfo } from '../shared/electron-api.js';
 import { AuthApiClient } from './auth-api-client.js';
 import { registerAuthIpc } from './auth-ipc.js';
 import { DesktopAuthSessionService } from './auth-session.service.js';
-import { setupAutoUpdater } from './auto-updater.js';
+import { setupAutoUpdater, triggerBackgroundUpdateCheck } from './auto-updater.js';
 import { RefreshTokenVault, type TokenEncryption } from './refresh-token-vault.js';
 import {
   createContentSecurityPolicy,
@@ -112,6 +112,11 @@ function registerIpc(): void {
     `${PRODUCT_NAME} (${process.platform})`,
   );
   registerAuthIpc(ipcMain, new DesktopAuthSessionService(api, vault), assertTrustedSender);
+
+  ipcMain.on('updater:check-background', (event) => {
+    assertTrustedSender(event);
+    triggerBackgroundUpdateCheck();
+  });
 }
 
 async function createMainWindow(): Promise<BrowserWindow> {

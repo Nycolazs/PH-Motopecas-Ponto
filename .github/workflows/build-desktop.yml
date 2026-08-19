@@ -23,6 +23,8 @@ jobs:
             os: windows-latest
             package_cmd: pnpm package:windows
             artifact_pattern: |
+              apps/desktop/release/PH-Ponto-Setup-*.exe
+              apps/desktop/release/latest.yml
               PH-Motopeças-Ponto-Frontend/release/PH-Ponto-Setup-*.exe
               PH-Motopeças-Ponto-Frontend/release/latest.yml
             artifact_name: PH-Ponto-Windows-x64
@@ -31,6 +33,9 @@ jobs:
             os: macos-latest
             package_cmd: pnpm package:mac
             artifact_pattern: |
+              apps/desktop/release/PH-Ponto-*.dmg
+              apps/desktop/release/PH-Ponto-*.zip
+              apps/desktop/release/latest-mac.yml
               PH-Motopeças-Ponto-Frontend/release/PH-Ponto-*.dmg
               PH-Motopeças-Ponto-Frontend/release/PH-Ponto-*.zip
               PH-Motopeças-Ponto-Frontend/release/latest-mac.yml
@@ -40,6 +45,9 @@ jobs:
             os: ubuntu-latest
             package_cmd: pnpm package:linux
             artifact_pattern: |
+              apps/desktop/release/PH-Ponto-*.AppImage
+              apps/desktop/release/PH-Ponto-*.deb
+              apps/desktop/release/latest-linux.yml
               PH-Motopeças-Ponto-Frontend/release/PH-Ponto-*.AppImage
               PH-Motopeças-Ponto-Frontend/release/PH-Ponto-*.deb
               PH-Motopeças-Ponto-Frontend/release/latest-linux.yml

@@ -49,6 +49,9 @@ const electronApi: ElectronApi = Object.freeze({
       (await ipcRenderer.invoke(channels.appInfo)) as Awaited<
         ReturnType<ElectronApi['app']['getInfo']>
       >,
+    checkForUpdatesInBackground: () => {
+      ipcRenderer.send('updater:check-background');
+    },
   }),
   auth: Object.freeze({
     login: async (input: DesktopLoginInput) =>

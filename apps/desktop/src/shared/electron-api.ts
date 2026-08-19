@@ -54,6 +54,7 @@ export type AuthIpcResult<T> = { ok: true; value: T } | { ok: false; error: Desk
 export interface ElectronApi {
   app: {
     getInfo: () => Promise<AppInfo>;
+    checkForUpdatesInBackground?: () => void;
   };
   auth: {
     login: (input: DesktopLoginInput) => Promise<DesktopAuthState>;

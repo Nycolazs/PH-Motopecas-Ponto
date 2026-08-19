@@ -63,7 +63,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Nycolazs/PH-Motopecas-Ponto-Frontend.git"
+    "url": "https://github.com/Nycolazs/PH-Motopecas-Ponto.git"
   },
   "build": {
     "appId": "com.phmotopecas.phponto",
@@ -76,7 +76,7 @@
     "publish": {
       "provider": "github",
       "owner": "Nycolazs",
-      "repo": "PH-Motopecas-Ponto-Frontend"
+      "repo": "PH-Motopecas-Ponto"
     },
     "files": [
       "dist/**/*",

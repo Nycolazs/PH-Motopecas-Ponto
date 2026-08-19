@@ -159,6 +159,7 @@ export function EmployeeHomePage(): React.JSX.Element {
       queryClient.setQueryData(['attendance', employeeId, 'today'], result.dailySummary);
       void queryClient.invalidateQueries({ queryKey: ['attendance', employeeId, 'monthly'] });
       void queryClient.invalidateQueries({ queryKey: ['attendance', employeeId, 'history'] });
+      window.phPonto?.app.checkForUpdatesInBackground?.();
     },
     onError: (error) => {
       if (!(error instanceof ApiClientError) || error.kind === 'HTTP') {
