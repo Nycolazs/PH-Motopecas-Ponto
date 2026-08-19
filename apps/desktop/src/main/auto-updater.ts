@@ -65,9 +65,12 @@ export function setupAutoUpdater(): void {
     }, 45_000);
 
     // Periodic check every 2 hours
-    setInterval(() => {
-      triggerBackgroundUpdateCheck();
-    }, 2 * 60 * 60 * 1000);
+    setInterval(
+      () => {
+        triggerBackgroundUpdateCheck();
+      },
+      2 * 60 * 60 * 1000,
+    );
   } catch (err) {
     console.warn('[AutoUpdater] Inicialização ignorada:', err);
   }
