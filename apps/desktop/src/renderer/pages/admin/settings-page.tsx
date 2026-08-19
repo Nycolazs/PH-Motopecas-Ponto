@@ -81,6 +81,17 @@ function formatMinutesToFriendly(minutes: number): string {
   return `${h}h ${String(m).padStart(2, '0')}m`;
 }
 
+function formatScheduleEffectiveDate(effectiveDate: string, createdAt?: string): string {
+  const isBaseline = effectiveDate.startsWith('1970') || Number(effectiveDate.slice(0, 4)) < 2000;
+  if (isBaseline) {
+    if (createdAt) {
+      return formatDateBR(createdAt.split('T')[0] ?? createdAt);
+    }
+    return formatDateBR('2026-01-01');
+  }
+  return formatDateBR(effectiveDate);
+}
+
 export function AdminSettingsPage(): React.JSX.Element {
   const api = useApiClient();
   const toast = useToast();
@@ -404,7 +415,7 @@ export function AdminSettingsPage(): React.JSX.Element {
                     Jornada Vigente
                   </div>
                   <h2 className="text-lg font-bold text-slate-900 dark:text-white">
-                    Em vigor desde {formatDateBR(latestSchedule.effectiveDate)}
+                    Em vigor desde {formatScheduleEffectiveDate(latestSchedule.effectiveDate, latestSchedule.createdAt)}
                   </h2>
                   {latestSchedule.note && (
                     <p className="text-xs text-slate-500 mt-0.5">{latestSchedule.note}</p>
@@ -486,7 +497,7 @@ export function AdminSettingsPage(): React.JSX.Element {
                   >
                     <div>
                       <span className="font-bold text-slate-900 dark:text-white">
-                        Vigência: {formatDateBR(s.effectiveDate)}
+                        Vigência: {formatScheduleEffectiveDate(s.effectiveDate, s.createdAt)}
                       </span>
                       {s.note && <span className="text-slate-500 ml-2">({s.note})</span>}
                     </div>
