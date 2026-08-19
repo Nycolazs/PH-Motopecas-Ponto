@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Clock3, History, KeyRound, LogOut, WifiOff } from 'lucide-react';
+import { Clock3, History, KeyRound, LogOut, RotateCw, WifiOff } from 'lucide-react';
 import { NavLink, Outlet } from 'react-router-dom';
 
 import { useAuth } from '../auth/use-auth.js';
 import { Brand } from './brand.js';
 import { ChangePasswordModal } from './change-password-modal.js';
 import { ThemeButton } from './theme-button.js';
+import { useToast } from './toast-context.js';
 
 function useOnline(): boolean {
   const [online, setOnline] = useState(() => navigator.onLine);
@@ -26,8 +27,28 @@ function useOnline(): boolean {
 export function EmployeeLayout(): React.JSX.Element {
   const { logout, session } = useAuth();
   const queryClient = useQueryClient();
+  const { showToast } = useToast();
   const online = useOnline();
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleRefresh = async (): Promise<void> => {
+    setIsRefreshing(true);
+    try {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['today-punches'] }),
+        queryClient.invalidateQueries({ queryKey: ['my-adjustment-requests'] }),
+        queryClient.invalidateQueries({ queryKey: ['today-summary'] }),
+        queryClient.invalidateQueries({ queryKey: ['attendance-history'] }),
+        queryClient.invalidateQueries({ queryKey: ['current-user'] }),
+      ]);
+      showToast('success', 'Dados e solicitações atualizados com sucesso.', 'Atualizado');
+    } catch {
+      showToast('error', 'Falha ao atualizar dados.', 'Erro ao Atualizar');
+    } finally {
+      setTimeout(() => setIsRefreshing(false), 500);
+    }
+  };
 
   return (
     <div className="app-shell">
@@ -42,6 +63,16 @@ export function EmployeeLayout(): React.JSX.Element {
           </NavLink>
         </nav>
         <div className="header-actions">
+          <button
+            className={`icon-button ${isRefreshing ? 'opacity-70' : ''}`}
+            type="button"
+            aria-label="Atualizar dados e solicitações"
+            title="Atualizar dados e solicitações"
+            disabled={isRefreshing}
+            onClick={() => void handleRefresh()}
+          >
+            <RotateCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} aria-hidden="true" />
+          </button>
           <button
             className="icon-button"
             type="button"

@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { CheckCircle2, Clock, XCircle } from 'lucide-react';
+import { CheckCircle2, Clock, RotateCw, XCircle } from 'lucide-react';
 
 import type { AdjustmentRequest } from '../api/contracts.js';
 import { useAuth } from '../auth/use-auth.js';
@@ -17,19 +17,32 @@ export function MyAdjustmentRequestsModal({
 }: MyAdjustmentRequestsModalProps): React.JSX.Element | null {
   const { api } = useAuth();
 
-  const { data, isLoading, isError } = useQuery({
+  const { data, isLoading, isError, refetch, isFetching } = useQuery({
     queryKey: ['my-adjustment-requests'],
     queryFn: ({ signal }) => api.getMyAdjustmentRequests({ limit: 50 }, signal),
     enabled: isOpen,
-    staleTime: 10_000,
+    staleTime: 5_000,
+    refetchInterval: isOpen ? 10_000 : false,
   });
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Minhas Solicitações de Ajuste">
       <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
-        <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">
-          Histórico de pedidos de correção de ponto enviados para aprovação.
-        </p>
+        <div className="flex items-center justify-between gap-2 mb-2">
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            Histórico de pedidos de correção de ponto enviados para aprovação.
+          </p>
+          <button
+            type="button"
+            onClick={() => void refetch()}
+            disabled={isFetching}
+            className="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition shrink-0"
+            title="Atualizar solicitações"
+          >
+            <RotateCw className={`w-3.5 h-3.5 ${isFetching ? 'animate-spin' : ''}`} />
+            <span>Atualizar</span>
+          </button>
+        </div>
 
         {isLoading && (
           <div className="p-8 text-center text-slate-500">Carregando solicitações...</div>
