@@ -287,25 +287,23 @@ curl http://127.0.0.1:3000/health/ready
       - Added quick-access modal trigger on avatar click, allowing employees to change, zoom, and crop their profile photo directly from the home screen;
       - Added reactive `cacheKey` prop to `AvatarImage` ensuring immediate cache-busting and live re-render upon uploading a new picture;
       - Enforced circular `rounded-full` shape across all avatar photos and initials fallback badges in dashboard, presence board, tables, modals, and headers;
-    - Security & CI Hardening:
-      - Updated Electron Content Security Policy (CSP) `img-src` to include `${apiOrigin}`, enabling safe profile photo streaming from the backend;
-      - Resolved `deepmerge-ts` transitive audit advisory via `pnpm-workspace.yaml` overrides;
-      - Fixed `apps/desktop/.gitignore` ensuring all renderer source files, components, and test setup scripts are tracked in Git;
-      - Updated Playwright E2E tests and integration tests to accommodate avatar endpoints and title formatting.
+    - Windows Build, Non-Blocking Post-Punch Auto-Updater & GitHub Release v0.1.0:
+      - Implemented silent background update checker (`triggerBackgroundUpdateCheck`) with a 15-minute throttle and 45-second delayed launch trigger, ensuring zero impact on application startup speed;
+      - Integrated automatic update check trigger upon successful time punch registration in `EmployeeHomePage` (`window.phPonto.app.checkForUpdatesInBackground()`);
+      - Configured `electron-updater` with `autoDownload = true` and `autoInstallOnAppQuit = true` for seamless, unprompted background updates;
+      - Updated GitHub Actions workflow `.github/workflows/build-desktop.yml` to package Windows x64 NSIS installers (`PH-Ponto-Setup-${version}.exe`) and automatically publish GitHub Releases;
+      - Successfully published official release **v0.1.0** on GitHub with Windows installer, auto-updater metadata (`latest.yml`), macOS and Linux packages.
 
 ## Handoff Notes
 
 All user requests and core requirements for PH-Ponto have been delivered, verified, and pushed to GitHub:
 
-1. **Foto do Funcionário Circular na Tela Inicial e Tabelas:** A foto de perfil do colaborador agora é exibida com destaque em formato perfeitamente circular (`rounded-full`) no cabeçalho inicial (`Olá, [Nome] — Seu ponto de hoje`) e no Quadro de Frequência, com fallback seguro para iniciais estilizadas e atalho direto para atualização da imagem.
-2. **Correção do Upload do Avatar (Limite de Body Parser):** Configurado o limite de JSON para 10 MB no backend e exportação de JPEG otimizado (~50 KB) no frontend, eliminando erros de payload e garantindo salvamento rápido.
-3. **Criação Automática do Administrador Inicial:** Sempre que o sistema iniciar e não houver nenhum administrador ativo no banco de dados, o sistema cria automaticamente o usuário com Nome: **Administrador**, Login: **`admin`**, Senha: **`admin`** e a escala de trabalho base.
-4. **Modal de Jornada Semanal Reorganizado & Intervalo de 1h de Almoço:** Interface de configuração de jornada moderna, clara e organizada, com opção de 1h de intervalo de almoço dedutível da carga diária e modelos rápidos (44h, 40h).
-5. **Formatação de Data da Jornada Vigente (`DD/MM/AAAA`):** Corrigida a exibição da vigência da jornada de trabalho nas configurações administrativas para o padrão brasileiro.
-6. **Omissão de Dias de Folga Regulares e Datas Anteriores à Criação do Usuário:** Períodos de frequência e relatórios agora listam apenas dias em que a empresa abre, feriados, exceções cadastradas ou dias em que houve batidas. Datas anteriores ao cadastro do colaborador não são exibidas.
-7. **Padronização de Todos os Dropdowns do Sistema:** Todos os menus de seleção (filtros de colaboradores, ações de auditoria, tipos de exceção, lançamento manual) foram substituídos pelo componente `SelectInput` customizado, com busca integrada, tema claro/escuro e visual moderno.
-8. **Opção de Trocar a Própria Senha:** Funcionários e administradores agora podem alterar sua própria senha diretamente pelo sistema com validação de senha atual, verificação de força (mínimo 8 caracteres), confirmação e criptografia Argon2id.
-9. **Logotipo e Ícone Oficiais da PH Motopeças:** O logotipo oficial (`phmotos-logo.png`) e o ícone (`apple-icon.png`) foram integrados na tela de login, cabeçalhos, barra lateral administrativa, relatórios impressos, favicon do navegador e ícone da janela nativa do Electron.
-10. **Formatação de Datas Brasileira (`DD/MM/AAAA`):** Todas as telas, formulários e relatórios utilizam estritamente o formato `DD/MM/AAAA`.
-11. **Espelho de Ponto Oficial em PDF (A4):** Layout completo e profissional de espelho de ponto para impressão e salvamento em PDF.
-12. **Garantia de Qualidade:** 211 testes unitários, 25 testes de integração com banco de dados e testes E2E Playwright passando com 100% de sucesso (`pnpm check` = 0 erros, `pnpm audit` = 0 vulnerabilidades).
+1. **Build Windows & Auto-Atualização em Segundo Plano (Pós-Ponto):**
+   - O executável de instalação para Windows (**`PH-Ponto-Setup-0.1.0.exe`**) foi compilado e publicado no GitHub Releases.
+   - O aplicativo desktop inicia instantaneamente (sem nenhum atraso ou verificação bloqueante na abertura).
+   - Após o colaborador registrar o ponto com sucesso, o sistema dispara uma verificação silenciosa de atualização em segundo plano. Caso haja uma nova versão no GitHub, ela é baixada silenciosamente e aplicada automaticamente na próxima reinicialização do aplicativo.
+2. **Produção Apontada para `https://ponto-api.phmotopecas.com`:**
+   - A URL oficial da API foi configurada em todas as variáveis de ambiente, builds e containers de produção.
+3. **Foto do Funcionário Circular na Tela Inicial e Tabelas:** A foto de perfil do colaborador agora é exibida com destaque em formato perfeitamente circular (`rounded-full`) no cabeçalho inicial (`Olá, [Nome] — Seu ponto de hoje`) e no Quadro de Frequência, com fallback seguro para iniciais estilizadas e atalho direto para atualização da imagem.
+4. **Criação Automática do Administrador Inicial:** Sempre que o sistema iniciar e não houver nenhum administrador ativo no banco de dados, o sistema cria automaticamente o usuário com Nome: **Administrador**, Login: **`admin`**, Senha: **`admin`** e a escala de trabalho base.
+5. **Garantia de Qualidade:** Testes unitários, integração e builds automatizados no GitHub Actions passando com 100% de sucesso.
