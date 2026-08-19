@@ -1,14 +1,32 @@
 import { app } from 'electron';
 import electronUpdaterPkg, { type AppUpdater } from 'electron-updater';
 
-const autoUpdater: AppUpdater = (electronUpdaterPkg as unknown as { autoUpdater: AppUpdater })
-  .autoUpdater;
+let updaterInstance: AppUpdater | null = null;
+
+function getUpdater(): AppUpdater | null {
+  if (updaterInstance !== null) return updaterInstance;
+  try {
+    const pkg = electronUpdaterPkg as unknown as {
+      autoUpdater?: AppUpdater;
+      default?: { autoUpdater?: AppUpdater };
+    };
+    updaterInstance = pkg.autoUpdater ?? pkg.default?.autoUpdater ?? null;
+    return updaterInstance;
+  } catch (err) {
+    console.warn('[AutoUpdater] Não foi possível carregar electron-updater:', err);
+    return null;
+  }
+}
 
 let lastCheckTime = 0;
 const MIN_CHECK_INTERVAL_MS = 15 * 60 * 1000; // 15 minutes throttle
 
 export function triggerBackgroundUpdateCheck(): void {
   if (!app.isPackaged) {
+    return;
+  }
+  const updater = getUpdater();
+  if (!updater) {
     return;
   }
   const now = Date.now();
@@ -18,7 +36,7 @@ export function triggerBackgroundUpdateCheck(): void {
   lastCheckTime = now;
 
   Promise.resolve().then(() => {
-    autoUpdater.checkForUpdates().catch((err: Error) => {
+    updater.checkForUpdates().catch((err: Error) => {
       console.warn('[AutoUpdater] Verificação silenciosa em segundo plano:', err.message);
     });
   });
@@ -31,29 +49,34 @@ export function setupAutoUpdater(): void {
   }
 
   try {
-    autoUpdater.autoDownload = true;
-    autoUpdater.autoInstallOnAppQuit = true;
-    autoUpdater.allowPrerelease = false;
+    const updater = getUpdater();
+    if (!updater) {
+      return;
+    }
 
-    autoUpdater.on('checking-for-update', () => {
+    updater.autoDownload = true;
+    updater.autoInstallOnAppQuit = true;
+    updater.allowPrerelease = false;
+
+    updater.on('checking-for-update', () => {
       console.log('[AutoUpdater] Verificando atualizações no GitHub em segundo plano...');
     });
 
-    autoUpdater.on('update-available', (info) => {
+    updater.on('update-available', (info) => {
       console.log(
         `[AutoUpdater] Nova versão detectada (${info.version}). Baixando em segundo plano sem interromper o usuário...`,
       );
     });
 
-    autoUpdater.on('update-not-available', () => {
+    updater.on('update-not-available', () => {
       console.log('[AutoUpdater] O aplicativo já está na versão mais recente.');
     });
 
-    autoUpdater.on('error', (err) => {
+    updater.on('error', (err) => {
       console.warn('[AutoUpdater] Aviso ao verificar/baixar atualização:', err.message);
     });
 
-    autoUpdater.on('update-downloaded', (info) => {
+    updater.on('update-downloaded', (info) => {
       console.log(
         `[AutoUpdater] Versão ${info.version} baixada com sucesso em segundo plano. Será aplicada na próxima reinicialização.`,
       );

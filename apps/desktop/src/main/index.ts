@@ -1,5 +1,5 @@
-import { pathToFileURL } from 'node:url';
-import { dirname, join } from 'node:path';
+import { readFile } from 'node:fs/promises';
+import { dirname, extname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import {
@@ -29,6 +29,7 @@ import {
   validateApiBaseUrl,
   validateDevelopmentOrigin,
 } from './security.js';
+import { destroySystemTray, setupSystemTray } from './tray.js';
 
 protocol.registerSchemesAsPrivileged([
   {
@@ -55,16 +56,56 @@ const apiBaseUrl = validateApiBaseUrl(
 );
 const trustedWebContentsIds = new Set<number>();
 
+let mainWindow: BrowserWindow | null = null;
+let isQuitting = false;
+
+app.on('before-quit', () => {
+  isQuitting = true;
+  destroySystemTray();
+});
+
 function assertTrustedSender(event: IpcMainInvokeEvent): void {
   if (!isTrustedIpcSender(event, trustedWebContentsIds, developmentOrigin)) {
     throw new Error('Untrusted IPC sender.');
   }
 }
 
+const MIME_TYPES: Record<string, string> = {
+  '.html': 'text/html; charset=utf-8',
+  '.js': 'application/javascript; charset=utf-8',
+  '.mjs': 'application/javascript; charset=utf-8',
+  '.css': 'text/css; charset=utf-8',
+  '.json': 'application/json; charset=utf-8',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.svg': 'image/svg+xml',
+  '.ico': 'image/x-icon',
+  '.woff2': 'font/woff2',
+  '.woff': 'font/woff',
+  '.ttf': 'font/ttf',
+};
+
+function getMimeType(filePath: string): string {
+  const ext = extname(filePath).toLowerCase();
+  return MIME_TYPES[ext] ?? 'application/octet-stream';
+}
+
 function registerApplicationProtocol(): void {
-  protocol.handle('ph-ponto', (request) => {
-    const assetPath = resolveRendererAsset(rendererRoot, request.url);
-    return net.fetch(pathToFileURL(assetPath).toString());
+  protocol.handle('ph-ponto', async (request) => {
+    try {
+      const assetPath = resolveRendererAsset(rendererRoot, request.url);
+      const data = await readFile(assetPath);
+      return new Response(data, {
+        status: 200,
+        headers: {
+          'Content-Type': getMimeType(assetPath),
+        },
+      });
+    } catch (err) {
+      console.error('Failed to load application asset:', request.url, err);
+      return new Response('Asset Not Found', { status: 404 });
+    }
   });
 }
 
@@ -133,9 +174,12 @@ async function createMainWindow(): Promise<BrowserWindow> {
     webPreferences: createSecureWebPreferences(preloadPath),
   });
 
+  mainWindow = window;
+
   trustedWebContentsIds.add(window.webContents.id);
   window.webContents.once('destroyed', () => {
     trustedWebContentsIds.delete(window.webContents.id);
+    if (mainWindow === window) mainWindow = null;
   });
 
   window.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
@@ -144,7 +188,21 @@ async function createMainWindow(): Promise<BrowserWindow> {
       event.preventDefault();
     }
   });
-  window.once('ready-to-show', () => window.show());
+
+  window.on('close', (event) => {
+    if (!isQuitting) {
+      event.preventDefault();
+      window.hide();
+    }
+  });
+
+  const startHidden = process.argv.includes('--hidden');
+
+  window.once('ready-to-show', () => {
+    if (!startHidden) {
+      window.show();
+    }
+  });
 
   if (developmentOrigin === undefined) {
     await window.loadURL('ph-ponto://app/index.html');
@@ -162,10 +220,10 @@ if (!hasSingleInstanceLock) {
 } else {
   app.setName(PRODUCT_NAME);
   app.on('second-instance', () => {
-    const window = BrowserWindow.getAllWindows()[0];
-    if (window !== undefined) {
-      if (window.isMinimized()) window.restore();
-      window.focus();
+    if (mainWindow !== null) {
+      if (!mainWindow.isVisible()) mainWindow.show();
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.focus();
     }
   });
 
@@ -174,14 +232,23 @@ if (!hasSingleInstanceLock) {
     configureSessionSecurity();
     registerIpc();
     setupAutoUpdater();
+    setupSystemTray(() => mainWindow, appIconPath);
     await createMainWindow();
 
     app.on('activate', () => {
-      if (BrowserWindow.getAllWindows().length === 0) void createMainWindow();
+      if (mainWindow === null) {
+        void createMainWindow();
+      } else {
+        if (!mainWindow.isVisible()) mainWindow.show();
+        if (mainWindow.isMinimized()) mainWindow.restore();
+        mainWindow.focus();
+      }
     });
   });
 
   app.on('window-all-closed', () => {
-    if (process.platform !== 'darwin') app.quit();
+    if (process.platform !== 'darwin') {
+      // Background tray keeps process alive on Windows/Linux
+    }
   });
 }
