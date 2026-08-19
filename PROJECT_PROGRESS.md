@@ -287,31 +287,29 @@ curl http://127.0.0.1:3000/health/ready
       - Added quick-access modal trigger on avatar click, allowing employees to change, zoom, and crop their profile photo directly from the home screen;
       - Added reactive `cacheKey` prop to `AvatarImage` ensuring immediate cache-busting and live re-render upon uploading a new picture;
       - Enforced circular `rounded-full` shape across all avatar photos and initials fallback badges in dashboard, presence board, tables, modals, and headers;
-    - Windows Build, Non-Blocking Post-Punch Auto-Updater & GitHub Release v0.1.0/v0.1.1:
-      - Implemented silent background update checker (`triggerBackgroundUpdateCheck`) with a 15-minute throttle and 45-second delayed launch trigger, ensuring zero impact on application startup speed;
-      - Integrated automatic update check trigger upon successful time punch registration in `EmployeeHomePage` (`window.phPonto.app.checkForUpdatesInBackground()`);
-      - Configured `electron-updater` with `autoDownload = true` and `autoInstallOnAppQuit = true` for seamless, unprompted background updates;
-      - Fixed Windows packaged startup error by replacing `net.fetch` on custom protocol with Node's native ASAR-aware `fs.promises.readFile` and comprehensive MIME-type streaming;
-      - Lazily initialized `electron-updater` to prevent module-load time crashes;
-      - Added System Tray icon with context menu (Open, Start with Windows toggle, Quit);
-      - Implemented Close-to-Tray behavior (`window.hide()` on `X` click) ensuring the app continues running in the background;
-      - Added auto-start with Windows support via `app.setLoginItemSettings({ openAtLogin: true, args: ['--hidden'] })`;
-      - Updated GitHub Actions workflow `.github/workflows/build-desktop.yml` to package Windows x64 NSIS installers (`PH-Ponto-Setup-${version}.exe`) and automatically publish GitHub Releases;
-      - Successfully published official release **v0.1.1** on GitHub with Windows installer, auto-updater metadata (`latest.yml`), macOS and Linux packages.
+    - Windows Build, Official App Icon & GitHub Release v0.1.2:
+      - Generated multi-resolution Windows ICO (`build/icon.ico`), macOS ICNS (`build/icon.icns`), and Linux PNG (`build/icon.png`) from the official PH Motopeças app icon;
+      - Configured Electron Builder and NSIS installer icons to use the official logo on desktop shortcuts, taskbar, installer header, uninstaller, and window frame;
+      - Fixed Calendar Exceptions / Holidays table rendering on Settings page by reading `latestRevision` and supporting `SPECIAL_HOURS` badge rendering;
+      - Published official release **v0.1.2** on GitHub with Windows installer, auto-updater metadata (`latest.yml`), macOS and Linux packages.
 
 ## Handoff Notes
 
 All user requests and core requirements for PH-Ponto have been delivered, verified, and pushed to GitHub:
 
-1. **Build Windows & Auto-Atualização em Segundo Plano (Pós-Ponto):**
-   - O executável de instalação para Windows (**`PH-Ponto-Setup-0.1.1.exe`**) foi compilado e publicado no GitHub Releases.
+1. **Ícone Oficial no Windows & Desktop:**
+   - O aplicativo agora exibe o mesmo ícone oficial do site da PH Motopeças no executável, no instalador NSIS, no atalho da Área de Trabalho, no menu Iniciar, na barra de tarefas e na bandeja do sistema.
+2. **Correção de Feriados e Exceções de Calendário:**
+   - Feriados, suspensões e dias de expediente especial cadastrados na aba *Configurações de Trabalho* agora aparecem imediatamente na listagem, com suporte a exclusão/cancelamento e badges visuais formatados.
+3. **Build Windows & Auto-Atualização em Segundo Plano (Pós-Ponto):**
+   - O executável de instalação para Windows (**`PH-Ponto-Setup-0.1.2.exe`**) foi compilado e publicado no GitHub Releases.
    - O aplicativo desktop inicia instantaneamente (sem nenhum atraso ou verificação bloqueante na abertura).
    - Após o colaborador registrar o ponto com sucesso, o sistema dispara uma verificação silenciosa de atualização em segundo plano. Caso haja uma nova versão no GitHub, ela é baixada silenciosamente e aplicada automaticamente na próxima reinicialização do aplicativo.
-2. **Execução em Segundo Plano & Iniciar com o Windows:**
+4. **Execução em Segundo Plano & Iniciar com o Windows:**
    - Ao clicar no botão fechar (`X`), o aplicativo minimiza para a bandeja do sistema (System Tray) e continua rodando em segundo plano.
    - O menu da bandeja permite alternar a opção de **Iniciar com o Windows** e sair do aplicativo completamente.
-3. **Produção Apontada para `https://ponto-api.phmotopecas.com`:**
+5. **Produção Apontada para `https://ponto-api.phmotopecas.com`:**
    - A URL oficial da API foi configurada em todas as variáveis de ambiente, builds e containers de produção.
-4. **Foto do Funcionário Circular na Tela Inicial e Tabelas:** A foto de perfil do colaborador agora é exibida com destaque em formato perfeitamente circular (`rounded-full`) no cabeçalho inicial (`Olá, [Nome] — Seu ponto de hoje`) e no Quadro de Frequência, com fallback seguro para iniciais estilizadas e atalho direto para atualização da imagem.
-5. **Criação Automática do Administrador Inicial:** Sempre que o sistema iniciar e não houver nenhum administrador ativo no banco de dados, o sistema cria automaticamente o usuário com Nome: **Administrador**, Login: **`admin`**, Senha: **`admin`** e a escala de trabalho base.
-6. **Garantia de Qualidade:** Testes unitários, integração e builds automatizados no GitHub Actions passando com 100% de sucesso.
+6. **Foto do Funcionário Circular na Tela Inicial e Tabelas:** A foto de perfil do colaborador agora é exibida com destaque em formato perfeitamente circular (`rounded-full`) no cabeçalho inicial (`Olá, [Nome] — Seu ponto de hoje`) e no Quadro de Frequência, com fallback seguro para iniciais estilizadas e atalho direto para atualização da imagem.
+7. **Criação Automática do Administrador Inicial:** Sempre que o sistema iniciar e não houver nenhum administrador ativo no banco de dados, o sistema cria automaticamente o usuário com Nome: **Administrador**, Login: **`admin`**, Senha: **`admin`** e a escala de trabalho base.
+8. **Garantia de Qualidade:** Testes unitários, integração e builds automatizados no GitHub Actions passando com 100% de sucesso.
