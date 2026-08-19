@@ -10,7 +10,7 @@ READY_FOR_RELEASE
 
 ## Last Updated
 
-2026-08-18 18:40 America/Sao_Paulo
+2026-08-19 09:30 America/Sao_Paulo
 
 ## Completed
 
@@ -292,6 +292,16 @@ curl http://127.0.0.1:3000/health/ready
       - Configured Electron Builder and NSIS installer icons to use the official logo on desktop shortcuts, taskbar, installer header, uninstaller, and window frame;
       - Fixed Calendar Exceptions / Holidays table rendering on Settings page by reading `latestRevision` and supporting `SPECIAL_HOURS` badge rendering;
       - Published official release **v0.1.2** on GitHub with Windows installer, auto-updater metadata (`latest.yml`), macOS and Linux packages.
+    - Multi-Platform Desktop (Windows & Linux Debian), Official Icon Everywhere & System Autostart:
+      - Built cross-platform runtime icon resolver (`app-icon.ts`) ensuring the official high-res logo displays without fallback on Windows taskbar, Linux dock/decorations, and system tray;
+      - Implemented cross-platform system autostart manager (`autostart.ts`) supporting Windows (`app.setLoginItemSettings`), Linux (`~/.config/autostart/ph-ponto.desktop`), and macOS, with default auto-start on installation and `--hidden` boot support;
+      - Enhanced Linux packaging in `package.json` with `desktopName: "ph-ponto"`, `syncDesktopName: true`, and `.desktop` metadata (`StartupWMClass: "PH-Ponto"`);
+      - Validated building and packaging for Linux (`.deb` e `.AppImage`) and verified `pnpm check` (213/213 unit tests passing, clean typecheck).
+    - Release v0.1.3 — Darker Modal Backdrop Overlay & Linux Runtime Hardening:
+      - Adjusted modal backdrop overlay to `bg-black/80 backdrop-blur-md` across all modals and screens for immersive contrast;
+      - Migrated shared attendance timezone arithmetic to native `Intl.DateTimeFormat` (eliminating `date-fns-tz` dynamic imports);
+      - Added `executableArgs: ["--no-sandbox"]` and Debian postinst script for out-of-the-box Ubuntu/Debian execution;
+      - Bumped version to **v0.1.3** and prepared automated multi-platform GitHub Release workflow.
 
 ## Handoff Notes
 

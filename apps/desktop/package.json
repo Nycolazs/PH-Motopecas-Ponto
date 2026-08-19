@@ -1,6 +1,6 @@
 {
   "name": "@ph-ponto/desktop",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "private": true,
   "description": "Secure Electron desktop client for PH-Ponto",
   "author": "PH Motopeças <contato@phmotopecas.com.br>",
@@ -28,6 +28,8 @@
   "dependencies": {
     "@ph-ponto/shared": "workspace:*",
     "@tanstack/react-query": "^5.101.4",
+    "date-fns": "^4.4.0",
+    "date-fns-tz": "^3.2.0",
     "electron-updater": "^6.8.9",
     "lucide-react": "^1.31.0",
     "react": "^19.2.0",
@@ -65,6 +67,7 @@
     "type": "git",
     "url": "https://github.com/Nycolazs/PH-Motopecas-Ponto.git"
   },
+  "desktopName": "ph-ponto",
   "build": {
     "appId": "com.phmotopecas.phponto",
     "productName": "PH-Ponto",
@@ -80,6 +83,7 @@
     },
     "files": [
       "dist/**/*",
+      "build/**/*",
       "package.json"
     ],
     "win": {
@@ -127,11 +131,22 @@
       ],
       "artifactName": "PH-Ponto-${version}-${arch}.${ext}"
     },
+    "deb": {
+      "afterInstall": "scripts/after-install.sh"
+    },
     "linux": {
       "icon": "build/icon.png",
       "category": "Office",
       "executableName": "ph-ponto",
+      "executableArgs": ["--no-sandbox"],
+      "syncDesktopName": true,
       "maintainer": "PH Motopeças <contato@phmotopecas.com.br>",
+      "desktop": {
+        "entry": {
+          "StartupWMClass": "PH-Ponto",
+          "Comment": "Sistema de Controle de Ponto - PH Motopeças"
+        }
+      },
       "target": [
         {
           "target": "AppImage",

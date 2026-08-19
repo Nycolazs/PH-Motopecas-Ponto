@@ -1,5 +1,3 @@
-import { formatInTimeZone, fromZonedTime } from 'date-fns-tz';
-
 import { BUSINESS_TIME_ZONE } from '../constants.js';
 import { AttendanceConfigurationError, AttendanceInputError } from './errors.js';
 import type { BusinessDateClassification, InstantInput, Weekday } from './types.js';
@@ -15,6 +13,13 @@ const WEEKDAY_BY_UTC_DAY = [
   'FRIDAY',
   'SATURDAY',
 ] as const satisfies readonly Weekday[];
+
+const businessDateFormatter = new Intl.DateTimeFormat('en-CA', {
+  timeZone: BUSINESS_TIME_ZONE,
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+});
 
 interface BusinessDateParts {
   year: number;
@@ -71,17 +76,14 @@ function nextBusinessDate(businessDate: string): string {
 }
 
 function firstInstantOfBusinessDate(businessDate: string): Date {
-  const localNoon = fromZonedTime(`${businessDate}T12:00:00.000`, BUSINESS_TIME_ZONE);
-  let before = localNoon.getTime() - 36 * 60 * 60 * 1_000;
-  let atOrAfter = localNoon.getTime();
+  const parts = parseBusinessDateParts(businessDate);
+  const guessUtc = Date.UTC(parts.year, parts.month - 1, parts.day, 12, 0, 0);
+  let before = guessUtc - 36 * 60 * 60 * 1_000;
+  let atOrAfter = guessUtc;
 
   while (atOrAfter - before > 1) {
     const candidate = before + Math.floor((atOrAfter - before) / 2);
-    const candidateBusinessDate = formatInTimeZone(
-      new Date(candidate),
-      BUSINESS_TIME_ZONE,
-      'yyyy-MM-dd',
-    );
+    const candidateBusinessDate = businessDateFormatter.format(new Date(candidate));
 
     if (candidateBusinessDate < businessDate) {
       before = candidate;
@@ -115,7 +117,7 @@ export function instantToDate(instant: InstantInput): Date {
 }
 
 export function businessDateFromInstant(instant: InstantInput): string {
-  return formatInTimeZone(instantToDate(instant), BUSINESS_TIME_ZONE, 'yyyy-MM-dd');
+  return businessDateFormatter.format(instantToDate(instant));
 }
 
 export function instantRangeForBusinessDate(businessDate: string): {

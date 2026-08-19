@@ -1,23 +1,28 @@
-import { app, Menu, nativeImage, Tray, type BrowserWindow } from 'electron';
+import { app, Menu, nativeImage, Tray, type BrowserWindow, type NativeImage } from 'electron';
 import { PRODUCT_NAME } from '@ph-ponto/shared';
+import { isAutoStartEnabled, setAutoStartEnabled } from './autostart.js';
 
 let tray: Tray | null = null;
 
 export function setupSystemTray(
   getMainWindow: () => BrowserWindow | null,
-  appIconPath: string,
+  appIcon: NativeImage,
 ): Tray | null {
   try {
-    const rawIcon = nativeImage.createFromPath(appIconPath);
+    const isWin = process.platform === 'win32';
+    const isMac = process.platform === 'darwin';
     const trayIcon =
-      process.platform === 'win32' ? rawIcon.resize({ width: 16, height: 16 }) : rawIcon;
+      isWin || isMac
+        ? appIcon.resize({ width: 16, height: 16 })
+        : appIcon.resize({ width: 22, height: 22 });
 
-    tray = new Tray(trayIcon);
+    const finalIcon = trayIcon.isEmpty() ? nativeImage.createEmpty() : trayIcon;
+    tray = new Tray(finalIcon);
     tray.setToolTip(`${PRODUCT_NAME} - PH Motopeças`);
 
     const updateContextMenu = (): void => {
-      const loginSettings = app.getLoginItemSettings();
-      const openAtLogin = loginSettings.openAtLogin;
+      const openAtLogin = isAutoStartEnabled();
+      const autoStartLabel = isWin ? 'Iniciar com o Windows' : 'Iniciar com o Sistema';
 
       const contextMenu = Menu.buildFromTemplate([
         {
@@ -33,15 +38,11 @@ export function setupSystemTray(
         },
         { type: 'separator' },
         {
-          label: 'Iniciar com o Windows',
+          label: autoStartLabel,
           type: 'checkbox',
           checked: openAtLogin,
           click: (menuItem) => {
-            const shouldOpenAtLogin = menuItem.checked;
-            app.setLoginItemSettings({
-              openAtLogin: shouldOpenAtLogin,
-              args: ['--hidden'],
-            });
+            setAutoStartEnabled(menuItem.checked);
             updateContextMenu();
           },
         },

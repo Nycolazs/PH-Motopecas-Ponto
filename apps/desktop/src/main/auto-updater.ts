@@ -19,7 +19,7 @@ function getUpdater(): AppUpdater | null {
 }
 
 let lastCheckTime = 0;
-const MIN_CHECK_INTERVAL_MS = 15 * 60 * 1000; // 15 minutes throttle
+const MIN_CHECK_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes throttle
 
 export function triggerBackgroundUpdateCheck(): void {
   if (!app.isPackaged) {
@@ -64,7 +64,7 @@ export function setupAutoUpdater(): void {
 
     updater.on('update-available', (info) => {
       console.log(
-        `[AutoUpdater] Nova versão detectada (${info.version}). Baixando em segundo plano sem interromper o usuário...`,
+        `[AutoUpdater] Nova versão detectada (${info.version}). Baixando automaticamente em segundo plano...`,
       );
     });
 
@@ -78,21 +78,21 @@ export function setupAutoUpdater(): void {
 
     updater.on('update-downloaded', (info) => {
       console.log(
-        `[AutoUpdater] Versão ${info.version} baixada com sucesso em segundo plano. Será aplicada na próxima reinicialização.`,
+        `[AutoUpdater] Versão ${info.version} baixada com sucesso em segundo plano. O instalador será executado automaticamente ao encerrar ou reiniciar o aplicativo.`,
       );
     });
 
-    // Initial check delayed to 45 seconds after start to ensure 0% impact on startup speed
+    // Initial check delayed to 15 seconds after start to ensure 0% impact on startup speed
     setTimeout(() => {
       triggerBackgroundUpdateCheck();
-    }, 45_000);
+    }, 15_000);
 
-    // Periodic check every 2 hours
+    // Periodic check every 30 minutes
     setInterval(
       () => {
         triggerBackgroundUpdateCheck();
       },
-      2 * 60 * 60 * 1000,
+      30 * 60 * 1000,
     );
   } catch (err) {
     console.warn('[AutoUpdater] Inicialização ignorada:', err);

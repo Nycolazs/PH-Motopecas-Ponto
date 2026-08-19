@@ -10,14 +10,17 @@ import {
   protocol,
   session,
   type IpcMainInvokeEvent,
+  type NativeImage,
 } from 'electron';
 import { PRODUCT_NAME } from '@ph-ponto/shared';
 
 import { APP_INFO_CHANNEL, type AppInfo } from '../shared/electron-api.js';
+import { resolveAppIcon } from './app-icon.js';
 import { AuthApiClient } from './auth-api-client.js';
 import { registerAuthIpc } from './auth-ipc.js';
 import { DesktopAuthSessionService } from './auth-session.service.js';
 import { setupAutoUpdater, triggerBackgroundUpdateCheck } from './auto-updater.js';
+import { initAutoStartDefault } from './autostart.js';
 import { RefreshTokenVault, type TokenEncryption } from './refresh-token-vault.js';
 import {
   createContentSecurityPolicy,
@@ -46,7 +49,6 @@ protocol.registerSchemesAsPrivileged([
 const moduleDirectory = dirname(fileURLToPath(import.meta.url));
 const rendererRoot = join(moduleDirectory, '..', 'renderer');
 const preloadPath = join(moduleDirectory, '..', 'preload', 'index.cjs');
-const appIconPath = join(rendererRoot, 'assets', 'app-icon.png');
 const developmentOrigin = app.isPackaged
   ? undefined
   : validateDevelopmentOrigin(process.env.VITE_DEV_SERVER_URL ?? DEFAULT_DEVELOPMENT_ORIGIN);
@@ -58,6 +60,14 @@ const trustedWebContentsIds = new Set<number>();
 
 let mainWindow: BrowserWindow | null = null;
 let isQuitting = false;
+let globalAppIcon: NativeImage | null = null;
+
+function getGlobalAppIcon(): NativeImage {
+  if (globalAppIcon === null || globalAppIcon.isEmpty()) {
+    globalAppIcon = resolveAppIcon(moduleDirectory, rendererRoot);
+  }
+  return globalAppIcon;
+}
 
 app.on('before-quit', () => {
   isQuitting = true;
@@ -161,9 +171,10 @@ function registerIpc(): void {
 }
 
 async function createMainWindow(): Promise<BrowserWindow> {
-  const window = new BrowserWindow({
+  const appIcon = getGlobalAppIcon();
+
+  const windowOptions: Electron.BrowserWindowConstructorOptions = {
     title: PRODUCT_NAME,
-    icon: appIconPath,
     width: 1366,
     height: 768,
     minWidth: 1024,
@@ -172,7 +183,13 @@ async function createMainWindow(): Promise<BrowserWindow> {
     backgroundColor: '#f4f7fb',
     autoHideMenuBar: true,
     webPreferences: createSecureWebPreferences(preloadPath),
-  });
+  };
+
+  if (!appIcon.isEmpty()) {
+    windowOptions.icon = appIcon;
+  }
+
+  const window = new BrowserWindow(windowOptions);
 
   mainWindow = window;
 
@@ -218,7 +235,9 @@ const hasSingleInstanceLock = app.requestSingleInstanceLock();
 if (!hasSingleInstanceLock) {
   app.quit();
 } else {
+  app.setAppUserModelId('com.phmotopecas.phponto');
   app.setName(PRODUCT_NAME);
+
   app.on('second-instance', () => {
     if (mainWindow !== null) {
       if (!mainWindow.isVisible()) mainWindow.show();
@@ -228,11 +247,13 @@ if (!hasSingleInstanceLock) {
   });
 
   app.whenReady().then(async () => {
+    const appIcon = getGlobalAppIcon();
     registerApplicationProtocol();
     configureSessionSecurity();
     registerIpc();
     setupAutoUpdater();
-    setupSystemTray(() => mainWindow, appIconPath);
+    initAutoStartDefault();
+    setupSystemTray(() => mainWindow, appIcon);
     await createMainWindow();
 
     app.on('activate', () => {
