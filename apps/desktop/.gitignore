@@ -5,7 +5,6 @@ node_modules/
 # Build and packaging output
 /dist/
 /renderer/
-/build/
 /out/
 /release/
 /packages/*/dist/

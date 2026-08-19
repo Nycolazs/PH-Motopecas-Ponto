@@ -309,8 +309,8 @@ export function AdminSettingsPage(): React.JSX.Element {
   };
 
   const handleRetractException = async (exc: CalendarException): Promise<void> => {
-    const firstRev = exc.revisions?.[0];
-    const name = firstRev?.name ?? exc.businessDate;
+    const rev = exc.latestRevision ?? exc.revisions?.[0];
+    const name = rev?.name ?? exc.businessDate;
     if (!confirm(`Deseja remover a exceção de "${name}"?`)) {
       return;
     }
@@ -523,7 +523,12 @@ export function AdminSettingsPage(): React.JSX.Element {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                {exceptionsData?.items.length === 0 && (
+                {(!exceptionsData ||
+                  exceptionsData.items.length === 0 ||
+                  !exceptionsData.items.some((exc) => {
+                    const rev = exc.latestRevision ?? exc.revisions?.[0];
+                    return rev && rev.operation !== 'RETRACT' && exc.isActive !== false;
+                  })) && (
                   <tr>
                     <td colSpan={5} className="py-8 text-center text-slate-400 text-sm">
                       Nenhum feriado ou exceção de horário cadastrado.
@@ -531,8 +536,8 @@ export function AdminSettingsPage(): React.JSX.Element {
                   </tr>
                 )}
                 {exceptionsData?.items.map((exc: CalendarException) => {
-                  const rev = exc.revisions?.[0];
-                  if (!rev || rev.operation === 'RETRACT') return null;
+                  const rev = exc.latestRevision ?? exc.revisions?.[0];
+                  if (!rev || rev.operation === 'RETRACT' || exc.isActive === false) return null;
                   return (
                     <tr
                       key={exc.id}
@@ -542,7 +547,7 @@ export function AdminSettingsPage(): React.JSX.Element {
                         {formatDateBR(exc.businessDate)}
                       </td>
                       <td className="py-3.5 px-4">
-                        <StatusBadge status={rev.kind} />
+                        <StatusBadge status={rev.kind ?? 'CLOSED'} />
                       </td>
                       <td className="py-3.5 px-4 text-slate-800 dark:text-slate-200 font-medium">
                         {rev.name ?? 'Sem nome'}

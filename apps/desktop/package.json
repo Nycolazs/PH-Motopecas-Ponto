@@ -1,6 +1,6 @@
 {
   "name": "@ph-ponto/desktop",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": true,
   "description": "Secure Electron desktop client for PH-Ponto",
   "author": "PH Motopeças <contato@phmotopecas.com.br>",
@@ -83,6 +83,7 @@
       "package.json"
     ],
     "win": {
+      "icon": "build/icon.ico",
       "target": [
         {
           "target": "nsis",
@@ -94,6 +95,9 @@
       "artifactName": "PH-Ponto-Setup-${version}.${ext}"
     },
     "nsis": {
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "installerHeaderIcon": "build/icon.ico",
       "oneClick": false,
       "perMachine": false,
       "allowElevation": false,
@@ -103,6 +107,7 @@
       "shortcutName": "PH-Ponto"
     },
     "mac": {
+      "icon": "build/icon.icns",
       "category": "public.app-category.business",
       "target": [
         {
@@ -123,6 +128,7 @@
       "artifactName": "PH-Ponto-${version}-${arch}.${ext}"
     },
     "linux": {
+      "icon": "build/icon.png",
       "category": "Office",
       "executableName": "ph-ponto",
       "maintainer": "PH Motopeças <contato@phmotopecas.com.br>",

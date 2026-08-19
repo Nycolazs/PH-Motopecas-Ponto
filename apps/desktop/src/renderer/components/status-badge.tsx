@@ -31,6 +31,11 @@ const STATUS_LABELS: Record<string, { label: string; className: string }> = {
     className:
       'bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300 border-purple-200 dark:border-purple-800',
   },
+  SPECIAL_HOURS: {
+    label: 'Horário especial',
+    className:
+      'bg-indigo-50 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800',
+  },
   DAY_OFF: {
     label: 'Folga',
     className:
