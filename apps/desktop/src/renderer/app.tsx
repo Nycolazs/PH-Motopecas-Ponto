@@ -15,6 +15,7 @@ import { AdminEmployeeDetailPage } from './pages/admin/employee-detail-page.js';
 import { AdminEmployeesPage } from './pages/admin/employees-page.js';
 import { AdminPunchesPage } from './pages/admin/punches-page.js';
 import { AdminReportsPage } from './pages/admin/reports-page.js';
+import { AdminDownloadsPage } from './pages/admin/downloads-page.js';
 import { AdminSettingsPage } from './pages/admin/settings-page.js';
 import { AdminUsersPage } from './pages/admin/admins-page.js';
 import { AdjustmentRequestsPage } from './pages/admin/adjustment-requests-page.js';
@@ -46,6 +47,7 @@ function AppRoutes(): React.JSX.Element {
           <Route path="funcionarios/:id" element={<AdminEmployeeDetailPage />} />
           <Route path="pontos" element={<AdminPunchesPage />} />
           <Route path="relatorios" element={<AdminReportsPage />} />
+          <Route path="aplicativo" element={<AdminDownloadsPage />} />
           <Route path="administradores" element={<AdminUsersPage />} />
           <Route path="configuracoes" element={<AdminSettingsPage />} />
           <Route path="auditoria" element={<AdminAuditPage />} />

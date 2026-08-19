@@ -302,6 +302,10 @@ curl http://127.0.0.1:3000/health/ready
       - Migrated shared attendance timezone arithmetic to native `Intl.DateTimeFormat` (eliminating `date-fns-tz` dynamic imports);
       - Added `executableArgs: ["--no-sandbox"]` and Debian postinst script for out-of-the-box Ubuntu/Debian execution;
       - Bumped version to **v0.1.3** and prepared automated multi-platform GitHub Release workflow.
+    - Admin Desktop App Downloads Page:
+      - Created `/admin/aplicativo` page ([AdminDownloadsPage](file:///home/nycolas/nyc/PH-Motopecas-Ponto/apps/desktop/src/renderer/pages/admin/downloads-page.tsx)) with one-click download cards for Windows (.exe), Linux (.deb and .AppImage), and macOS (.dmg);
+      - Included step-by-step instructions, quick terminal installation snippet with copy-to-clipboard button, and feature badges;
+      - Integrated seamlessly into Admin Sidebar navigation (`Aplicativo Desktop`) and verified through unit tests (216/216 passing).
 
 ## Handoff Notes
 
