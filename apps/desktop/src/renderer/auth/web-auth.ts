@@ -29,7 +29,7 @@ function getApiBaseUrl(): string {
       return `${protocol}//${hostname}:3000`;
     }
   }
-  return 'https://phmotopecas-api.yacacode.com';
+  return 'https://ponto-api.phmotopecas.com';
 }
 
 async function handleApiResponse(response: Response): Promise<ApiAuthResponse> {

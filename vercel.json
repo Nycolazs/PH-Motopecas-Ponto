@@ -3,11 +3,11 @@
   "buildCommand": "pnpm build:web",
   "outputDirectory": "dist",
   "env": {
-    "VITE_API_BASE_URL": "https://phmotopecas-api.yacacode.com"
+    "VITE_API_BASE_URL": "https://ponto-api.phmotopecas.com"
   },
   "build": {
     "env": {
-      "VITE_API_BASE_URL": "https://phmotopecas-api.yacacode.com"
+      "VITE_API_BASE_URL": "https://ponto-api.phmotopecas.com"
     }
   },
   "rewrites": [

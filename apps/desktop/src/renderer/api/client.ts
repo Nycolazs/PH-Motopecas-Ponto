@@ -60,7 +60,7 @@ function getDefaultApiBaseUrl(): string {
       return `${protocol}//${hostname}:3000`;
     }
   }
-  return 'https://phmotopecas-api.yacacode.com';
+  return 'https://ponto-api.phmotopecas.com';
 }
 
 export const apiBaseUrl = getDefaultApiBaseUrl();
