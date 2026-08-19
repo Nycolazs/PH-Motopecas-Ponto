@@ -47,10 +47,17 @@ const attendanceStatusSchema = z.enum([
   'HOLIDAY',
   'DAY_OFF',
   'CLOSED',
+  'VACATION',
 ]);
-const workStateSchema = z.enum(['NOT_STARTED', 'WORKING', 'OFF_DUTY']);
-const expectationSourceSchema = z.enum(['WEEKLY_SCHEDULE', 'HOLIDAY', 'CLOSED', 'SPECIAL_HOURS']);
-const calendarStatusSchema = z.enum(['HOLIDAY', 'DAY_OFF', 'CLOSED']);
+const workStateSchema = z.enum(['NOT_STARTED', 'WORKING', 'LUNCH', 'OFF_DUTY']);
+const expectationSourceSchema = z.enum([
+  'WEEKLY_SCHEDULE',
+  'HOLIDAY',
+  'CLOSED',
+  'SPECIAL_HOURS',
+  'VACATION',
+]);
+const calendarStatusSchema = z.enum(['HOLIDAY', 'DAY_OFF', 'CLOSED', 'VACATION']);
 const integrityCodeSchema = z.enum([
   'PUNCH_OUTSIDE_BUSINESS_DATE',
   'ADJUSTMENT_SEQUENCE_GAP',
@@ -132,6 +139,7 @@ const statusCountsSchema = z
     holiday: z.number().int().nonnegative(),
     dayOff: z.number().int().nonnegative(),
     closed: z.number().int().nonnegative(),
+    vacation: z.number().int().nonnegative().default(0),
   })
   .strict();
 
@@ -421,6 +429,46 @@ export const reviewAdjustmentResponseSchema = z
   })
   .strict();
 
+export const vacationAuthorSchema = z
+  .object({
+    id: z.string().uuid(),
+    name: z.string(),
+    login: z.string(),
+  })
+  .strict();
+
+export const vacationSchema = z
+  .object({
+    id: z.string().uuid(),
+    employeeId: z.string().uuid(),
+    employee: vacationAuthorSchema,
+    startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    daysCount: z.number().int().positive(),
+    note: z.string().nullable(),
+    createdById: z.string().uuid(),
+    createdBy: vacationAuthorSchema,
+    createdAt: z.string().datetime({ offset: true }),
+    updatedAt: z.string().datetime({ offset: true }),
+  })
+  .strict();
+
+export const vacationListSchema = z
+  .object({
+    items: z.array(vacationSchema),
+    pagination: paginationSchema,
+  })
+  .strict();
+
+export const createVacationInputSchema = z
+  .object({
+    employeeId: z.string().uuid(),
+    startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    note: z.string().max(255).optional(),
+  })
+  .strict();
+
 export type AuthUser = z.infer<typeof authUserSchema>;
 export type ManagedUser = z.infer<typeof managedUserSchema>;
 export type UserList = z.infer<typeof userListSchema>;
@@ -444,3 +492,7 @@ export type AdjustmentRequestStatus = z.infer<typeof adjustmentRequestStatusSche
 export type AdjustmentRequest = z.infer<typeof adjustmentRequestSchema>;
 export type AdjustmentRequestList = z.infer<typeof adjustmentRequestListSchema>;
 export type ReviewAdjustmentResponse = z.infer<typeof reviewAdjustmentResponseSchema>;
+export type Vacation = z.infer<typeof vacationSchema>;
+export type VacationList = z.infer<typeof vacationListSchema>;
+export type CreateVacationInput = z.infer<typeof createVacationInputSchema>;
+

@@ -1,9 +1,26 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Calendar, Clock, History, Plus, Settings, Sparkles, Trash2, Utensils } from 'lucide-react';
+import {
+  Calendar,
+  Clock,
+  History,
+  Palmtree,
+  Plus,
+  Settings,
+  Sparkles,
+  Trash2,
+  Utensils,
+} from 'lucide-react';
 
 import { useApiClient } from '../../auth/use-auth.js';
-import type { CalendarException, ScheduleDay, ScheduleVersion } from '../../api/contracts.js';
+import type {
+  CalendarException,
+  ManagedUser,
+  ScheduleDay,
+  ScheduleVersion,
+  Vacation,
+} from '../../api/contracts.js';
+import { AvatarImage } from '../../components/avatar-image.js';
 import { DateInput } from '../../components/date-input.js';
 import { Modal } from '../../components/modal.js';
 import { SelectInput } from '../../components/select-input.js';
@@ -95,7 +112,7 @@ function formatScheduleEffectiveDate(effectiveDate: string, createdAt?: string):
 export function AdminSettingsPage(): React.JSX.Element {
   const api = useApiClient();
   const toast = useToast();
-  const [activeTab, setActiveTab] = useState<'SCHEDULES' | 'EXCEPTIONS'>('SCHEDULES');
+  const [activeTab, setActiveTab] = useState<'SCHEDULES' | 'EXCEPTIONS' | 'VACATIONS'>('SCHEDULES');
 
   // New Schedule Modal state
   const [newScheduleModalOpen, setNewScheduleModalOpen] = useState(false);
@@ -157,6 +174,19 @@ export function AdminSettingsPage(): React.JSX.Element {
     toast.info('Modelo 40h aplicado (Seg-Sex 8h com 1h almoço)');
   };
 
+  const applyPreset30h = (): void => {
+    setScheduleDays(
+      WEEKDAYS.map((w) => ({
+        weekday: w.key,
+        isOpen: w.key !== 'SATURDAY' && w.key !== 'SUNDAY',
+        openingTime: '08:00',
+        closingTime: '14:00',
+        lunchEnabled: false,
+      })),
+    );
+    toast.info('Modelo 30h aplicado (Seg-Sex 6h corridas)');
+  };
+
   const replicateMonday = (): void => {
     const monday = scheduleDays[0];
     if (!monday) return;
@@ -185,7 +215,11 @@ export function AdminSettingsPage(): React.JSX.Element {
 
   // Calendar Exception Modal state
   const [exceptionModalOpen, setExceptionModalOpen] = useState(false);
-  const [exceptionDate, setExceptionDate] = useState('');
+  const [exceptionDate, setExceptionDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    return d.toISOString().split('T')[0] ?? '';
+  });
   const [exceptionKind, setExceptionKind] = useState<'HOLIDAY' | 'CLOSED' | 'SPECIAL_HOURS'>(
     'HOLIDAY',
   );
@@ -196,6 +230,31 @@ export function AdminSettingsPage(): React.JSX.Element {
   const [exceptionError, setExceptionError] = useState<string | null>(null);
   const [exceptionLoading, setExceptionLoading] = useState(false);
 
+  // Vacations Modal State
+  const [vacationModalOpen, setVacationModalOpen] = useState(false);
+  const [vacationEmployeeId, setVacationEmployeeId] = useState('');
+  const [vacationStartDate, setVacationStartDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    return d.toISOString().split('T')[0] ?? '';
+  });
+  const [vacationEndDate, setVacationEndDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 30);
+    return d.toISOString().split('T')[0] ?? '';
+  });
+  const [vacationNote, setVacationNote] = useState('');
+  const [vacationError, setVacationError] = useState<string | null>(null);
+  const [vacationLoading, setVacationLoading] = useState(false);
+
+  const vacationDaysCount = (() => {
+    if (!vacationStartDate || !vacationEndDate) return 0;
+    const startMs = Date.parse(`${vacationStartDate}T00:00:00Z`);
+    const endMs = Date.parse(`${vacationEndDate}T00:00:00Z`);
+    if (isNaN(startMs) || isNaN(endMs) || endMs < startMs) return 0;
+    return Math.round((endMs - startMs) / 86_400_000) + 1;
+  })();
+
   // Queries
   const { data: schedulesData, refetch: refetchSchedules } = useQuery({
     queryKey: ['admin-schedules-list'],
@@ -205,6 +264,16 @@ export function AdminSettingsPage(): React.JSX.Element {
   const { data: exceptionsData, refetch: refetchExceptions } = useQuery({
     queryKey: ['admin-exceptions-list'],
     queryFn: () => api.getCalendarExceptions({ limit: 50 }),
+  });
+
+  const { data: employeesData } = useQuery({
+    queryKey: ['admin-employees-select'],
+    queryFn: () => api.getEmployees({ limit: 100 }),
+  });
+
+  const { data: vacationsData, refetch: refetchVacations } = useQuery({
+    queryKey: ['admin-vacations-list'],
+    queryFn: () => api.getVacations({ limit: 100 }),
   });
 
   const latestSchedule = schedulesData?.items[0];
@@ -334,6 +403,55 @@ export function AdminSettingsPage(): React.JSX.Element {
     }
   };
 
+  const handleCreateVacation = async (e: React.FormEvent): Promise<void> => {
+    e.preventDefault();
+    try {
+      setVacationLoading(true);
+      setVacationError(null);
+
+      if (!vacationEmployeeId) {
+        throw new Error('Selecione o colaborador que entrará de férias.');
+      }
+      if (!vacationStartDate || !vacationEndDate) {
+        throw new Error('Informe as datas de início e término das férias.');
+      }
+      if (vacationStartDate > vacationEndDate) {
+        throw new Error('A data de início deve ser anterior ou igual à data de término.');
+      }
+
+      await api.createVacation({
+        employeeId: vacationEmployeeId,
+        startDate: vacationStartDate,
+        endDate: vacationEndDate,
+        ...(vacationNote.trim() ? { note: vacationNote.trim() } : {}),
+      });
+
+      setVacationModalOpen(false);
+      setVacationNote('');
+      void refetchVacations();
+      toast.success('Período de férias cadastrado com sucesso!');
+    } catch (err: unknown) {
+      setVacationError(err instanceof Error ? err.message : 'Falha ao cadastrar férias.');
+    } finally {
+      setVacationLoading(false);
+    }
+  };
+
+  const handleDeleteVacation = async (vacation: Vacation): Promise<void> => {
+    const confirmed = window.confirm(
+      `Deseja realmente cancelar as férias de ${vacation.employee.name} (${formatDateBR(vacation.startDate)} a ${formatDateBR(vacation.endDate)})?`,
+    );
+    if (!confirmed) return;
+
+    try {
+      await api.deleteVacation(vacation.id);
+      void refetchVacations();
+      toast.success('Férias canceladas com sucesso!');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Falha ao cancelar férias.');
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Top Header */}
@@ -344,11 +462,11 @@ export function AdminSettingsPage(): React.JSX.Element {
             Configurações de Trabalho
           </h1>
           <p className="text-slate-500 text-sm mt-0.5">
-            Gerenciamento da grade horária semanal, jornadas vigentes e exceções de feriados
+            Gerenciamento da grade horária semanal, jornadas vigentes, feriados e férias
           </p>
         </div>
         <div className="flex items-center space-x-2.5">
-          {activeTab === 'SCHEDULES' ? (
+          {activeTab === 'SCHEDULES' && (
             <button
               type="button"
               onClick={() => {
@@ -360,7 +478,8 @@ export function AdminSettingsPage(): React.JSX.Element {
               <Plus className="w-4 h-4 mr-1.5" />
               Nova Versão de Jornada
             </button>
-          ) : (
+          )}
+          {activeTab === 'EXCEPTIONS' && (
             <button
               type="button"
               onClick={() => {
@@ -371,6 +490,26 @@ export function AdminSettingsPage(): React.JSX.Element {
             >
               <Plus className="w-4 h-4 mr-1.5" />
               Adicionar Feriado / Exceção
+            </button>
+          )}
+          {activeTab === 'VACATIONS' && (
+            <button
+              type="button"
+              onClick={() => {
+                setVacationError(null);
+                if (
+                  !vacationEmployeeId &&
+                  employeesData?.items &&
+                  employeesData.items.length > 0
+                ) {
+                  setVacationEmployeeId(employeesData.items[0]?.id ?? '');
+                }
+                setVacationModalOpen(true);
+              }}
+              className="primary-button text-sm px-4 py-2 shadow-xs"
+            >
+              <Plus className="w-4 h-4 mr-1.5" />
+              Cadastrar Férias
             </button>
           )}
         </div>
@@ -401,6 +540,18 @@ export function AdminSettingsPage(): React.JSX.Element {
         >
           <Calendar className="w-4 h-4 mr-2" />
           Feriados e Exceções de Calendário
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab('VACATIONS')}
+          className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-semibold transition-colors flex items-center justify-center ${
+            activeTab === 'VACATIONS'
+              ? 'bg-blue-600 text-white shadow-xs'
+              : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+          }`}
+        >
+          <Palmtree className="w-4 h-4 mr-2" />
+          Férias dos Colaboradores
         </button>
       </div>
 
@@ -587,6 +738,100 @@ export function AdminSettingsPage(): React.JSX.Element {
         </div>
       )}
 
+      {/* Tab 3: Vacations */}
+      {activeTab === 'VACATIONS' && (
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-xs">
+          <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+            <div>
+              <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center">
+                <Palmtree className="w-5 h-5 mr-2 text-teal-600 dark:text-teal-400" />
+                Férias e Recessos dos Colaboradores
+              </h2>
+              <p className="text-xs text-slate-500">
+                Nos dias de férias cadastrados, a jornada prevista do colaborador fica zerada e não é gerada falta.
+              </p>
+            </div>
+            <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-800/60">
+              {vacationsData?.items?.length ?? 0}{' '}
+              {vacationsData?.items?.length === 1 ? 'registro' : 'registros'}
+            </span>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-500 text-xs uppercase font-bold border-b border-slate-200 dark:border-slate-800">
+                <tr>
+                  <th className="py-3 px-4">Colaborador</th>
+                  <th className="py-3 px-4">Período de Férias</th>
+                  <th className="py-3 px-4">Duração</th>
+                  <th className="py-3 px-4">Motivo / Observação</th>
+                  <th className="py-3 px-4">Cadastrado por</th>
+                  <th className="py-3 px-4 text-right">Ação</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                {(!vacationsData || vacationsData.items.length === 0) && (
+                  <tr>
+                    <td colSpan={6} className="py-12 text-center text-slate-400 text-sm">
+                      <Palmtree className="w-8 h-8 mx-auto mb-2 opacity-40 text-teal-600" />
+                      Nenhum período de férias cadastrado no momento.
+                    </td>
+                  </tr>
+                )}
+                {vacationsData?.items.map((vac: Vacation) => (
+                  <tr
+                    key={vac.id}
+                    className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors"
+                  >
+                    <td className="py-3.5 px-4">
+                      <div className="flex items-center space-x-3">
+                        <AvatarImage
+                          userId={vac.employeeId}
+                          name={vac.employee.name}
+                          size="sm"
+                        />
+                        <div>
+                          <div className="font-semibold text-slate-900 dark:text-white">
+                            {vac.employee.name}
+                          </div>
+                          <div className="text-xs text-slate-400">@{vac.employee.login}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-3.5 px-4 font-mono font-semibold text-slate-900 dark:text-white">
+                      {formatDateBR(vac.startDate)} → {formatDateBR(vac.endDate)}
+                    </td>
+                    <td className="py-3.5 px-4">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-800/60">
+                        {vac.daysCount} {vac.daysCount === 1 ? 'dia' : 'dias corridos'}
+                      </span>
+                    </td>
+                    <td className="py-3.5 px-4 text-slate-700 dark:text-slate-300 text-xs">
+                      {vac.note || (
+                        <span className="text-slate-400 italic">Férias regulares</span>
+                      )}
+                    </td>
+                    <td className="py-3.5 px-4 text-xs text-slate-500">
+                      {vac.createdBy.name}
+                    </td>
+                    <td className="py-3.5 px-4 text-right">
+                      <button
+                        type="button"
+                        onClick={() => void handleDeleteVacation(vac)}
+                        title="Cancelar período de férias"
+                        className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-md transition-colors cursor-pointer"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
       {/* New Schedule Modal */}
       <Modal
         isOpen={newScheduleModalOpen}
@@ -641,6 +886,13 @@ export function AdminSettingsPage(): React.JSX.Element {
                 className="px-2.5 py-1.5 text-xs font-semibold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg transition-colors shadow-2xs cursor-pointer"
               >
                 Padrão 40h (Seg-Sex 8h)
+              </button>
+              <button
+                type="button"
+                onClick={applyPreset30h}
+                className="px-2.5 py-1.5 text-xs font-semibold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg transition-colors shadow-2xs cursor-pointer"
+              >
+                Padrão 30h (Seg-Sex 6h)
               </button>
               <button
                 type="button"
@@ -975,6 +1227,107 @@ export function AdminSettingsPage(): React.JSX.Element {
               className="primary-button text-sm px-5 py-2"
             >
               {exceptionLoading ? 'Salvando...' : 'Adicionar Exceção'}
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Vacation Modal */}
+      <Modal
+        isOpen={vacationModalOpen}
+        onClose={() => setVacationModalOpen(false)}
+        title="Cadastrar Férias de Colaborador"
+      >
+        <form onSubmit={(e) => void handleCreateVacation(e)} className="space-y-4">
+          {vacationError && (
+            <div className="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 rounded-lg text-rose-700 dark:text-rose-300 text-sm">
+              {vacationError}
+            </div>
+          )}
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              Colaborador *
+            </label>
+            <select
+              required
+              value={vacationEmployeeId}
+              onChange={(e) => setVacationEmployeeId(e.target.value)}
+              className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="" disabled>
+                Selecione o colaborador...
+              </option>
+              {employeesData?.items?.map((emp: ManagedUser) => (
+                <option key={emp.id} value={emp.id}>
+                  {emp.name} (@{emp.login})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <DateInput
+                label="Data de Início *"
+                required
+                value={vacationStartDate}
+                onChange={setVacationStartDate}
+                className="w-full"
+              />
+            </div>
+            <div>
+              <DateInput
+                label="Data de Término *"
+                required
+                value={vacationEndDate}
+                onChange={setVacationEndDate}
+                className="w-full"
+              />
+            </div>
+          </div>
+
+          {vacationDaysCount > 0 && (
+            <div className="p-3 bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800/60 rounded-lg text-teal-800 dark:text-teal-200 text-xs flex items-center justify-between">
+              <span className="font-medium flex items-center">
+                <Palmtree className="w-4 h-4 mr-1.5 text-teal-600" />
+                Período Selecionado:
+              </span>
+              <span className="font-bold font-mono text-sm">
+                {vacationDaysCount} {vacationDaysCount === 1 ? 'dia' : 'dias corridos'}
+              </span>
+            </div>
+          )}
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              Observação / Motivo (Opcional)
+            </label>
+            <input
+              type="text"
+              value={vacationNote}
+              onChange={(e) => setVacationNote(e.target.value)}
+              placeholder="Ex.: Férias anuais 2026, Recesso programado..."
+              maxLength={255}
+              className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white text-sm"
+            />
+          </div>
+
+          <div className="flex justify-end space-x-3 pt-2">
+            <button
+              type="button"
+              disabled={vacationLoading}
+              onClick={() => setVacationModalOpen(false)}
+              className="secondary-button text-sm px-4 py-2"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              disabled={vacationLoading}
+              className="primary-button text-sm px-5 py-2"
+            >
+              {vacationLoading ? 'Cadastrando...' : 'Cadastrar Férias'}
             </button>
           </div>
         </form>

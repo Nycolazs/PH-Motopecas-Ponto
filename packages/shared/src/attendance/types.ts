@@ -54,11 +54,19 @@ export const EXPECTATION_SOURCES = [
   'HOLIDAY',
   'CLOSED',
   'SPECIAL_HOURS',
+  'VACATION',
 ] as const;
 export type ExpectationSource = (typeof EXPECTATION_SOURCES)[number];
 
-export const CALENDAR_STATUSES = ['HOLIDAY', 'DAY_OFF', 'CLOSED'] as const;
+export const CALENDAR_STATUSES = ['HOLIDAY', 'DAY_OFF', 'CLOSED', 'VACATION'] as const;
 export type CalendarStatus = (typeof CALENDAR_STATUSES)[number];
+
+export interface EmployeeVacationInfo {
+  id: string;
+  startDate: string;
+  endDate: string;
+  note?: string | null;
+}
 
 export interface ResolvedExpectation extends LocalWorkHours {
   businessDate: string;
@@ -148,10 +156,11 @@ export const ATTENDANCE_STATUSES = [
   'HOLIDAY',
   'DAY_OFF',
   'CLOSED',
+  'VACATION',
 ] as const;
 export type AttendanceStatus = (typeof ATTENDANCE_STATUSES)[number];
 
-export const PROVISIONAL_WORK_STATES = ['NOT_STARTED', 'WORKING', 'OFF_DUTY'] as const;
+export const PROVISIONAL_WORK_STATES = ['NOT_STARTED', 'WORKING', 'LUNCH', 'OFF_DUTY'] as const;
 export type ProvisionalWorkState = (typeof PROVISIONAL_WORK_STATES)[number];
 
 export interface DailyAttendanceSummary {
@@ -177,6 +186,7 @@ export interface AttendanceStatusCounts {
   holiday: number;
   dayOff: number;
   closed: number;
+  vacation: number;
 }
 
 export interface AttendancePeriodSummary {

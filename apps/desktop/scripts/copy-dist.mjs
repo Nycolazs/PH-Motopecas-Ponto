@@ -50,5 +50,7 @@ if (existsSync(distDir)) {
     }
   }
 
-  console.log('[copy-dist] Successfully synchronized dist, dist/renderer, renderer, and icon assets.');
+  console.log(
+    '[copy-dist] Successfully synchronized dist, dist/renderer, renderer, and icon assets.',
+  );
 }

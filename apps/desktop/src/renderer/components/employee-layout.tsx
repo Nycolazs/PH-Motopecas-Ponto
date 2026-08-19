@@ -36,13 +36,10 @@ export function EmployeeLayout(): React.JSX.Element {
     setIsRefreshing(true);
     try {
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['today-punches'] }),
-        queryClient.invalidateQueries({ queryKey: ['my-adjustment-requests'] }),
-        queryClient.invalidateQueries({ queryKey: ['today-summary'] }),
-        queryClient.invalidateQueries({ queryKey: ['attendance-history'] }),
-        queryClient.invalidateQueries({ queryKey: ['current-user'] }),
+        queryClient.invalidateQueries(),
+        queryClient.refetchQueries({ type: 'active' }),
       ]);
-      showToast('success', 'Dados e solicitações atualizados com sucesso.', 'Atualizado');
+      showToast('success', 'Todos os dados e solicitações foram atualizados.', 'Atualizado');
     } catch {
       showToast('error', 'Falha ao atualizar dados.', 'Erro ao Atualizar');
     } finally {

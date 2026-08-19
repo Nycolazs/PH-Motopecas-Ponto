@@ -8,11 +8,13 @@ export const attendanceStatusLabels = {
   HOLIDAY: 'Feriado',
   DAY_OFF: 'Folga',
   CLOSED: 'Fechado',
+  VACATION: 'Férias',
 } as const;
 
 export const workStateLabels = {
   NOT_STARTED: 'Ainda não iniciou',
   WORKING: 'Trabalhando',
+  LUNCH: 'Em almoço',
   OFF_DUTY: 'Fora do expediente',
 } as const;
 
@@ -24,6 +26,7 @@ export function dailyStateLabel(day: DailyAttendance): string {
 
 export function dailyStateTone(day: DailyAttendance): string {
   if (day.workState === 'WORKING' || day.status === 'NORMAL') return 'success';
+  if (day.workState === 'LUNCH') return 'warning';
   if (day.status === 'OVERTIME') return 'info';
   if (day.status === 'MISSING_HOURS' || day.status === 'INCOMPLETE') return 'danger';
   return 'neutral';

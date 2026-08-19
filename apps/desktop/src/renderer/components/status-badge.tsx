@@ -46,10 +46,20 @@ const STATUS_LABELS: Record<string, { label: string; className: string }> = {
     className:
       'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border-slate-200 dark:border-slate-700',
   },
+  VACATION: {
+    label: 'Férias',
+    className:
+      'bg-teal-50 text-teal-700 dark:bg-teal-950/40 dark:text-teal-300 border-teal-200 dark:border-teal-800',
+  },
   WORKING: {
     label: 'Trabalhando',
     className:
       'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800 animate-pulse',
+  },
+  LUNCH: {
+    label: 'Almoço',
+    className:
+      'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 border-amber-200 dark:border-amber-800 font-medium',
   },
   NOT_STARTED: {
     label: 'Não iniciado',
@@ -57,9 +67,9 @@ const STATUS_LABELS: Record<string, { label: string; className: string }> = {
       'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border-slate-200 dark:border-slate-700',
   },
   OFF_DUTY: {
-    label: 'Fora do expediente',
+    label: 'Fechado',
     className:
-      'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700',
+      'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border-slate-200 dark:border-slate-700',
   },
   ACTIVE: {
     label: 'Ativo',
@@ -109,9 +119,30 @@ export function StatusBadge({
   isActive,
   className = '',
 }: StatusBadgeProps): React.JSX.Element {
-  let key = status ?? workState ?? '';
+  let key = '';
+
   if (isActive !== undefined && isActive !== null) {
     key = isActive ? 'ACTIVE' : 'INACTIVE';
+  } else if (workState === 'WORKING') {
+    key = 'WORKING';
+  } else if (workState === 'LUNCH') {
+    key = 'LUNCH';
+  } else if (status === 'VACATION') {
+    key = 'VACATION';
+  } else if (status === 'HOLIDAY') {
+    key = 'HOLIDAY';
+  } else if (status === 'DAY_OFF') {
+    key = 'DAY_OFF';
+  } else if (status === 'INCOMPLETE') {
+    key = 'INCOMPLETE';
+  } else if (workState === 'NOT_STARTED') {
+    key = 'NOT_STARTED';
+  } else if (workState === 'OFF_DUTY') {
+    key = 'CLOSED';
+  } else if (status) {
+    key = status;
+  } else if (workState) {
+    key = workState;
   }
 
   const meta = STATUS_LABELS[key] ?? {

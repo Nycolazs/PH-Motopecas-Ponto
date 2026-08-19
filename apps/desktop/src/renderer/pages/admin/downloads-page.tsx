@@ -11,7 +11,7 @@ import {
   Terminal,
 } from 'lucide-react';
 
-const CURRENT_VERSION = '0.1.3';
+const CURRENT_VERSION = '0.1.4';
 const GITHUB_REPO = 'Nycolazs/PH-Motopecas-Ponto';
 const RELEASE_BASE_URL = `https://github.com/${GITHUB_REPO}/releases/download/v${CURRENT_VERSION}`;
 

@@ -69,17 +69,25 @@ export function calculateDailyAttendance({
       status = expectation.calendarStatus ?? balanceStatus(balanceMinutes);
     }
   } else {
+    const isMiddayLunch =
+      expectation.isOpen &&
+      expectation.lunchEnabled &&
+      !chronology.hasOpenInterval &&
+      chronology.punchCount === 2;
+
     workState =
       chronology.punchCount === 0
         ? 'NOT_STARTED'
         : chronology.hasOpenInterval
           ? 'WORKING'
-          : 'OFF_DUTY';
+          : isMiddayLunch
+            ? 'LUNCH'
+            : 'OFF_DUTY';
 
     if (chronology.integrityIssues.length > 0) {
       status = 'INCOMPLETE';
       balanceMinutes = null;
-    } else if (chronology.punchCount === 0 || chronology.hasOpenInterval) {
+    } else if (chronology.punchCount === 0 || chronology.hasOpenInterval || isMiddayLunch) {
       status = expectation.calendarStatus;
       balanceMinutes = null;
     } else {

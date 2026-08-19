@@ -17,6 +17,7 @@ function emptyStatusCounts(): AttendanceStatusCounts {
     holiday: 0,
     dayOff: 0,
     closed: 0,
+    vacation: 0,
   };
 }
 
@@ -42,6 +43,9 @@ function incrementStatus(counts: AttendanceStatusCounts, status: AttendanceStatu
       break;
     case 'CLOSED':
       counts.closed += 1;
+      break;
+    case 'VACATION':
+      counts.vacation += 1;
       break;
     case null:
       break;

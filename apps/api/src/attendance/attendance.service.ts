@@ -180,6 +180,18 @@ export class AttendanceService implements AttendanceSummaryResolver {
           punchesByEmployee.set(p.employeeId, list);
         }
 
+        const todayVacations = await tx.vacation.findMany({
+          where: {
+            startDate: { lte: businessDateToDatabaseDate(businessDate) },
+            endDate: { gte: businessDateToDatabaseDate(businessDate) },
+          },
+          select: { employeeId: true, note: true },
+        });
+        const vacationByEmployee = new Map<string, string>();
+        for (const v of todayVacations) {
+          vacationByEmployee.set(v.employeeId, v.note ?? 'Férias');
+        }
+
         const targetEmployees = activeEmployees.filter((emp) => {
           if (!emp.createdAt) return true;
           const empHireDate = businessDateFromInstant(emp.createdAt);
@@ -196,12 +208,23 @@ export class AttendanceService implements AttendanceSummaryResolver {
           const punches = punchesByEmployee.get(emp.id) ?? [];
           const empHireDate = businessDateFromInstant(emp.createdAt);
           let empExpectation = expectation;
+          const vacationNote = vacationByEmployee.get(emp.id);
+
           if (compareBusinessDates(businessDate, empHireDate) < 0) {
             empExpectation = {
               ...expectation,
               expectedMinutes: 0,
               isOpen: false,
               calendarStatus: 'DAY_OFF',
+            };
+          } else if (vacationNote !== undefined) {
+            empExpectation = {
+              ...expectation,
+              source: 'VACATION',
+              calendarStatus: 'VACATION',
+              expectedMinutes: 0,
+              isOpen: false,
+              exceptionName: vacationNote,
             };
           }
 
@@ -341,13 +364,21 @@ export class AttendanceService implements AttendanceSummaryResolver {
       throw invalidDate();
     }
 
-    const [userRecord, expectation, punches] = await Promise.all([
+    const [userRecord, expectation, punches, vacation] = await Promise.all([
       transaction.user.findUnique({
         where: { id: employeeId },
         select: { createdAt: true },
       }),
       this.resolveExpectation(businessDate, transaction),
       this.listPunches(employeeId, businessDate, transaction),
+      transaction.vacation.findFirst({
+        where: {
+          employeeId,
+          startDate: { lte: businessDateToDatabaseDate(businessDate) },
+          endDate: { gte: businessDateToDatabaseDate(businessDate) },
+        },
+        select: { id: true, note: true },
+      }),
     ]);
 
     const hireBusinessDate = userRecord?.createdAt
@@ -361,6 +392,20 @@ export class AttendanceService implements AttendanceSummaryResolver {
         expectedMinutes: 0,
         isOpen: false,
         calendarStatus: 'DAY_OFF',
+      };
+    } else if (vacation) {
+      effectiveExpectation = {
+        ...expectation,
+        source: 'VACATION',
+        calendarStatus: 'VACATION',
+        expectedMinutes: 0,
+        isOpen: false,
+        openingMinute: null,
+        closingMinute: null,
+        lunchEnabled: false,
+        lunchStartMinute: null,
+        lunchEndMinute: null,
+        exceptionName: vacation.note ?? 'Férias',
       };
     }
 
@@ -489,79 +534,93 @@ export class AttendanceService implements AttendanceSummaryResolver {
 
     return this.prisma.$transaction(
       async (transaction) => {
-        const [userRecord, scheduleRecords, exceptionRecords, punchRecords] = await Promise.all([
-          transaction.user.findUnique({
-            where: { id: employeeId },
-            select: { createdAt: true },
-          }),
-          transaction.businessScheduleVersion.findMany({
-            where: { effectiveDate: { lte: businessDateToDatabaseDate(to) } },
-            orderBy: { effectiveDate: 'asc' },
-            select: {
-              id: true,
-              effectiveDate: true,
-              days: {
-                select: {
-                  weekday: true,
-                  isOpen: true,
-                  openingMinute: true,
-                  closingMinute: true,
-                  lunchEnabled: true,
-                  lunchStartMinute: true,
-                  lunchEndMinute: true,
-                },
-              },
-            },
-          }),
-          transaction.calendarException.findMany({
-            where: {
-              businessDate: {
-                gte: businessDateToDatabaseDate(from),
-                lte: businessDateToDatabaseDate(to),
-              },
-            },
-            select: {
-              businessDate: true,
-              revisions: {
-                orderBy: { sequence: 'asc' },
-                select: {
-                  id: true,
-                  sequence: true,
-                  operation: true,
-                  kind: true,
-                  name: true,
-                  openingMinute: true,
-                  closingMinute: true,
-                  lunchEnabled: true,
-                  lunchStartMinute: true,
-                  lunchEndMinute: true,
-                },
-              },
-            },
-          }),
-          (() => {
-            const { start } = instantRangeForBusinessDate(from);
-            const { endExclusive } = instantRangeForBusinessDate(to);
-            return transaction.timePunch.findMany({
-              where: { employeeId, occurredAt: { gte: start, lt: endExclusive } },
-              orderBy: [{ occurredAt: 'asc' }, { id: 'asc' }],
+        const [userRecord, scheduleRecords, exceptionRecords, punchRecords, vacationRecords] =
+          await Promise.all([
+            transaction.user.findUnique({
+              where: { id: employeeId },
+              select: { createdAt: true },
+            }),
+            transaction.businessScheduleVersion.findMany({
+              where: { effectiveDate: { lte: businessDateToDatabaseDate(to) } },
+              orderBy: { effectiveDate: 'asc' },
               select: {
                 id: true,
-                kind: true,
-                occurredAt: true,
-                adjustments: {
+                effectiveDate: true,
+                days: {
+                  select: {
+                    weekday: true,
+                    isOpen: true,
+                    openingMinute: true,
+                    closingMinute: true,
+                    lunchEnabled: true,
+                    lunchStartMinute: true,
+                    lunchEndMinute: true,
+                  },
+                },
+              },
+            }),
+            transaction.calendarException.findMany({
+              where: {
+                businessDate: {
+                  gte: businessDateToDatabaseDate(from),
+                  lte: businessDateToDatabaseDate(to),
+                },
+              },
+              select: {
+                businessDate: true,
+                revisions: {
                   orderBy: { sequence: 'asc' },
                   select: {
                     id: true,
                     sequence: true,
-                    previousOccurredAt: true,
-                    correctedOccurredAt: true,
+                    operation: true,
+                    kind: true,
+                    name: true,
+                    openingMinute: true,
+                    closingMinute: true,
+                    lunchEnabled: true,
+                    lunchStartMinute: true,
+                    lunchEndMinute: true,
                   },
                 },
               },
-            });
-          })(),
-        ]);
+            }),
+            (() => {
+              const { start } = instantRangeForBusinessDate(from);
+              const { endExclusive } = instantRangeForBusinessDate(to);
+              return transaction.timePunch.findMany({
+                where: { employeeId, occurredAt: { gte: start, lt: endExclusive } },
+                orderBy: [{ occurredAt: 'asc' }, { id: 'asc' }],
+                select: {
+                  id: true,
+                  kind: true,
+                  occurredAt: true,
+                  adjustments: {
+                    orderBy: { sequence: 'asc' },
+                    select: {
+                      id: true,
+                      sequence: true,
+                      previousOccurredAt: true,
+                      correctedOccurredAt: true,
+                    },
+                  },
+                },
+              });
+            })(),
+            transaction.vacation.findMany({
+              where: {
+                employeeId,
+                startDate: { lte: businessDateToDatabaseDate(to) },
+                endDate: { gte: businessDateToDatabaseDate(from) },
+              },
+              select: {
+                id: true,
+                startDate: true,
+                endDate: true,
+                note: true,
+              },
+            }),
+          ]);
 
         const hireBusinessDate = userRecord?.createdAt
           ? businessDateFromInstant(userRecord.createdAt)
@@ -601,10 +660,28 @@ export class AttendanceService implements AttendanceSummaryResolver {
           : dates;
 
         const allSummaries = applicableDates.map((businessDate) => {
+          const matchingVacation = vacationRecords.find((v) => {
+            const startStr = databaseDateToBusinessDate(v.startDate);
+            const endStr = databaseDateToBusinessDate(v.endDate);
+            return (
+              compareBusinessDates(startStr, businessDate) <= 0 &&
+              compareBusinessDates(businessDate, endStr) <= 0
+            );
+          });
+          const vacationInfo = matchingVacation
+            ? {
+                id: matchingVacation.id,
+                startDate: databaseDateToBusinessDate(matchingVacation.startDate),
+                endDate: databaseDateToBusinessDate(matchingVacation.endDate),
+                note: matchingVacation.note,
+              }
+            : null;
+
           const expectation = resolveExpectation({
             businessDate,
             scheduleVersions,
             exceptionRevisions,
+            vacation: vacationInfo,
           });
 
           return calculateDailyAttendance({

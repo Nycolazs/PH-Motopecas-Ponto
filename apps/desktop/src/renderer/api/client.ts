@@ -19,6 +19,8 @@ import {
   scheduleVersionSchema,
   timePunchMutationSchema,
   userListSchema,
+  vacationListSchema,
+  vacationSchema,
   type AdjustmentRequest,
   type AdjustmentRequestList,
   type AdjustmentRequestStatus,
@@ -27,6 +29,7 @@ import {
   type AuditLogList,
   type CalendarException,
   type CalendarExceptionList,
+  type CreateVacationInput,
   type DailyAttendance,
   type ManagedUser,
   type MonthlyAttendance,
@@ -35,6 +38,8 @@ import {
   type ScheduleVersion,
   type TimePunchMutation,
   type UserList,
+  type Vacation,
+  type VacationList,
 } from './contracts.js';
 
 function getDefaultApiBaseUrl(): string {
@@ -613,6 +618,47 @@ export class ApiClient {
         headers: {
           'Content-Type': 'application/json',
         },
+      },
+    );
+  }
+
+  // Vacations
+  public getVacations(
+    params?: {
+      employeeId?: string;
+      from?: string;
+      to?: string;
+      page?: number;
+      limit?: number;
+    },
+    signal?: AbortSignal,
+  ): Promise<VacationList> {
+    const q = new URLSearchParams();
+    if (params?.employeeId) q.set('employeeId', params.employeeId);
+    if (params?.from) q.set('from', params.from);
+    if (params?.to) q.set('to', params.to);
+    if (params?.page) q.set('page', String(params.page));
+    if (params?.limit) q.set('limit', String(params.limit));
+    const qs = q.toString();
+    return this.request(`/vacations${qs ? `?${qs}` : ''}`, vacationListSchema, {
+      ...(signal === undefined ? {} : { signal }),
+    });
+  }
+
+  public createVacation(data: CreateVacationInput): Promise<Vacation> {
+    return this.request('/vacations', vacationSchema, {
+      method: 'POST',
+      body: JSON.stringify(data),
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  public deleteVacation(id: string): Promise<{ success: boolean; message: string }> {
+    return this.request(
+      `/vacations/${encodeURIComponent(id)}`,
+      z.object({ success: z.boolean(), message: z.string() }),
+      {
+        method: 'DELETE',
       },
     );
   }

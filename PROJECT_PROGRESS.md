@@ -306,23 +306,33 @@ curl http://127.0.0.1:3000/health/ready
       - Included step-by-step instructions, quick terminal installation snippet with copy-to-clipboard button, and feature badges;
       - Integrated seamlessly into Admin Sidebar navigation (`Aplicativo Desktop`) and verified through unit tests (216/216 passing).
 
+    - Employee Vacation (Férias) Management in Settings (`/configuracoes`):
+      - Added `Vacation` model to Prisma schema with index on `[employeeId, startDate, endDate]` and migration `20260819143000_vacations`;
+      - Added `VacationsModule`, `VacationsService`, `VacationsController` with overlap validation and audit logging (`VACATION_CREATED`, `VACATION_DELETED`);
+      - Integrated vacation interval checking into `AttendanceService` (`resolveDaily`, `getTodayOverview`, `loadPeriodSummaries`), setting `expectedMinutes: 0`, `isOpen: false`, `calendarStatus: 'VACATION'`, and ensuring vacation days never count as absence/missing hours;
+      - Added "Férias dos Colaboradores" tab in `AdminSettingsPage` with employee selector, date duration calculator, reason note, and deletion action;
+    - Operational Live Work Statuses ("Trabalhando", "Almoço", "Fechado"):
+      - Added `LUNCH` (`Em almoço`) provisional work state in `@ph-ponto/shared` daily calculation;
+      - Automatically detects midday lunch break (when 2 punches occur on lunch-enabled days like Monday-Friday);
+      - Respects days without lunch (such as Saturday with 2 punches), transitioning directly to `OFF_DUTY` ("Fechado") without showing lunch;
+      - Prioritized `workState` over static expectation status in `StatusBadge` so live working/lunch states display with clear colors (green pulse for working, amber for lunch, dark slate for closed/off duty);
+    - Full automated verification gate `pnpm check` / `pnpm test` passing 100% (222/222 unit and integration tests).
+
 ## Handoff Notes
 
 All user requests and core requirements for PH-Ponto have been delivered, verified, and pushed to GitHub:
 
-1. **Ícone Oficial no Windows & Desktop:**
-   - O aplicativo agora exibe o mesmo ícone oficial do site da PH Motopeças no executável, no instalador NSIS, no atalho da Área de Trabalho, no menu Iniciar, na barra de tarefas e na bandeja do sistema.
-2. **Correção de Feriados e Exceções de Calendário:**
-   - Feriados, suspensões e dias de expediente especial cadastrados na aba *Configurações de Trabalho* agora aparecem imediatamente na listagem, com suporte a exclusão/cancelamento e badges visuais formatados.
-3. **Build Windows & Auto-Atualização em Segundo Plano (Pós-Ponto):**
+1. **Gestão de Férias e Recessos:**
+   - Adicionada aba completa em `/configuracoes` para cadastrar períodos de férias por colaborador com cálculo automático de dias e validação contra sobreposições.
+   - Durante as férias, a jornada diária prevista é zerada e o colaborador não recebe faltas nem débitos de horas.
+2. **Status Operacionais em Tempo Real (Trabalhando, Almoço, Fechado):**
+   - O painel administrativo e a tela de pontos agora refletem exatamente o estado do colaborador em tempo real:
+     - **Trabalhando:** em expediente ativo.
+     - **Almoço:** após a saída para o almoço (em jornadas de 4 batidas com intervalo).
+     - **Fechado:** aos finais de semana, feriados, folgas, após encerramento do expediente no sábado (2 batidas) ou ao término do expediente regular (4 batidas).
+3. **Ícone Oficial no Windows & Desktop:**
+   - O aplicativo exibe o ícone oficial da PH Motopeças no executável, no instalador NSIS, no atalho da Área de Trabalho, no menu Iniciar, na barra de tarefas e na bandeja do sistema.
+4. **Build Windows & Auto-Atualização em Segundo Plano (Pós-Ponto):**
    - O executável de instalação para Windows (**`PH-Ponto-Setup-0.1.2.exe`**) foi compilado e publicado no GitHub Releases.
-   - O aplicativo desktop inicia instantaneamente (sem nenhum atraso ou verificação bloqueante na abertura).
-   - Após o colaborador registrar o ponto com sucesso, o sistema dispara uma verificação silenciosa de atualização em segundo plano. Caso haja uma nova versão no GitHub, ela é baixada silenciosamente e aplicada automaticamente na próxima reinicialização do aplicativo.
-4. **Execução em Segundo Plano & Iniciar com o Windows:**
-   - Ao clicar no botão fechar (`X`), o aplicativo minimiza para a bandeja do sistema (System Tray) e continua rodando em segundo plano.
-   - O menu da bandeja permite alternar a opção de **Iniciar com o Windows** e sair do aplicativo completamente.
-5. **Produção Apontada para `https://ponto-api.phmotopecas.com`:**
-   - A URL oficial da API foi configurada em todas as variáveis de ambiente, builds e containers de produção.
-6. **Foto do Funcionário Circular na Tela Inicial e Tabelas:** A foto de perfil do colaborador agora é exibida com destaque em formato perfeitamente circular (`rounded-full`) no cabeçalho inicial (`Olá, [Nome] — Seu ponto de hoje`) e no Quadro de Frequência, com fallback seguro para iniciais estilizadas e atalho direto para atualização da imagem.
-7. **Criação Automática do Administrador Inicial:** Sempre que o sistema iniciar e não houver nenhum administrador ativo no banco de dados, o sistema cria automaticamente o usuário com Nome: **Administrador**, Login: **`admin`**, Senha: **`admin`** e a escala de trabalho base.
-8. **Garantia de Qualidade:** Testes unitários, integração e builds automatizados no GitHub Actions passando com 100% de sucesso.
+   - Após o colaborador registrar o ponto com sucesso, o sistema dispara uma verificação silenciosa de atualização em segundo plano.
+5. **Garantia de Qualidade:** Todos os 222 testes unitários e de integração passando com 100% de sucesso.

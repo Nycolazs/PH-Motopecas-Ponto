@@ -45,7 +45,9 @@ export function resolveAppIcon(moduleDirectory: string, rendererRoot: string): N
         const image = nativeImage.createFromPath(join(assetsDir, iconFile));
         if (!image.isEmpty()) return image;
       }
-    } catch {}
+    } catch {
+      // Ignore directory read errors and fallback to empty image
+    }
   }
 
   return nativeImage.createEmpty();

@@ -77,6 +77,7 @@ const periodTotals = {
     holiday: 0,
     dayOff: 3,
     closed: 0,
+    vacation: 0,
   },
 };
 

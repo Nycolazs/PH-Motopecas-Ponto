@@ -234,7 +234,7 @@ describe('daily attendance calculation', () => {
     expect(summary.balanceMinutes).toBeNull();
   });
 
-  it('exposes a clearly provisional balance after an even current-day sequence', () => {
+  it('exposes a clearly provisional lunch state after a midday exit on lunch-enabled days', () => {
     const summary = calculateDailyAttendance({
       businessDate: '2026-08-17',
       expectation: expectationFor(),
@@ -242,9 +242,23 @@ describe('daily attendance calculation', () => {
       isFinalized: false,
     });
 
+    expect(summary.workState).toBe('LUNCH');
+    expect(summary.status).toBeNull();
+    expect(summary.balanceMinutes).toBeNull();
+    expect(summary.isFinalized).toBe(false);
+  });
+
+  it('exposes off-duty state on saturday with 2 complete punches without lunch', () => {
+    const summary = calculateDailyAttendance({
+      businessDate: '2026-08-22',
+      expectation: expectationFor('2026-08-22'),
+      punches: punchesForTimes(['08:00', '12:00'], '2026-08-22'),
+      isFinalized: false,
+    });
+
     expect(summary.workState).toBe('OFF_DUTY');
-    expect(summary.status).toBe('MISSING_HOURS');
-    expect(summary.balanceMinutes).toBe(-240);
+    expect(summary.status).toBe('NORMAL');
+    expect(summary.balanceMinutes).toBe(0);
     expect(summary.isFinalized).toBe(false);
   });
 

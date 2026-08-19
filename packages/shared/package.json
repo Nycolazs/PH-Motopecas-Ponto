@@ -1,6 +1,6 @@
 {
   "name": "@ph-ponto/shared",
-  "version": "0.1.0",
+  "version": "0.1.4",
   "private": true,
   "description": "Runtime-portable contracts and utilities shared by PH-Ponto applications",
   "license": "UNLICENSED",

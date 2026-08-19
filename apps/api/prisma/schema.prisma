@@ -83,6 +83,8 @@ enum IdempotencyOperation {
   REMOVE_AVATAR
   UPDATE_SETTING
   EXPORT_REPORT
+  CREATE_VACATION
+  DELETE_VACATION
 }
 
 enum IdempotencyStatus {
@@ -119,6 +121,8 @@ enum AuditAction {
   ADJUSTMENT_REQUEST_REJECTED
   SETTING_UPDATED
   REPORT_EXPORTED
+  VACATION_CREATED
+  VACATION_DELETED
 }
 
 enum AuditOutcome {
@@ -136,6 +140,7 @@ enum AuditTargetType {
   ADJUSTMENT_REQUEST
   SETTING
   REPORT
+  VACATION
 }
 
 model User {
@@ -161,6 +166,8 @@ model User {
   idempotencyRecords         IdempotencyRecord[]
   auditEvents                AuditLog[]                   @relation("AuditActor")
   updatedSettings            AppSetting[]                 @relation("SettingUpdatedBy")
+  vacations                  Vacation[]                   @relation("EmployeeVacations")
+  createdVacations           Vacation[]                   @relation("VacationsCreatedBy")
 
   @@index([role, isActive])
   @@map("users")
@@ -420,4 +427,21 @@ model AppSetting {
   updatedBy User @relation("SettingUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict, onUpdate: Restrict)
 
   @@map("app_settings")
+}
+
+model Vacation {
+  id          String   @id @default(uuid()) @db.Uuid
+  employeeId  String   @map("employee_id") @db.Uuid
+  startDate   DateTime @map("start_date") @db.Date
+  endDate     DateTime @map("end_date") @db.Date
+  note        String?  @db.VarChar(255)
+  createdById String   @map("created_by_id") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  employee  User @relation("EmployeeVacations", fields: [employeeId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  createdBy User @relation("VacationsCreatedBy", fields: [createdById], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@index([employeeId, startDate, endDate])
+  @@map("vacations")
 }

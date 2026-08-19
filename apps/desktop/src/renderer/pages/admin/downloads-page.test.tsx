@@ -18,16 +18,16 @@ describe('AdminDownloadsPage', () => {
     render(<AdminDownloadsPage />);
 
     const windowsBtn = screen.getByRole('link', { name: /Baixar Instalador Windows/i });
-    expect(windowsBtn).toHaveAttribute('href', expect.stringContaining('PH-Ponto-Setup-0.1.3.exe'));
+    expect(windowsBtn.getAttribute('href')).toMatch(/PH-Ponto-Setup-\d+\.\d+\.\d+\.exe/);
 
     const debBtn = screen.getByRole('link', { name: /Baixar Pacote Debian/i });
-    expect(debBtn).toHaveAttribute('href', expect.stringContaining('PH-Ponto-0.1.3-amd64.deb'));
+    expect(debBtn.getAttribute('href')).toMatch(/PH-Ponto-\d+\.\d+\.\d+-amd64\.deb/);
 
     const appImageBtn = screen.getByRole('link', { name: /Baixar AppImage/i });
-    expect(appImageBtn).toHaveAttribute('href', expect.stringContaining('PH-Ponto-0.1.3-x86_64.AppImage'));
+    expect(appImageBtn.getAttribute('href')).toMatch(/PH-Ponto-\d+\.\d+\.\d+-x86_64\.AppImage/);
 
     const macBtn = screen.getByRole('link', { name: /Baixar para Apple Silicon/i });
-    expect(macBtn).toHaveAttribute('href', expect.stringContaining('PH-Ponto-0.1.3-arm64.dmg'));
+    expect(macBtn.getAttribute('href')).toMatch(/PH-Ponto-\d+\.\d+\.\d+-arm64\.dmg/);
   });
 
   it('allows copying the linux installation command to clipboard', async () => {
@@ -46,7 +46,9 @@ describe('AdminDownloadsPage', () => {
     const copyBtn = screen.getByRole('button', { name: /Copiar/i });
     await user.click(copyBtn);
 
-    expect(writeTextMock).toHaveBeenCalledWith(expect.stringContaining('sudo dpkg -i PH-Ponto-0.1.3-amd64.deb'));
+    expect(writeTextMock).toHaveBeenCalledWith(
+      expect.stringMatching(/sudo dpkg -i PH-Ponto-\d+\.\d+\.\d+-amd64\.deb/),
+    );
     expect(screen.getByText(/Copiado!/i)).toBeInTheDocument();
   });
 });

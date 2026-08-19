@@ -226,12 +226,19 @@ export interface ResolveExpectationInput {
   businessDate: string;
   scheduleVersions: readonly ScheduleVersion[];
   exceptionRevisions?: readonly CalendarExceptionRevision[];
+  vacation?: {
+    id: string;
+    startDate: string;
+    endDate: string;
+    note?: string | null;
+  } | null;
 }
 
 export function resolveExpectation({
   businessDate,
   scheduleVersions,
   exceptionRevisions = [],
+  vacation,
 }: ResolveExpectationInput): ResolvedExpectation {
   const scheduleVersion = selectScheduleVersion(scheduleVersions, businessDate);
   const weekday = weekdayForBusinessDate(businessDate);
@@ -245,6 +252,29 @@ export function resolveExpectation({
   }
 
   const weeklyExpectation = scheduleExpectation(businessDate, scheduleVersion, scheduleDay);
+
+  if (vacation) {
+    if (
+      compareBusinessDates(vacation.startDate, businessDate) <= 0 &&
+      compareBusinessDates(businessDate, vacation.endDate) <= 0
+    ) {
+      return {
+        ...weeklyExpectation,
+        source: 'VACATION',
+        calendarStatus: 'VACATION',
+        expectedMinutes: 0,
+        isOpen: false,
+        openingMinute: null,
+        closingMinute: null,
+        lunchEnabled: false,
+        lunchStartMinute: null,
+        lunchEndMinute: null,
+        exceptionRevisionId: null,
+        exceptionName: vacation.note?.trim() || 'Férias',
+      };
+    }
+  }
+
   const exception = latestExceptionRevision(exceptionRevisions, businessDate);
 
   if (exception === null) {
