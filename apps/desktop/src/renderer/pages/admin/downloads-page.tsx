@@ -4,7 +4,6 @@ import {
   CheckCircle2,
   Copy,
   Download,
-  ExternalLink,
   Laptop,
   MonitorDown,
   RefreshCw,
@@ -15,7 +14,6 @@ import {
 const CURRENT_VERSION = '0.1.3';
 const GITHUB_REPO = 'Nycolazs/PH-Motopecas-Ponto';
 const RELEASE_BASE_URL = `https://github.com/${GITHUB_REPO}/releases/download/v${CURRENT_VERSION}`;
-const RELEASES_PAGE_URL = `https://github.com/${GITHUB_REPO}/releases/tag/v${CURRENT_VERSION}`;
 
 export function AdminDownloadsPage(): React.JSX.Element {
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
@@ -129,21 +127,11 @@ export function AdminDownloadsPage(): React.JSX.Element {
             <MonitorDown className="w-7 h-7 text-blue-600 dark:text-blue-400" />
             Download do Aplicativo Desktop
           </h1>
-          <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 max-w-2xl">
+          <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 max-w-3xl">
             Instale o aplicativo de registro de ponto nos computadores dos colaboradores. O aplicativo conta com
             verificação de horário oficial do servidor, ícone oficial da PH Motopeças, inicialização automática com o sistema e atualizações em segundo plano.
           </p>
         </div>
-
-        <a
-          href={RELEASES_PAGE_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-bold transition shadow-2xs border border-slate-200 dark:border-slate-700 shrink-0 self-start md:self-auto"
-        >
-          <ExternalLink className="w-4 h-4" />
-          Ver no GitHub Releases
-        </a>
       </div>
 
       {/* OS Cards Grid */}

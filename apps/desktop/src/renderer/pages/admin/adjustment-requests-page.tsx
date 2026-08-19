@@ -4,6 +4,7 @@ import { ArrowRight, Calendar, CheckCircle2, Clock, Filter, XCircle } from 'luci
 
 import type { AdjustmentRequest, AdjustmentRequestStatus } from '../../api/contracts.js';
 import { useApiClient } from '../../auth/use-auth.js';
+import { AvatarImage } from '../../components/avatar-image.js';
 import { Modal } from '../../components/modal.js';
 import { Pagination } from '../../components/pagination.js';
 import { useToast } from '../../components/toast-context.js';
@@ -219,9 +220,11 @@ export function AdjustmentRequestsPage(): React.JSX.Element {
                   {/* Left: Employee Info & Punch Context */}
                   <div className="space-y-2">
                     <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-full bg-amber-500/10 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center font-black text-sm">
-                        {request.employee.name.charAt(0).toUpperCase()}
-                      </div>
+                      <AvatarImage
+                        userId={request.employee.id}
+                        name={request.employee.name}
+                        size="md"
+                      />
                       <div>
                         <div className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
                           <span>{request.employee.name}</span>
