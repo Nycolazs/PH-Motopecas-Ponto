@@ -57,7 +57,7 @@ describe('Electron security policy', () => {
     expect(validateApiBaseUrl('https://api.example.com')).toBe('https://api.example.com');
     expect(validateApiBaseUrl('http://localhost:3000')).toBe('http://localhost:3000');
     expect(validateApiBaseUrl('http://192.168.1.150:3000')).toBe('http://192.168.1.150:3000');
-    expect(validateApiBaseUrl('http://100.73.175.88:3000')).toBe('http://100.73.175.88:3000');
+    expect(validateApiBaseUrl('http://10.0.0.50:3000')).toBe('http://10.0.0.50:3000');
     expect(validateApiBaseUrl('http://raspberrypi.local:3000')).toBe(
       'http://raspberrypi.local:3000',
     );

@@ -94,8 +94,7 @@ READY_FOR_RELEASE
 
 ## Currently Working On
 
-- Local Electron client in execution, pointed and authenticated directly to the production backend on `http://100.73.175.88:3000` (Tailscale private network).
-- Production stack (PostgreSQL, Backend API, Frontend Web) running in isolated Docker containers on remote server (`187.40.218.102`).
+- Production stack (PostgreSQL, Backend API, Frontend Web) running in isolated Docker containers in production environment.
 - Auto-deploy pipeline active via cron, syncing GitHub commits to server containers automatically.
 
 ## Next Steps
