@@ -80,10 +80,24 @@ function createHarness(clockValues: Date[]) {
   const transaction = {
     timePunch: {
       findFirst: vi.fn().mockResolvedValue(null),
+      findUnique: vi.fn().mockResolvedValue(null),
       create: vi.fn().mockResolvedValue({ id: '228e5eb3-1f64-4ed0-bf40-80dcc19e0a33' }),
+      delete: vi.fn().mockResolvedValue({}),
+      deleteMany: vi.fn().mockResolvedValue({ count: 1 }),
+      findMany: vi.fn().mockResolvedValue([]),
+      update: vi.fn().mockResolvedValue({}),
+    },
+    timeAdjustment: {
+      deleteMany: vi.fn().mockResolvedValue({ count: 0 }),
+    },
+    timePunchAdjustmentRequest: {
+      deleteMany: vi.fn().mockResolvedValue({ count: 0 }),
     },
   };
   const prisma = {
+    timePunch: {
+      findUnique: vi.fn().mockResolvedValue(null),
+    },
     $transaction: vi.fn(
       async (callback: (client: typeof transaction) => Promise<unknown>): Promise<unknown> =>
         callback(transaction),
@@ -235,6 +249,40 @@ describe('TimePunchService', () => {
       transactionLike(harness.transaction),
     );
     expect(harness.idempotencyShape.complete).toHaveBeenCalledOnce();
+  });
+
+  it('deletes a punch, realigns remaining punch kinds, and records audit', async () => {
+    const punchId = '74134cf8-b7ec-48a7-b7c1-6f9ce60c37ea';
+    const occurredAt = new Date('2026-08-14T12:00:00.000Z');
+    const harness = createHarness([]);
+    (
+      harness.service as unknown as {
+        prisma: { timePunch: { findUnique: ReturnType<typeof vi.fn> } };
+      }
+    ).prisma.timePunch.findUnique.mockResolvedValueOnce({
+      id: punchId,
+      employeeId: employee.id,
+      occurredAt,
+      kind: TimePunchKind.CLOCK_OUT,
+      origin: TimePunchOrigin.EMPLOYEE,
+      employee: { id: employee.id, name: employee.name },
+      adjustments: [],
+    });
+
+    const result = await harness.service.deletePunch(admin, punchId, context);
+
+    expect(result.success).toBe(true);
+    expect(result.auditEventId).toBe('audit-event-id');
+    expect(harness.transaction.timePunch.delete).toHaveBeenCalledWith({
+      where: { id: punchId },
+    });
+    expect(harness.auditShape.record).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'TIME_PUNCH_DELETED',
+        targetId: punchId,
+      }),
+      transactionLike(harness.transaction),
+    );
   });
 });
 

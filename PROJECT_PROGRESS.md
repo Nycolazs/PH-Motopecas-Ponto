@@ -316,23 +316,23 @@ curl http://127.0.0.1:3000/health/ready
       - Automatically detects midday lunch break (when 2 punches occur on lunch-enabled days like Monday-Friday);
       - Respects days without lunch (such as Saturday with 2 punches), transitioning directly to `OFF_DUTY` ("Fechado") without showing lunch;
       - Prioritized `workState` over static expectation status in `StatusBadge` so live working/lunch states display with clear colors (green pulse for working, amber for lunch, dark slate for closed/off duty);
-    - Full automated verification gate `pnpm check` / `pnpm test` passing 100% (222/222 unit and integration tests).
+    - Administrative Time Punch Deletion (Exclusão de Batidas):
+      - Database migration `20260903150000_allow_time_punch_deletion` adding `TIME_PUNCH_DELETED` audit action, `DELETE_TIME_PUNCH` idempotency operation, cascading foreign keys, and removing immutable triggers on time punches and adjustments;
+      - Backend endpoint `DELETE /time-punches/:punchId` in `TimePunchController` and `TimePunchService.deletePunch`, deleting adjustments/requests, updating `kind` sequentially on remaining punches of that day, recalculating `dailySummary`, and logging audit trail;
+      - Frontend `PunchCorrectionModal` with "Excluir Batida" action, confirmation screen with clear consequences warning, instant recalculation, and fluid toast feedback;
+      - Full automated verification gate `pnpm check` / `pnpm test` passing 100% (223/223 unit and integration tests).
 
 ## Handoff Notes
 
 All user requests and core requirements for PH-Ponto have been delivered, verified, and pushed to GitHub:
 
-1. **Gestão de Férias e Recessos:**
+1. **Exclusão de Batidas de Ponto pelo Administrador:**
+   - Adicionada opção de excluir batidas diretamente no modal de correção de ponto em `/admin/funcionarios` e `/admin/pontos`.
+   - Ao excluir, o sistema reordena os tipos das batidas restantes do dia (`CLOCK_IN` / `CLOCK_OUT`), recalcula o saldo de horas e registra o evento na trilha de auditoria.
+2. **Gestão de Férias e Recessos:**
    - Adicionada aba completa em `/configuracoes` para cadastrar períodos de férias por colaborador com cálculo automático de dias e validação contra sobreposições.
-   - Durante as férias, a jornada diária prevista é zerada e o colaborador não recebe faltas nem débitos de horas.
-2. **Status Operacionais em Tempo Real (Trabalhando, Almoço, Fechado):**
-   - O painel administrativo e a tela de pontos agora refletem exatamente o estado do colaborador em tempo real:
-     - **Trabalhando:** em expediente ativo.
-     - **Almoço:** após a saída para o almoço (em jornadas de 4 batidas com intervalo).
-     - **Fechado:** aos finais de semana, feriados, folgas, após encerramento do expediente no sábado (2 batidas) ou ao término do expediente regular (4 batidas).
-3. **Ícone Oficial no Windows & Desktop:**
-   - O aplicativo exibe o ícone oficial da PH Motopeças no executável, no instalador NSIS, no atalho da Área de Trabalho, no menu Iniciar, na barra de tarefas e na bandeja do sistema.
-4. **Build Windows & Auto-Atualização em Segundo Plano (Pós-Ponto):**
-   - O executável de instalação para Windows (**`PH-Ponto-Setup-0.1.2.exe`**) foi compilado e publicado no GitHub Releases.
-   - Após o colaborador registrar o ponto com sucesso, o sistema dispara uma verificação silenciosa de atualização em segundo plano.
-5. **Garantia de Qualidade:** Todos os 222 testes unitários e de integração passando com 100% de sucesso.
+3. **Status Operacionais em Tempo Real (Trabalhando, Almoço, Fechado):**
+   - O painel administrativo e a tela de pontos refletem exatamente o estado do colaborador em tempo real.
+4. **Ícone Oficial no Windows & Desktop:**
+   - O aplicativo exibe o ícone oficial da PH Motopeças no executável, instalador NSIS, barra de tarefas e bandeja do sistema.
+5. **Garantia de Qualidade:** Todos os 223 testes unitários e de integração passando com 100% de sucesso.

@@ -351,6 +351,16 @@ export class ApiClient {
     );
   }
 
+  public deletePunch(punchId: string): Promise<{ success: boolean; message: string }> {
+    return this.request(
+      `/time-punches/${encodeURIComponent(punchId)}`,
+      z.object({ success: z.boolean(), message: z.string() }),
+      {
+        method: 'DELETE',
+      },
+    );
+  }
+
   // Admin Users
   public getAdmins(
     params?: { search?: string; status?: 'ACTIVE' | 'INACTIVE'; page?: number; limit?: number },

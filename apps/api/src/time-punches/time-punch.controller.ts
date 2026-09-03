@@ -1,10 +1,13 @@
 import {
   Body,
   Controller,
+  Delete,
   Headers,
   HttpCode,
   HttpStatus,
   Inject,
+  Param,
+  ParseUUIDPipe,
   Post,
   Req,
   Res,
@@ -14,7 +17,9 @@ import {
   ApiBody,
   ApiCreatedResponse,
   ApiHeader,
+  ApiOkResponse,
   ApiOperation,
+  ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
 import type { Request, Response } from 'express';
@@ -91,5 +96,19 @@ export class TimePunchController {
       );
     applyReplayHeader(response, result.replayed);
     return result.body;
+  }
+
+  @Delete(':punchId')
+  @Roles('ADMIN')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Exclui permanentemente um registro de ponto' })
+  @ApiParam({ name: 'punchId', format: 'uuid' })
+  @ApiOkResponse({ description: 'Ponto excluído com sucesso' })
+  public async delete(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Param('punchId', new ParseUUIDPipe()) punchId: string,
+    @Req() request: Request,
+  ): Promise<{ success: boolean; message: string }> {
+    return this.punches.deletePunch(actor, punchId, this.clientContexts.fromRequest(request));
   }
 }

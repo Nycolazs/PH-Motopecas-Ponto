@@ -85,6 +85,7 @@ enum IdempotencyOperation {
   EXPORT_REPORT
   CREATE_VACATION
   DELETE_VACATION
+  DELETE_TIME_PUNCH
 }
 
 enum IdempotencyStatus {
@@ -116,6 +117,7 @@ enum AuditAction {
   CALENDAR_EXCEPTION_RETRACTED
   TIME_PUNCH_CORRECTED
   TIME_PUNCH_INSERTED
+  TIME_PUNCH_DELETED
   ADJUSTMENT_REQUEST_CREATED
   ADJUSTMENT_REQUEST_APPROVED
   ADJUSTMENT_REQUEST_REJECTED
@@ -355,7 +357,7 @@ model TimeAdjustment {
   idempotencyRecordId String   @unique @map("idempotency_record_id") @db.Uuid
   createdAt           DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
-  timePunch         TimePunch                   @relation(fields: [timePunchId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  timePunch         TimePunch                   @relation(fields: [timePunchId], references: [id], onDelete: Cascade, onUpdate: Restrict)
   admin             User                        @relation("AdjustmentAdmin", fields: [adminId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   idempotencyRecord IdempotencyRecord           @relation(fields: [idempotencyRecordId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   adjustmentRequest TimePunchAdjustmentRequest?
@@ -382,7 +384,7 @@ model TimePunchAdjustmentRequest {
   createdAt           DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt           DateTime                @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  timePunch      TimePunch       @relation(fields: [timePunchId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  timePunch      TimePunch       @relation(fields: [timePunchId], references: [id], onDelete: Cascade, onUpdate: Restrict)
   employee       User            @relation("AdjustmentRequester", fields: [employeeId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   reviewedBy     User?           @relation("AdjustmentReviewer", fields: [reviewedById], references: [id], onDelete: Restrict, onUpdate: Restrict)
   timeAdjustment TimeAdjustment? @relation(fields: [timeAdjustmentId], references: [id], onDelete: Restrict, onUpdate: Restrict)
