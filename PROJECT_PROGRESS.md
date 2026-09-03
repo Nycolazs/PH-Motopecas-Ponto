@@ -245,7 +245,8 @@ curl http://127.0.0.1:3000/health/ready
       - Backend endpoint `POST /users/me/change-password` with `ChangeOwnPasswordDto`, Argon2id current password verification, 8-character minimum policy, transaction update, and `USER_PASSWORD_RESET` / `ADMIN_PASSWORD_RESET` audit trail;
       - Frontend `ChangePasswordModal` with current password check, new password visibility toggles, real-time match and length validators, and fluid toast notification;
       - Added password change quick-action in Employee desktop navigation bar, employee home greeting card, and Admin sidebar profile;
-      - Manual Punch enhancements: Separated date and time input fields in `ManualPunchModal`, auto-filled the selected day date from `EmployeeDetailPage`, and added a confirmation prompt when inserting punches on days that already have full/completed punches;
+      - MonthPicker component: Built a modern, interactive month & year selection popover (`MonthPicker`) with year navigation buttons, 12 Portuguese month chips, current month indicator, and quick-action shortcuts, replacing the native browser `<input type="month">`;
+    - Manual Punch enhancements: Separated date and time input fields in `ManualPunchModal`, auto-filled the selected day date from `EmployeeDetailPage`, and added a confirmation prompt when inserting punches on days that already have full/completed punches;
     - Modal width optimization: Updated punch modals to `maxWidth="lg"` (`512px`) and added `overflow-x-hidden` to avoid clipping or horizontal scrollbars;
     - Employee detail auto-select: Automatically pre-selects the most recent day of the reference month;
     - Full automated validation gate `pnpm check` passing 100% (223/223 unit and integration tests passing, strict TypeScript, zero ESLint warnings, Prettier, Vite production bundles, and NestJS compilation);
