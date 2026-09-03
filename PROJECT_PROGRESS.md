@@ -262,6 +262,13 @@ curl http://127.0.0.1:3000/health/ready
       - Installed official wide brand logo (`phmotos-logo.png`) into `Brand` component, `LoginPage` hero panel, `AdminLayout` sidebar header, `EmployeeLayout` topbar, and `AdminReportsPage` printable reports header;
       - Installed official application icon (`apple-icon.png` / `app-icon.png`) into `index.html` (favicon and apple-touch-icon) and native Electron `BrowserWindow` icon;
       - Full quality check `pnpm check` passing 100% with 0 warnings/errors;
+    - Redesigned Audit Trail Inspection (`AdminAuditPage` & Backend):
+      - Created natural language narrative generator in `pt-BR` explaining exactly what occurred for every audit event type;
+      - Prominently featured registered reasons / justifications / observations (`reason`, `note`, `reviewComment`) in a dedicated highlight banner with quote styling;
+      - Structured key-value parameter breakdown with friendly Brazilian labels, localized timestamps (`DD/MM/AAAA às HH:mm:ss`), and domain enum translations (`Entrada`/`Saída`, `Administrador`/`Colaborador`, `Ativo`/`Inativo`);
+      - Added side-by-side Before vs After visual diff view for point corrections and status updates;
+      - Added expandable technical JSON inspector with copy-to-clipboard functionality for advanced diagnostic auditing;
+      - Enriched backend `TIME_PUNCH_INSERTED` and `TIME_PUNCH_CORRECTED` audit records with employee name, login, and reasons;
     - Removed change password action icon from the Admin sidebar user profile card as requested;
     - Redesigned and perfected the PDF / Print Timesheet Report (`AdminReportsPage`):
       - Created formal A4 document layout with official PH Motopeças logo, company header, and emission metadata;
