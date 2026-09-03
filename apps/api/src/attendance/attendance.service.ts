@@ -396,6 +396,15 @@ export class AttendanceService implements AttendanceSummaryResolver {
     for (const emp of activeEmployees) {
       const summaries = await this.loadPeriodSummaries(emp.id, dates, evaluationInstant);
       for (const summary of summaries) {
+        if (
+          summary.businessDate === today ||
+          summary.workState === 'WORKING' ||
+          summary.workState === 'LUNCH' ||
+          !summary.isFinalized
+        ) {
+          continue;
+        }
+
         if (summary.status === 'INCOMPLETE' || summary.chronology.isIncomplete) {
           const lastPunch = summary.chronology.punches.at(-1);
           items.push({
