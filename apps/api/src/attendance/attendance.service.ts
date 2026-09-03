@@ -396,16 +396,16 @@ export class AttendanceService implements AttendanceSummaryResolver {
     for (const emp of activeEmployees) {
       const summaries = await this.loadPeriodSummaries(emp.id, dates, evaluationInstant);
       for (const summary of summaries) {
-        if (
-          summary.businessDate === today ||
-          summary.workState === 'WORKING' ||
-          summary.workState === 'LUNCH' ||
-          !summary.isFinalized
-        ) {
+        // Exclude the current day (today)
+        if (summary.businessDate === today) {
           continue;
         }
 
-        if (summary.status === 'INCOMPLETE' || summary.chronology.isIncomplete) {
+        if (
+          summary.status === 'INCOMPLETE' ||
+          summary.chronology.isIncomplete ||
+          summary.punchCount % 2 !== 0
+        ) {
           const lastPunch = summary.chronology.punches.at(-1);
           items.push({
             employeeId: emp.id,
