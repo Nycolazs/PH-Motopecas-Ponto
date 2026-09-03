@@ -250,6 +250,7 @@ export function AdminReportsPage(): React.JSX.Element {
           <div>
             <DateInput
               label="Data Inicial *"
+              labelPosition="top"
               value={fromDate}
               onChange={setFromDate}
               className="w-full"
@@ -257,7 +258,13 @@ export function AdminReportsPage(): React.JSX.Element {
           </div>
 
           <div>
-            <DateInput label="Data Final *" value={toDate} onChange={setToDate} className="w-full" />
+            <DateInput
+              label="Data Final *"
+              labelPosition="top"
+              value={toDate}
+              onChange={setToDate}
+              className="w-full"
+            />
           </div>
         </div>
       </div>
