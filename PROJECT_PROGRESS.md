@@ -271,6 +271,11 @@ curl http://127.0.0.1:3000/health/ready
       - Added side-by-side Before vs After visual diff view for point corrections and status updates;
       - Added expandable technical JSON inspector with copy-to-clipboard functionality for advanced diagnostic auditing;
       - Enriched backend `TIME_PUNCH_INSERTED` and `TIME_PUNCH_CORRECTED` audit records with employee name, login, and reasons;
+    - Enhanced Punch Correction Modal with Complete Adjustments History (`PunchCorrectionModal` & Backend):
+      - Created `GET /time-punches/:punchId/adjustments` backend endpoint returning complete audit history, original punch details, and each incremental correction sequence;
+      - Designed dedicated "Histórico de Ajustes Anteriores" timeline cards inside `PunchCorrectionModal` showing original registration, transitions (`13:00` $\rightarrow$ `13:05`), administrator author, timestamps, and reason quotes;
+      - Implemented instant reactive cache invalidation across all related queries upon point insertion, correction, or deletion;
+      - Configured automatic background polling and `refetchOnWindowFocus` with 5s staleTime so changes appear automatically for users without requiring manual hard refreshes (`Ctrl + Shift + F5`);
     - Removed change password action icon from the Admin sidebar user profile card as requested;
     - Redesigned and perfected the PDF / Print Timesheet Report (`AdminReportsPage`):
       - Created formal A4 document layout with official PH Motopeças logo, company header, and emission metadata;
