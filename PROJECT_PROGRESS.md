@@ -245,9 +245,11 @@ curl http://127.0.0.1:3000/health/ready
       - Backend endpoint `POST /users/me/change-password` with `ChangeOwnPasswordDto`, Argon2id current password verification, 8-character minimum policy, transaction update, and `USER_PASSWORD_RESET` / `ADMIN_PASSWORD_RESET` audit trail;
       - Frontend `ChangePasswordModal` with current password check, new password visibility toggles, real-time match and length validators, and fluid toast notification;
       - Added password change quick-action in Employee desktop navigation bar, employee home greeting card, and Admin sidebar profile;
-      - Password policy customization: Removed the 8-character minimum constraint from employee and admin user creation, password reset, and password change endpoints/forms (any non-empty password is accepted);
+      - Manual Punch enhancements: Separated date and time input fields in `ManualPunchModal`, auto-filled the selected day date from `EmployeeDetailPage`, and added a confirmation prompt when inserting punches on days that already have full/completed punches;
+    - Modal width optimization: Updated punch modals to `maxWidth="lg"` (`512px`) and added `overflow-x-hidden` to avoid clipping or horizontal scrollbars;
+    - Employee detail auto-select: Automatically pre-selects the most recent day of the reference month;
     - Full automated validation gate `pnpm check` passing 100% (223/223 unit and integration tests passing, strict TypeScript, zero ESLint warnings, Prettier, Vite production bundles, and NestJS compilation);
-    - Production server updated and verified (`ph-ponto-api-1`, `ph-ponto-web-1`, `ph-ponto-postgres-1` all running and healthy).;
+    - Production server updated and verified (`ph-ponto-api-1`, `ph-ponto-web-1`, `ph-ponto-postgres-1` all running and healthy);
     - Integrated official PH Motopeças Branding & Icons:
       - Installed official wide brand logo (`phmotos-logo.png`) into `Brand` component, `LoginPage` hero panel, `AdminLayout` sidebar header, `EmployeeLayout` topbar, and `AdminReportsPage` printable reports header;
       - Installed official application icon (`apple-icon.png` / `app-icon.png`) into `index.html` (favicon and apple-touch-icon) and native Electron `BrowserWindow` icon;
