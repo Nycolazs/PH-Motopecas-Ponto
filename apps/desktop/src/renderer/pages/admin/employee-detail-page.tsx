@@ -16,6 +16,7 @@ import { useApiClient } from '../../auth/use-auth.js';
 import { AvatarImage } from '../../components/avatar-image.js';
 import { AvatarModal } from '../../components/avatar-modal.js';
 import { ManualPunchModal } from '../../components/manual-punch-modal.js';
+import { MonthPicker } from '../../components/month-picker.js';
 import { PunchCorrectionModal } from '../../components/punch-correction-modal.js';
 import { StatusBadge } from '../../components/status-badge.js';
 import { formatDateBR } from '../../lib/format.js';
@@ -203,11 +204,12 @@ export function AdminEmployeeDetailPage(): React.JSX.Element {
 
         <div className="flex items-center space-x-3">
           <span className="text-xs font-semibold text-slate-500">Mês de referência:</span>
-          <input
-            type="month"
+          <MonthPicker
             value={currentMonth}
-            onChange={(e) => setCurrentMonth(e.target.value)}
-            className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium text-slate-900 dark:text-white"
+            onChange={(newMonth) => {
+              setCurrentMonth(newMonth);
+              setSelectedDayDate(null);
+            }}
           />
         </div>
       </div>
