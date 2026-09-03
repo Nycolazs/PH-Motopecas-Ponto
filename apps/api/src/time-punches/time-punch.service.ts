@@ -290,6 +290,35 @@ export class TimePunchService {
           },
           select: { id: true },
         });
+
+        const { start: dateStart, endExclusive: dateEndExclusive } =
+          instantRangeForBusinessDate(businessDate);
+        const allPunchesOnDate = await transaction.timePunch.findMany({
+          where: {
+            employeeId: input.employeeId,
+            occurredAt: { gte: dateStart, lt: dateEndExclusive },
+          },
+          include: {
+            adjustments: { orderBy: { sequence: 'desc' }, take: 1 },
+          },
+        });
+
+        allPunchesOnDate.sort((a, b) => {
+          const aEff = a.adjustments[0]?.correctedOccurredAt ?? a.occurredAt;
+          const bEff = b.adjustments[0]?.correctedOccurredAt ?? b.occurredAt;
+          const diff = aEff.getTime() - bEff.getTime();
+          return diff === 0 ? a.id.localeCompare(b.id) : diff;
+        });
+
+        for (let i = 0; i < allPunchesOnDate.length; i++) {
+          const expectedKind = i % 2 === 0 ? TimePunchKind.CLOCK_IN : TimePunchKind.CLOCK_OUT;
+          if (allPunchesOnDate[i]!.kind !== expectedKind) {
+            await transaction.timePunch.update({
+              where: { id: allPunchesOnDate[i]!.id },
+              data: { kind: expectedKind },
+            });
+          }
+        }
         const punch = createdPunch({
           id: persisted.id,
           employeeId: input.employeeId,
