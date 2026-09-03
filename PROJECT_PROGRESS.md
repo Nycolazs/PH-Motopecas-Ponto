@@ -263,7 +263,9 @@ curl http://127.0.0.1:3000/health/ready
       - Installed official application icon (`apple-icon.png` / `app-icon.png`) into `index.html` (favicon and apple-touch-icon) and native Electron `BrowserWindow` icon;
       - Full quality check `pnpm check` passing 100% with 0 warnings/errors;
     - Redesigned Audit Trail Inspection (`AdminAuditPage` & Backend):
-      - Created natural language narrative generator in `pt-BR` explaining exactly what occurred for every audit event type;
+      - Created natural language narrative generator in `pt-BR` explaining exactly what occurred for every audit event type, identifying the affected employee by name and login;
+      - Automatic employee name and login resolution from database IDs/UUIDs across all audit events, even for legacy records;
+      - Translated all security and error reason codes (`invalid_credentials`, `inactive_user`, `refresh_reuse`, `identity_changed_during_login`, etc.) into clear Brazilian Portuguese;
       - Prominently featured registered reasons / justifications / observations (`reason`, `note`, `reviewComment`) in a dedicated highlight banner with quote styling;
       - Structured key-value parameter breakdown with friendly Brazilian labels, localized timestamps (`DD/MM/AAAA às HH:mm:ss`), and domain enum translations (`Entrada`/`Saída`, `Administrador`/`Colaborador`, `Ativo`/`Inativo`);
       - Added side-by-side Before vs After visual diff view for point corrections and status updates;
