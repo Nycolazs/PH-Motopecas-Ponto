@@ -37,3 +37,11 @@ export class AttendanceMonthQueryDto {
   @Matches(BUSINESS_MONTH_PATTERN)
   public month!: string;
 }
+
+export class AttendanceIncompletesQueryDto {
+  @ApiPropertyOptional({ example: '2026-08', pattern: '^\\d{4}-\\d{2}$' })
+  @IsOptional()
+  @IsString()
+  @Matches(BUSINESS_MONTH_PATTERN)
+  public month?: string;
+}

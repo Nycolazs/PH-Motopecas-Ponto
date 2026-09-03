@@ -61,7 +61,7 @@ function useFortalezaClock(): string {
   return time;
 }
 
-import { GitPullRequest } from 'lucide-react';
+import { AlertTriangle, GitPullRequest } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 
 export function AdminLayout(): React.JSX.Element {
@@ -77,7 +77,15 @@ export function AdminLayout(): React.JSX.Element {
     staleTime: 10_000,
   });
 
+  const { data: incompleteData } = useQuery({
+    queryKey: ['admin-incomplete-count'],
+    queryFn: ({ signal }) => api.getAdminIncompleteDays(undefined, signal),
+    refetchInterval: 30_000,
+    staleTime: 10_000,
+  });
+
   const pendingCount = pendingData?.pendingCount ?? 0;
+  const incompleteCount = incompleteData?.totalIncompleteDays ?? 0;
 
   const navItems = [
     { to: '/admin', label: 'Visão geral', icon: LayoutDashboard, end: true },
@@ -86,6 +94,13 @@ export function AdminLayout(): React.JSX.Element {
       label: 'Solicitações',
       icon: GitPullRequest,
       badge: pendingCount,
+      end: false,
+    },
+    {
+      to: '/admin/incompletos',
+      label: 'Incompletos',
+      icon: AlertTriangle,
+      badge: incompleteCount,
       end: false,
     },
     { to: '/admin/funcionarios', label: 'Funcionários', icon: Users, end: false },

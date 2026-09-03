@@ -275,6 +275,34 @@ export const attendanceOverviewSchema = z
   })
   .strict();
 
+export const incompleteAttendanceDayItemSchema = z
+  .object({
+    employeeId: z.string().uuid(),
+    employeeName: z.string(),
+    employeeLogin: z.string(),
+    hasAvatar: z.boolean(),
+    businessDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    month: z.string().regex(/^\d{4}-\d{2}$/),
+    punchCount: z.number().int().nonnegative(),
+    status: attendanceStatusSchema.nullable(),
+    workState: workStateSchema.nullable(),
+    workedMinutes: z.number().int().nonnegative(),
+    expectedMinutes: z.number().int().nonnegative(),
+    punches: z.array(effectivePunchSchema),
+    lastPunchAt: z.string().datetime({ offset: true }).nullable(),
+    lastPunchKind: punchKindSchema.nullable(),
+  })
+  .strict();
+
+export const incompleteAttendanceSchema = z
+  .object({
+    month: z.string().regex(/^\d{4}-\d{2}$/),
+    totalIncompleteDays: z.number().int().nonnegative(),
+    totalAffectedEmployees: z.number().int().nonnegative(),
+    items: z.array(incompleteAttendanceDayItemSchema),
+  })
+  .strict();
+
 // Schedules schemas
 export const scheduleDaySchema = z
   .object({
@@ -495,4 +523,6 @@ export type ReviewAdjustmentResponse = z.infer<typeof reviewAdjustmentResponseSc
 export type Vacation = z.infer<typeof vacationSchema>;
 export type VacationList = z.infer<typeof vacationListSchema>;
 export type CreateVacationInput = z.infer<typeof createVacationInputSchema>;
+export type IncompleteAttendanceDayItem = z.infer<typeof incompleteAttendanceDayItemSchema>;
+export type IncompleteAttendance = z.infer<typeof incompleteAttendanceSchema>;
 

@@ -11,6 +11,7 @@ import {
   calendarExceptionListSchema,
   calendarExceptionSchema,
   dailyAttendanceSchema,
+  incompleteAttendanceSchema,
   managedUserSchema,
   monthlyAttendanceSchema,
   pendingCountSchema,
@@ -31,6 +32,7 @@ import {
   type CalendarExceptionList,
   type CreateVacationInput,
   type DailyAttendance,
+  type IncompleteAttendance,
   type ManagedUser,
   type MonthlyAttendance,
   type ReviewAdjustmentResponse,
@@ -174,6 +176,17 @@ export class ApiClient {
   public getAdminOverview(date?: string, signal?: AbortSignal): Promise<AttendanceOverview> {
     const query = date ? `?date=${encodeURIComponent(date)}` : '';
     return this.request(`/attendance/overview${query}`, attendanceOverviewSchema, {
+      ...(signal === undefined ? {} : { signal }),
+    });
+  }
+
+  // Admin Incomplete Days
+  public getAdminIncompleteDays(
+    month?: string,
+    signal?: AbortSignal,
+  ): Promise<IncompleteAttendance> {
+    const query = month ? `?month=${encodeURIComponent(month)}` : '';
+    return this.request(`/attendance/incompletes${query}`, incompleteAttendanceSchema, {
       ...(signal === undefined ? {} : { signal }),
     });
   }

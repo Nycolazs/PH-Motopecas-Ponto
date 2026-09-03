@@ -13,6 +13,7 @@ import type { AuthenticatedUser } from '../auth/auth.types.js';
 import {
   AttendanceDateQueryDto,
   AttendanceHistoryQueryDto,
+  AttendanceIncompletesQueryDto,
   AttendanceMonthQueryDto,
   AttendanceOverviewQueryDto,
 } from './attendance.dto.js';
@@ -21,6 +22,7 @@ import {
   AttendanceOverviewViewDto,
   AttendancePeriodViewDto,
   DailyAttendanceViewDto,
+  IncompleteAttendanceViewDto,
   MonthlyAttendanceViewDto,
 } from './attendance.view.js';
 
@@ -85,6 +87,16 @@ export class AdminAttendanceController {
   @ApiOkResponse({ type: AttendanceOverviewViewDto })
   public overview(@Query() query: AttendanceOverviewQueryDto): Promise<AttendanceOverviewViewDto> {
     return this.attendance.getOverview(query.date);
+  }
+
+  @Get('incompletes')
+  @ApiOperation({ summary: 'Consulta os dias com batidas incompletas de todos os colaboradores' })
+  @ApiQuery({ type: AttendanceIncompletesQueryDto, required: false })
+  @ApiOkResponse({ type: IncompleteAttendanceViewDto })
+  public incompletes(
+    @Query() query: AttendanceIncompletesQueryDto,
+  ): Promise<IncompleteAttendanceViewDto> {
+    return this.attendance.getIncompleteDays(query.month);
   }
 
   @Get('employees/:employeeId/day')

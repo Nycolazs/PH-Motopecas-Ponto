@@ -360,6 +360,64 @@ export class AttendanceOverviewViewDto {
   public recentAdjustments!: RecentAdjustmentViewDto[];
 }
 
+export class IncompleteAttendanceDayItemDto {
+  @ApiProperty({ format: 'uuid' })
+  public employeeId!: string;
+
+  @ApiProperty({ example: 'João da Silva' })
+  public employeeName!: string;
+
+  @ApiProperty({ example: 'joao.silva' })
+  public employeeLogin!: string;
+
+  @ApiProperty()
+  public hasAvatar!: boolean;
+
+  @ApiProperty({ example: '2026-09-02' })
+  public businessDate!: string;
+
+  @ApiProperty({ example: '2026-09' })
+  public month!: string;
+
+  @ApiProperty({ minimum: 0, example: 3 })
+  public punchCount!: number;
+
+  @ApiProperty({ enum: ATTENDANCE_STATUSES, example: 'INCOMPLETE' })
+  public status!: DailyAttendanceSummary['status'];
+
+  @ApiPropertyOptional({ enum: PROVISIONAL_WORK_STATES, nullable: true })
+  public workState!: DailyAttendanceSummary['workState'];
+
+  @ApiProperty({ minimum: 0, example: 330 })
+  public workedMinutes!: number;
+
+  @ApiProperty({ minimum: 0, example: 480 })
+  public expectedMinutes!: number;
+
+  @ApiProperty({ type: [EffectiveAttendancePunchViewDto] })
+  public punches!: EffectivePunch[];
+
+  @ApiPropertyOptional({ format: 'date-time', nullable: true })
+  public lastPunchAt!: string | null;
+
+  @ApiPropertyOptional({ enum: ATTENDANCE_PUNCH_KINDS, nullable: true })
+  public lastPunchKind!: AttendancePunchKind | null;
+}
+
+export class IncompleteAttendanceViewDto {
+  @ApiProperty({ example: '2026-09' })
+  public month!: string;
+
+  @ApiProperty({ minimum: 0, example: 5 })
+  public totalIncompleteDays!: number;
+
+  @ApiProperty({ minimum: 0, example: 2 })
+  public totalAffectedEmployees!: number;
+
+  @ApiProperty({ type: [IncompleteAttendanceDayItemDto] })
+  public items!: IncompleteAttendanceDayItemDto[];
+}
+
 export function toDailyAttendanceView(summary: DailyAttendanceSummary): DailyAttendanceViewDto {
   return {
     businessDate: summary.businessDate,

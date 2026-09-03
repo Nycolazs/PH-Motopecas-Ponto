@@ -40,6 +40,8 @@ import {
   type AttendanceOverviewViewDto,
   type DailyAttendanceViewDto,
   type EmployeeTodayStatusViewDto,
+  type IncompleteAttendanceDayItemDto,
+  type IncompleteAttendanceViewDto,
 } from './attendance.view.js';
 import { ATTENDANCE_CLOCK, type AttendanceClock } from './attendance-clock.js';
 
@@ -351,6 +353,90 @@ export class AttendanceService implements AttendanceSummaryResolver {
         month: monthNumber!,
         summaries,
       }),
+    };
+  }
+
+  public async getIncompleteDays(
+    month?: string,
+    evaluationInstant = this.clock(),
+  ): Promise<IncompleteAttendanceViewDto> {
+    const today = businessDateFromInstant(evaluationInstant);
+    const targetMonth = month ?? today.slice(0, 7);
+
+    let range: { from: string; to: string };
+    try {
+      range = monthBusinessDateRange(targetMonth);
+    } catch {
+      throw new BadRequestException({
+        code: 'INVALID_MONTH',
+        message: 'Informe um mês válido no formato AAAA-MM.',
+      });
+    }
+
+    if (compareBusinessDates(range.from, today) > 0) {
+      throw invalidRange('Não é possível consultar um mês futuro.');
+    }
+
+    const to = compareBusinessDates(range.to, today) > 0 ? today : range.to;
+    const dates = this.validatedDates(range.from, to, evaluationInstant);
+
+    const activeEmployees = await this.prisma.user.findMany({
+      where: { role: UserRole.EMPLOYEE, isActive: true },
+      orderBy: [{ name: 'asc' }, { login: 'asc' }],
+      select: {
+        id: true,
+        name: true,
+        login: true,
+        avatar: { select: { id: true } },
+      },
+    });
+
+    const items: IncompleteAttendanceDayItemDto[] = [];
+
+    for (const emp of activeEmployees) {
+      const summaries = await this.loadPeriodSummaries(emp.id, dates, evaluationInstant);
+      for (const summary of summaries) {
+        if (summary.status === 'INCOMPLETE' || summary.chronology.isIncomplete) {
+          const lastPunch = summary.chronology.punches.at(-1);
+          items.push({
+            employeeId: emp.id,
+            employeeName: emp.name,
+            employeeLogin: emp.login,
+            hasAvatar: emp.avatar !== null,
+            businessDate: summary.businessDate,
+            month: targetMonth,
+            punchCount: summary.punchCount,
+            status: 'INCOMPLETE',
+            workState: summary.workState,
+            workedMinutes: summary.workedMinutes,
+            expectedMinutes: summary.expectedMinutes,
+            punches: summary.chronology.punches.map((p) => ({
+              id: p.id,
+              originalOccurredAt: p.originalOccurredAt,
+              effectiveOccurredAt: p.effectiveOccurredAt,
+              kind: p.kind,
+              appliedAdjustmentCount: p.appliedAdjustmentCount,
+            })),
+            lastPunchAt: lastPunch ? lastPunch.effectiveOccurredAt : null,
+            lastPunchKind: lastPunch ? lastPunch.kind : null,
+          });
+        }
+      }
+    }
+
+    items.sort((a, b) => {
+      const cmp = compareBusinessDates(b.businessDate, a.businessDate);
+      if (cmp !== 0) return cmp;
+      return a.employeeName.localeCompare(b.employeeName);
+    });
+
+    const uniqueEmployees = new Set(items.map((i) => i.employeeId));
+
+    return {
+      month: targetMonth,
+      totalIncompleteDays: items.length,
+      totalAffectedEmployees: uniqueEmployees.size,
+      items,
     };
   }
 

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   ArrowLeft,
@@ -9,7 +9,7 @@ import {
   Plus,
   RefreshCw,
 } from 'lucide-react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import type { DailyAttendance, EffectivePunch } from '../../api/contracts.js';
 import { useApiClient } from '../../auth/use-auth.js';
@@ -30,11 +30,16 @@ function formatTime(isoString?: string | null): string {
 
 export function AdminEmployeeDetailPage(): React.JSX.Element {
   const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
+  const initialDate = searchParams.get('date') ?? searchParams.get('dia');
+  const initialMonth = searchParams.get('month') ?? (initialDate ? initialDate.slice(0, 7) : null);
+
   const employeeId = id ?? '';
   const api = useApiClient();
   const navigate = useNavigate();
 
   const [currentMonth, setCurrentMonth] = useState(() => {
+    if (initialMonth) return initialMonth;
     const now = new Date();
     const y = now.getFullYear();
     const m = String(now.getMonth() + 1).padStart(2, '0');
@@ -42,7 +47,16 @@ export function AdminEmployeeDetailPage(): React.JSX.Element {
   });
 
   const [activeTab, setActiveTab] = useState<'CALENDAR' | 'PUNCHES'>('CALENDAR');
-  const [selectedDayDate, setSelectedDayDate] = useState<string | null>(null);
+  const [selectedDayDate, setSelectedDayDate] = useState<string | null>(() => initialDate ?? null);
+
+  useEffect(() => {
+    const urlDate = searchParams.get('date') ?? searchParams.get('dia');
+    if (urlDate) {
+      setSelectedDayDate(urlDate);
+      setCurrentMonth(urlDate.slice(0, 7));
+      setActiveTab('CALENDAR');
+    }
+  }, [searchParams]);
 
   // Modals
   const [avatarOpen, setAvatarOpen] = useState(false);
