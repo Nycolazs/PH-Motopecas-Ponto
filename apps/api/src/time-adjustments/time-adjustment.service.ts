@@ -338,6 +338,44 @@ export class TimeAdjustmentService {
     return target;
   }
 
+  public async getAdjustmentsHistory(punchId: string) {
+    const punch = await this.prisma.timePunch.findUnique({
+      where: { id: punchId },
+      include: {
+        createdByAdmin: { select: { id: true, name: true, login: true } },
+        adjustments: {
+          orderBy: { sequence: 'asc' },
+          include: {
+            admin: { select: { id: true, name: true, login: true } },
+          },
+        },
+      },
+    });
+
+    if (!punch) {
+      throw resourceNotFound();
+    }
+
+    return {
+      punchId: punch.id,
+      originalOccurredAt: punch.occurredAt.toISOString(),
+      kind: punch.kind,
+      origin: punch.origin,
+      insertionReason: punch.insertionReason,
+      createdByAdmin: punch.createdByAdmin,
+      createdAt: punch.createdAt.toISOString(),
+      adjustments: punch.adjustments.map((a) => ({
+        id: a.id,
+        sequence: a.sequence,
+        previousOccurredAt: a.previousOccurredAt.toISOString(),
+        correctedOccurredAt: a.correctedOccurredAt.toISOString(),
+        reason: a.reason,
+        admin: a.admin,
+        createdAt: a.createdAt.toISOString(),
+      })),
+    };
+  }
+
   private async lockAdjustments(
     transaction: Prisma.TransactionClient,
     punchId: string,

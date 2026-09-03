@@ -215,6 +215,41 @@ export const adminTimePunchMutationSchema = z
   })
   .strict();
 
+export const timePunchAdjustmentHistorySchema = z
+  .object({
+    punchId: z.string().uuid(),
+    originalOccurredAt: z.string().datetime({ offset: true }),
+    kind: punchKindSchema,
+    origin: z.enum(['EMPLOYEE', 'ADMIN_INSERTION']),
+    insertionReason: z.string().nullable(),
+    createdByAdmin: z
+      .object({
+        id: z.string().uuid(),
+        name: z.string(),
+        login: z.string(),
+      })
+      .nullable(),
+    createdAt: z.string().datetime({ offset: true }),
+    adjustments: z.array(
+      z.object({
+        id: z.string().uuid(),
+        sequence: z.number().int().nonnegative(),
+        previousOccurredAt: z.string().datetime({ offset: true }),
+        correctedOccurredAt: z.string().datetime({ offset: true }),
+        reason: z.string(),
+        admin: z.object({
+          id: z.string().uuid(),
+          name: z.string(),
+          login: z.string(),
+        }),
+        createdAt: z.string().datetime({ offset: true }),
+      }),
+    ),
+  })
+  .strict();
+
+export type TimePunchAdjustmentHistory = z.infer<typeof timePunchAdjustmentHistorySchema>;
+
 // Overview / Dashboard schemas
 export const employeeTodayStatusSchema = z
   .object({

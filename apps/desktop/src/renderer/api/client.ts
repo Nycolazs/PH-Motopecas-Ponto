@@ -18,6 +18,7 @@ import {
   reviewAdjustmentResponseSchema,
   scheduleListSchema,
   scheduleVersionSchema,
+  timePunchAdjustmentHistorySchema,
   timePunchMutationSchema,
   userListSchema,
   vacationListSchema,
@@ -38,6 +39,7 @@ import {
   type ReviewAdjustmentResponse,
   type ScheduleList,
   type ScheduleVersion,
+  type TimePunchAdjustmentHistory,
   type TimePunchMutation,
   type UserList,
   type Vacation,
@@ -360,6 +362,19 @@ export class ApiClient {
           reason: data.reason,
         }),
         headers: { 'Content-Type': 'application/json', 'Idempotency-Key': idempotencyKey },
+      },
+    );
+  }
+
+  public getPunchAdjustments(
+    punchId: string,
+    signal?: AbortSignal,
+  ): Promise<TimePunchAdjustmentHistory> {
+    return this.request(
+      `/time-punches/${encodeURIComponent(punchId)}/adjustments`,
+      timePunchAdjustmentHistorySchema,
+      {
+        ...(signal === undefined ? {} : { signal }),
       },
     );
   }

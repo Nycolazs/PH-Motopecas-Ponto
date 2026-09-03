@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   Headers,
   HttpCode,
   HttpStatus,
@@ -68,5 +69,12 @@ export class TimeAdjustmentController {
       response.setHeader('Idempotency-Replayed', 'true');
     }
     return result.body;
+  }
+
+  @Get(':punchId/adjustments')
+  @ApiOperation({ summary: 'Obtém o histórico de ajustes de uma batida de ponto' })
+  @ApiParam({ name: 'punchId', format: 'uuid' })
+  public async getAdjustments(@Param('punchId', new ParseUUIDPipe()) punchId: string) {
+    return this.adjustments.getAdjustmentsHistory(punchId);
   }
 }

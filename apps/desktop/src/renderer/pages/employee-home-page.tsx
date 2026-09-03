@@ -143,10 +143,12 @@ export function EmployeeHomePage(): React.JSX.Element {
   const today = useQuery({
     queryKey: ['attendance', employeeId, 'today'],
     queryFn: ({ signal }) => api.getToday(signal),
+    refetchInterval: 15_000,
   });
   const monthly = useQuery({
     queryKey: ['attendance', employeeId, 'monthly', month],
     queryFn: ({ signal }) => api.getMonthly(month, signal),
+    refetchInterval: 30_000,
   });
   const punch = useMutation({
     mutationFn: async () => {

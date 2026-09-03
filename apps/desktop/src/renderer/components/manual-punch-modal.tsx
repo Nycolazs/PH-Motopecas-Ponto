@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { AlertTriangle } from 'lucide-react';
 import { useApiClient } from '../auth/use-auth.js';
+import { useToast } from './toast-context.js';
 import type { ManagedUser, DailyAttendance } from '../api/contracts.js';
 import { Modal } from './modal.js';
 import { SelectInput } from './select-input.js';
@@ -26,6 +28,8 @@ export function ManualPunchModal({
   onSuccess,
 }: ManualPunchModalProps): React.JSX.Element {
   const api = useApiClient();
+  const toast = useToast();
+  const queryClient = useQueryClient();
   const [employeeId, setEmployeeId] = useState('');
   const [punchDate, setPunchDate] = useState('');
   const [punchTime, setPunchTime] = useState('');
@@ -79,6 +83,17 @@ export function ManualPunchModal({
         },
         idempotencyKey,
       );
+
+      toast.success('Ponto manual inserido com sucesso.');
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['admin-employee-monthly'] }),
+        queryClient.invalidateQueries({ queryKey: ['admin-employee-day'] }),
+        queryClient.invalidateQueries({ queryKey: ['admin-overview'] }),
+        queryClient.invalidateQueries({ queryKey: ['admin-incomplete-attendance'] }),
+        queryClient.invalidateQueries({ queryKey: ['admin-incomplete-count'] }),
+        queryClient.invalidateQueries({ queryKey: ['admin-audit-logs'] }),
+        queryClient.invalidateQueries({ queryKey: ['attendance'] }),
+      ]);
 
       onSuccess();
       onClose();
