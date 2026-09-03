@@ -1367,7 +1367,7 @@ a.button,
 @media print {
   @page {
     size: A4 portrait;
-    margin: 8mm 10mm 10mm 10mm;
+    margin: 0;
   }
 
   /* Reset layout constraints for printing */
@@ -1419,7 +1419,7 @@ a.button,
     width: 100% !important;
     max-width: 100% !important;
     margin: 0 auto !important;
-    padding: 0 !important;
+    padding: 10mm 12mm !important;
     background: #ffffff !important;
     color: #0f172a !important;
     box-shadow: none !important;
