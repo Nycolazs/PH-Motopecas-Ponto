@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   CheckCircle2,
@@ -12,6 +12,7 @@ import {
   RefreshCw,
   ScrollText,
   User,
+  UserCheck,
 } from 'lucide-react';
 
 import { useApiClient } from '../../auth/use-auth.js';
@@ -59,7 +60,10 @@ export const ACTION_LABELS: Record<string, string> = {
 const FIELD_LABELS: Record<string, string> = {
   employeeName: 'Colaborador',
   employeeLogin: 'Login do Colaborador',
-  employeeId: 'ID do Colaborador',
+  employeeId: 'Colaborador Afetado',
+  userId: 'Usuário Afetado',
+  actorId: 'ID do Autor',
+  targetId: 'ID do Alvo',
   occurredAt: 'Data e Horário do Ponto',
   effectiveOccurredAt: 'Horário Efetivo',
   previousOccurredAt: 'Horário Anterior',
@@ -87,7 +91,37 @@ const FIELD_LABELS: Record<string, string> = {
   value: 'Valor Definido',
   reportType: 'Tipo de Relatório',
   period: 'Período',
+  loginBucket: 'Identificador de Tentativa',
 };
+
+const REASON_TRANSLATIONS: Record<string, string> = {
+  invalid_credentials: 'Credenciais inválidas (usuário ou senha incorretos)',
+  inactive_user: 'Usuário desativado no sistema',
+  user_deactivated: 'Usuário desativado no sistema',
+  user_not_found: 'Usuário não encontrado',
+  session_expired: 'Sessão expirada por tempo limite',
+  session_revoked: 'Sessão revogada administrativamente',
+  refresh_reuse: 'Tentativa suspeita de reuso de sessão revogada',
+  identity_changed_during_login: 'Dados cadastrais alterados durante a autenticação',
+  esquecimento: 'Esquecimento de registro pelo colaborador',
+  ajuste_horario: 'Ajuste de horário incorreto',
+  intervalo: 'Ajuste de intervalo / almoço',
+  falha_sistema: 'Falha técnica ou indisponibilidade',
+  atestado: 'Atestado médico ou declaração',
+  servico_externo: 'Serviço externo / Trabalho em campo',
+  mudanca_escala: 'Mudança de escala ou jornada',
+  compensacao: 'Compensação de horas',
+  LOGOUT: 'Encerramento de sessão voluntário (Logout)',
+  EXPIRED: 'Sessão expirada',
+  USER_DEACTIVATED: 'Conta de usuário desativada',
+  REFRESH_REUSE: 'Reuso de sessão detectado',
+};
+
+function formatObservationOrReason(text: string): string {
+  const trimmed = text.trim();
+  const lower = trimmed.toLowerCase();
+  return REASON_TRANSLATIONS[trimmed] ?? REASON_TRANSLATIONS[lower] ?? trimmed;
+}
 
 function toRecord(val: unknown): Record<string, unknown> | null {
   if (val && typeof val === 'object' && !Array.isArray(val)) {
@@ -96,11 +130,87 @@ function toRecord(val: unknown): Record<string, unknown> | null {
   return null;
 }
 
-function formatValue(_key: string, value: unknown): string {
+function isUuid(val: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val);
+}
+
+function getAffectedUser(
+  log: AuditLogItem,
+  userMap: Map<string, { name: string; login: string; role: string }>,
+): { name: string; login?: string; isActor: boolean } | null {
+  const meta = toRecord(log.metadata);
+  const after = toRecord(log.afterState);
+  const before = toRecord(log.beforeState);
+
+  // 1. Check direct employee/user ID in state/meta
+  const employeeId =
+    (after?.employeeId as string) ||
+    (before?.employeeId as string) ||
+    (meta?.employeeId as string) ||
+    (log.targetType === 'USER' && log.targetId ? log.targetId : null);
+
+  if (employeeId && userMap.has(employeeId)) {
+    const u = userMap.get(employeeId)!;
+    return { name: u.name, login: u.login, isActor: false };
+  }
+
+  // 2. Check direct name in state/meta
+  const directName =
+    (after?.employeeName as string) ||
+    (meta?.employeeName as string) ||
+    (before?.employeeName as string) ||
+    (after?.name as string) ||
+    (before?.name as string);
+
+  const directLogin =
+    (after?.employeeLogin as string) ||
+    (meta?.employeeLogin as string) ||
+    (before?.employeeLogin as string) ||
+    (after?.login as string) ||
+    (before?.login as string);
+
+  if (directName && typeof directName === 'string' && !isUuid(directName)) {
+    return { name: directName, login: directLogin, isActor: false };
+  }
+
+  // 3. If the actor themselves is an employee involved in the action
+  if (
+    log.actor &&
+    (log.action.startsWith('LOGIN') ||
+      log.action.startsWith('USER_') ||
+      log.action === 'ADJUSTMENT_REQUEST_CREATED')
+  ) {
+    return { name: log.actor.name, login: log.actor.login, isActor: true };
+  }
+
+  return null;
+}
+
+function formatValue(
+  key: string,
+  value: unknown,
+  userMap: Map<string, { name: string; login: string; role: string }>,
+): string {
   if (value === null || value === undefined) return 'Não informado';
   if (typeof value === 'boolean') return value ? 'Ativo / Sim' : 'Inativo / Não';
 
   const str = String(value);
+
+  // If this key is an ID and we have user info
+  if (
+    (key === 'employeeId' || key === 'userId' || key === 'targetId' || key === 'actorId') &&
+    isUuid(str)
+  ) {
+    const u = userMap.get(str);
+    if (u) {
+      return `${u.name} (@${u.login})`;
+    }
+  }
+
+  // Reasons & Observations
+  if (key === 'reason' || key === 'note' || key === 'reviewComment' || key === 'comment') {
+    return formatObservationOrReason(str);
+  }
 
   // ISO Date Strings
   if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(str)) {
@@ -120,37 +230,36 @@ function formatValue(_key: string, value: unknown): string {
   if (str === 'APPROVED') return 'Aprovado';
   if (str === 'REJECTED') return 'Rejeitado';
 
-  return str;
+  return formatObservationOrReason(str);
 }
 
-function getEventNarrative(log: AuditLogItem): string {
-  const actorName = log.actor ? log.actor.name : 'Sistema';
+function getEventNarrative(
+  log: AuditLogItem,
+  userMap: Map<string, { name: string; login: string; role: string }>,
+): string {
+  const actorName = log.actor ? `${log.actor.name} (@${log.actor.login})` : 'Sistema';
+  const affected = getAffectedUser(log, userMap);
+  const affectedStr = affected
+    ? `${affected.name}${affected.login ? ` (@${affected.login})` : ''}`
+    : null;
   const meta = toRecord(log.metadata);
   const after = toRecord(log.afterState);
   const before = toRecord(log.beforeState);
-
-  const employeeName =
-    (meta?.employeeName as string) ||
-    (after?.employeeName as string) ||
-    (before?.employeeName as string) ||
-    (after?.name as string) ||
-    (before?.name as string) ||
-    null;
 
   switch (log.action) {
     case 'TIME_PUNCH_INSERTED': {
       const punchTime = after?.occurredAt ? formatDateTimeBR(after.occurredAt as string) : '';
       const kindStr = after?.kind === 'CLOCK_IN' ? 'Entrada' : 'Saída';
-      return `O administrador ${actorName} realizou a inserção manual de um ponto de ${kindStr}${employeeName ? ` para ${employeeName}` : ''}${punchTime ? ` no horário ${punchTime}` : ''}.`;
+      return `O administrador ${actorName} realizou a inserção manual de um ponto de ${kindStr}${affectedStr ? ` para o colaborador ${affectedStr}` : ''}${punchTime ? ` no horário ${punchTime}` : ''}.`;
     }
     case 'TIME_PUNCH_CORRECTED': {
       const prevTime = before?.occurredAt ? formatDateTimeBR(before.occurredAt as string) : '';
       const nextTime = after?.occurredAt ? formatDateTimeBR(after.occurredAt as string) : '';
-      return `O administrador ${actorName} corrigiu o horário do ponto${employeeName ? ` de ${employeeName}` : ''}${prevTime && nextTime ? ` de ${prevTime} para ${nextTime}` : ''}.`;
+      return `O administrador ${actorName} corrigiu o horário do ponto${affectedStr ? ` do colaborador ${affectedStr}` : ''}${prevTime && nextTime ? ` de ${prevTime} para ${nextTime}` : ''}.`;
     }
     case 'TIME_PUNCH_DELETED': {
       const punchTime = before?.occurredAt ? formatDateTimeBR(before.occurredAt as string) : '';
-      return `O administrador ${actorName} excluiu uma batida de ponto${employeeName ? ` de ${employeeName}` : ''}${punchTime ? ` registrada em ${punchTime}` : ''}.`;
+      return `O administrador ${actorName} excluiu uma batida de ponto${affectedStr ? ` do colaborador ${affectedStr}` : ''}${punchTime ? ` registrada originalmente em ${punchTime}` : ''}.`;
     }
     case 'ADJUSTMENT_REQUEST_CREATED': {
       const reqTime = after?.requestedOccurredAt
@@ -159,36 +268,36 @@ function getEventNarrative(log: AuditLogItem): string {
       return `O colaborador ${actorName} enviou uma solicitação de ajuste de ponto${reqTime ? ` para o horário ${reqTime}` : ''}.`;
     }
     case 'ADJUSTMENT_REQUEST_APPROVED':
-      return `O administrador ${actorName} aprovou a solicitação de ajuste de ponto${employeeName ? ` de ${employeeName}` : ''}.`;
+      return `O administrador ${actorName} aprovou a solicitação de ajuste de ponto${affectedStr ? ` do colaborador ${affectedStr}` : ''}.`;
     case 'ADJUSTMENT_REQUEST_REJECTED':
-      return `O administrador ${actorName} rejeitou a solicitação de ajuste de ponto${employeeName ? ` de ${employeeName}` : ''}.`;
+      return `O administrador ${actorName} rejeitou a solicitação de ajuste de ponto${affectedStr ? ` do colaborador ${affectedStr}` : ''}.`;
     case 'USER_CREATED':
-      return `Novo colaborador cadastrado no sistema: ${after?.name || employeeName || 'Usuário'} (Login: ${after?.login || 'N/A'}).`;
+      return `Novo colaborador cadastrado no sistema: ${affected?.name || after?.name || 'Colaborador'}${affected?.login || after?.login ? ` (Login: @${affected?.login || after?.login})` : ''} por ${actorName}.`;
     case 'USER_UPDATED':
-      return `Os dados cadastrais do colaborador ${employeeName || 'usuário'} foram atualizados por ${actorName}.`;
+      return `Os dados cadastrais do colaborador ${affectedStr || 'usuário'} foram atualizados por ${actorName}.`;
     case 'USER_ACTIVATED':
-      return `O colaborador ${employeeName || 'usuário'} foi reativado no sistema por ${actorName}.`;
+      return `O colaborador ${affectedStr || 'usuário'} foi reativado no sistema por ${actorName}.`;
     case 'USER_DEACTIVATED':
-      return `O colaborador ${employeeName || 'usuário'} foi desativado no sistema por ${actorName}.`;
+      return `O colaborador ${affectedStr || 'usuário'} foi desativado no sistema por ${actorName}.`;
     case 'USER_PASSWORD_RESET':
-      return `A senha de acesso do colaborador ${employeeName || 'usuário'} foi redefinida.`;
+      return `A senha de acesso do colaborador ${affectedStr || 'usuário'} foi redefinida por ${actorName}.`;
     case 'ADMIN_CREATED':
-      return `Novo administrador cadastrado no sistema: ${after?.name || 'Administrador'}.`;
+      return `Novo administrador cadastrado no sistema: ${after?.name || 'Administrador'} por ${actorName}.`;
     case 'ADMIN_UPDATED':
-      return `Os dados do administrador ${employeeName || 'usuário'} foram atualizados por ${actorName}.`;
+      return `Os dados do administrador ${after?.name || 'usuário'} foram atualizados por ${actorName}.`;
     case 'ADMIN_ACTIVATED':
-      return `O administrador ${employeeName || 'usuário'} foi reativado por ${actorName}.`;
+      return `O administrador ${after?.name || 'usuário'} foi reativado por ${actorName}.`;
     case 'ADMIN_DEACTIVATED':
-      return `O administrador ${employeeName || 'usuário'} foi desativado por ${actorName}.`;
+      return `O administrador ${after?.name || 'usuário'} foi desativado por ${actorName}.`;
     case 'ADMIN_PASSWORD_RESET':
-      return `A senha do administrador foi redefinida com sucesso.`;
+      return `A senha do administrador foi redefinida com sucesso por ${actorName}.`;
     case 'VACATION_CREATED': {
       const start = after?.startDate ? formatDateBR(after.startDate as string) : '';
       const end = after?.endDate ? formatDateBR(after.endDate as string) : '';
-      return `Férias cadastradas por ${actorName}${employeeName ? ` para ${employeeName}` : ''}${start && end ? ` no período de ${start} a ${end}` : ''}.`;
+      return `Férias cadastradas por ${actorName}${affectedStr ? ` para o colaborador ${affectedStr}` : ''}${start && end ? ` no período de ${start} a ${end}` : ''}.`;
     }
     case 'VACATION_DELETED':
-      return `O registro de férias foi cancelado/excluído por ${actorName}.`;
+      return `O registro de férias${affectedStr ? ` do colaborador ${affectedStr}` : ''} foi cancelado/excluído por ${actorName}.`;
     case 'SCHEDULE_CREATED':
       return `Uma nova versão da jornada de trabalho padrão da empresa foi cadastrada por ${actorName}.`;
     case 'CALENDAR_EXCEPTION_CREATED':
@@ -204,12 +313,15 @@ function getEventNarrative(log: AuditLogItem): string {
       return `Foto de perfil removida por ${actorName}.`;
     case 'LOGIN_SUCCEEDED':
       return `Autenticação realizada com sucesso pelo usuário ${actorName}.`;
-    case 'LOGIN_FAILED':
-      return `Tentativa de login sem sucesso com credenciais inválidas ou usuário inativo.`;
+    case 'LOGIN_FAILED': {
+      const rawReason = (meta?.reason as string) || 'invalid_credentials';
+      const reasonPt = formatObservationOrReason(rawReason);
+      return `Tentativa de login sem sucesso${affectedStr ? ` para a conta de ${affectedStr}` : ''} — Motivo: ${reasonPt}.`;
+    }
     case 'LOGOUT':
       return `Logout de sessão efetuado por ${actorName}.`;
     case 'REFRESH_REUSED':
-      return `Tentativa suspeita de reutilização de token de atualização detectada e revogada pelo sistema.`;
+      return `Tentativa suspeita de reutilização de token de atualização detectada e revogada para ${actorName}.`;
     case 'SETTING_UPDATED':
       return `Configuração global do sistema atualizada por ${actorName}.`;
     case 'REPORT_EXPORTED':
@@ -238,7 +350,7 @@ function getObservationText(log: AuditLogItem): string | null {
     before?.note;
 
   if (typeof candidate === 'string' && candidate.trim().length > 0) {
-    return candidate.trim();
+    return formatObservationOrReason(candidate);
   }
 
   return null;
@@ -251,6 +363,34 @@ export function AdminAuditPage(): React.JSX.Element {
   const [detailItem, setDetailItem] = useState<AuditLogItem | null>(null);
   const [showTechnicalJson, setShowTechnicalJson] = useState(false);
   const [copiedJson, setCopiedJson] = useState(false);
+
+  // Load all employees and admins to resolve names from IDs seamlessly
+  const { data: employeesData } = useQuery({
+    queryKey: ['admin-audit-employees-lookup'],
+    queryFn: () => api.getEmployees({ limit: 100 }),
+    staleTime: 60_000,
+  });
+
+  const { data: adminsData } = useQuery({
+    queryKey: ['admin-audit-admins-lookup'],
+    queryFn: () => api.getAdmins({ limit: 100 }),
+    staleTime: 60_000,
+  });
+
+  const userMap = useMemo(() => {
+    const map = new Map<string, { name: string; login: string; role: string }>();
+    if (employeesData?.items) {
+      for (const u of employeesData.items) {
+        map.set(u.id, { name: u.name, login: u.login, role: u.role });
+      }
+    }
+    if (adminsData?.items) {
+      for (const u of adminsData.items) {
+        map.set(u.id, { name: u.name, login: u.login, role: u.role });
+      }
+    }
+    return map;
+  }, [employeesData, adminsData]);
 
   const { data, isLoading, error, refetch, isFetching } = useQuery({
     queryKey: ['admin-audit-logs', page, actionFilter],
@@ -269,7 +409,8 @@ export function AdminAuditPage(): React.JSX.Element {
   };
 
   const observation = detailItem ? getObservationText(detailItem) : null;
-  const narrative = detailItem ? getEventNarrative(detailItem) : '';
+  const narrative = detailItem ? getEventNarrative(detailItem, userMap) : '';
+  const affectedUser = detailItem ? getAffectedUser(detailItem, userMap) : null;
   const beforeStateRecord = detailItem ? toRecord(detailItem.beforeState) : null;
   const afterStateRecord = detailItem ? toRecord(detailItem.afterState) : null;
 
@@ -350,20 +491,22 @@ export function AdminAuditPage(): React.JSX.Element {
                     <th className="py-3.5 px-4">Ação Auditada</th>
                     <th className="py-3.5 px-3">Resultado</th>
                     <th className="py-3.5 px-4">Autor da Ação</th>
-                    <th className="py-3.5 px-4">Observação / Justificativa</th>
+                    <th className="py-3.5 px-4">Colaborador / Alvo</th>
+                    <th className="py-3.5 px-4">Observação / Motivo</th>
                     <th className="py-3.5 px-4 text-right">Inspecionar</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 font-sans">
                   {data.items.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="py-12 text-center text-slate-500 text-sm">
+                      <td colSpan={7} className="py-12 text-center text-slate-500 text-sm">
                         Nenhum evento de auditoria encontrado para o filtro aplicado.
                       </td>
                     </tr>
                   )}
                   {data.items.map((log: AuditLogItem) => {
                     const rowObs = getObservationText(log);
+                    const rowAffected = getAffectedUser(log, userMap);
                     return (
                       <tr
                         key={log.id}
@@ -393,6 +536,24 @@ export function AdminAuditPage(): React.JSX.Element {
                             </div>
                           ) : (
                             <span className="text-slate-400 italic">Sistema / Automático</span>
+                          )}
+                        </td>
+                        <td className="py-3.5 px-4 text-slate-800 dark:text-slate-200">
+                          {rowAffected ? (
+                            <div className="flex flex-col">
+                              <span className="font-semibold text-indigo-900 dark:text-indigo-300">
+                                {rowAffected.name}
+                              </span>
+                              {rowAffected.login && (
+                                <span className="text-slate-400 font-mono text-[11px]">
+                                  @{rowAffected.login}
+                                </span>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-slate-400 font-mono text-[11px]">
+                              {log.targetId ? `ID: ${log.targetId.slice(0, 8)}...` : '—'}
+                            </span>
                           )}
                         </td>
                         <td className="py-3.5 px-4 max-w-xs">
@@ -484,12 +645,41 @@ export function AdminAuditPage(): React.JSX.Element {
                   <div>
                     <span className="text-slate-400 text-[11px] block">Autor da Ação:</span>
                     <span className="font-semibold text-slate-900 dark:text-white">
-                      {detailItem.actor ? `${detailItem.actor.name} (@${detailItem.actor.login})` : 'Sistema'}
+                      {detailItem.actor
+                        ? `${detailItem.actor.name} (@${detailItem.actor.login})`
+                        : 'Sistema'}
                     </span>
                   </div>
                 </div>
               </div>
             </div>
+
+            {/* Affected Employee Spotlight Card */}
+            {affectedUser && (
+              <div className="p-3.5 bg-indigo-50/80 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-900/50 rounded-2xl flex items-center justify-between text-xs">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 rounded-xl">
+                    <UserCheck className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="text-indigo-600 dark:text-indigo-400 text-[11px] font-semibold block">
+                      Colaborador / Alvo Afetado:
+                    </span>
+                    <span className="font-bold text-slate-900 dark:text-white text-sm">
+                      {affectedUser.name}
+                    </span>
+                    {affectedUser.login && (
+                      <span className="text-slate-500 dark:text-slate-400 font-mono text-xs ml-1.5">
+                        (@{affectedUser.login})
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <span className="text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 bg-white dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 rounded-lg border border-indigo-200 dark:border-indigo-800 shadow-2xs">
+                  Colaborador
+                </span>
+              </div>
+            )}
 
             {/* Narrative Explanation */}
             <div className="p-3.5 bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/50 rounded-2xl flex items-start gap-3">
@@ -530,10 +720,13 @@ export function AdminAuditPage(): React.JSX.Element {
                       </span>
                       <div className="space-y-1.5 text-xs">
                         {Object.entries(beforeStateRecord).map(([k, v]) => (
-                          <div key={k} className="flex justify-between gap-2 border-b border-slate-100 dark:border-slate-800/40 py-1 last:border-0">
+                          <div
+                            key={k}
+                            className="flex justify-between gap-2 border-b border-slate-100 dark:border-slate-800/40 py-1 last:border-0"
+                          >
                             <span className="text-slate-500 text-[11px]">{FIELD_LABELS[k] ?? k}:</span>
                             <span className="font-semibold text-slate-900 dark:text-white text-right">
-                              {formatValue(k, v)}
+                              {formatValue(k, v, userMap)}
                             </span>
                           </div>
                         ))}
@@ -547,10 +740,13 @@ export function AdminAuditPage(): React.JSX.Element {
                       </span>
                       <div className="space-y-1.5 text-xs">
                         {Object.entries(afterStateRecord).map(([k, v]) => (
-                          <div key={k} className="flex justify-between gap-2 border-b border-emerald-100 dark:border-emerald-900/30 py-1 last:border-0">
+                          <div
+                            key={k}
+                            className="flex justify-between gap-2 border-b border-emerald-100 dark:border-emerald-900/30 py-1 last:border-0"
+                          >
                             <span className="text-slate-500 text-[11px]">{FIELD_LABELS[k] ?? k}:</span>
                             <span className="font-semibold text-emerald-950 dark:text-emerald-200 text-right">
-                              {formatValue(k, v)}
+                              {formatValue(k, v, userMap)}
                             </span>
                           </div>
                         ))}
@@ -568,7 +764,7 @@ export function AdminAuditPage(): React.JSX.Element {
                         >
                           <span className="text-slate-400 text-[11px]">{FIELD_LABELS[k] ?? k}:</span>
                           <span className="font-semibold text-slate-900 dark:text-white">
-                            {formatValue(k, v)}
+                            {formatValue(k, v, userMap)}
                           </span>
                         </div>
                       ))}
