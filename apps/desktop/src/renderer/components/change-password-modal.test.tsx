@@ -48,7 +48,7 @@ describe('ChangePasswordModal', () => {
     expect(await screen.findByRole('heading', { name: 'Alterar Minha Senha' })).toBeVisible();
 
     const currentInput = screen.getByPlaceholderText('Digite sua senha atual');
-    const newInput = screen.getByPlaceholderText('Mínimo de 8 caracteres');
+    const newInput = screen.getByPlaceholderText('Digite sua nova senha');
     const confirmInput = screen.getByPlaceholderText('Repita a nova senha');
     const submitButton = screen.getByRole('button', { name: 'Salvar Nova Senha' });
 
@@ -102,7 +102,7 @@ describe('ChangePasswordModal', () => {
     expect(await screen.findByRole('heading', { name: 'Alterar Minha Senha' })).toBeVisible();
 
     const currentInput = screen.getByPlaceholderText('Digite sua senha atual');
-    const newInput = screen.getByPlaceholderText('Mínimo de 8 caracteres');
+    const newInput = screen.getByPlaceholderText('Digite sua nova senha');
     const confirmInput = screen.getByPlaceholderText('Repita a nova senha');
     const submitButton = screen.getByRole('button', { name: 'Salvar Nova Senha' });
 

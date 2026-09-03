@@ -67,8 +67,8 @@ export function AdminEmployeesPage(): React.JSX.Element {
 
   const handleCreateSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
-    if (formPassword.trim().length < 8) {
-      setFormError('A senha inicial deve conter no mínimo 8 caracteres.');
+    if (!formPassword.trim()) {
+      setFormError('A senha inicial é obrigatória.');
       return;
     }
     try {
@@ -131,8 +131,8 @@ export function AdminEmployeesPage(): React.JSX.Element {
   const handlePasswordSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     if (!passwordUser) return;
-    if (formPassword.trim().length < 8) {
-      setFormError('A nova senha deve conter no mínimo 8 caracteres.');
+    if (!formPassword.trim()) {
+      setFormError('A nova senha é obrigatória.');
       return;
     }
     try {
@@ -432,15 +432,11 @@ export function AdminEmployeesPage(): React.JSX.Element {
             <input
               type="password"
               required
-              minLength={8}
               value={formPassword}
               onChange={(e) => setFormPassword(e.target.value)}
-              placeholder="Mínimo 8 caracteres"
+              placeholder="Digite a senha inicial"
               className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white text-sm focus:outline-hidden focus:ring-2 focus:ring-blue-500"
             />
-            <span className="text-[11px] text-slate-500 mt-1 block">
-              A senha inicial deve conter no mínimo 8 caracteres.
-            </span>
           </div>
 
           <div className="flex justify-end space-x-3 pt-3 border-t border-slate-100 dark:border-slate-800">
@@ -545,15 +541,11 @@ export function AdminEmployeesPage(): React.JSX.Element {
               <input
                 type="password"
                 required
-                minLength={8}
                 value={formPassword}
                 onChange={(e) => setFormPassword(e.target.value)}
-                placeholder="Mínimo 8 caracteres"
+                placeholder="Digite a nova senha"
                 className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white text-sm focus:outline-hidden focus:ring-2 focus:ring-blue-500"
               />
-              <span className="text-[11px] text-slate-500 mt-1 block">
-                A senha deve conter no mínimo 8 caracteres.
-              </span>
             </div>
 
             <div className="flex justify-end space-x-3 pt-3 border-t border-slate-100 dark:border-slate-800">

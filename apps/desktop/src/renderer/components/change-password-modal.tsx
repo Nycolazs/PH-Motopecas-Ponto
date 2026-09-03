@@ -48,8 +48,8 @@ export function ChangePasswordModal({
       if (!currentPassword) {
         throw new Error('Informe sua senha atual.');
       }
-      if (!newPassword || newPassword.length < 8) {
-        throw new Error('A nova senha deve ter no mínimo 8 caracteres.');
+      if (!newPassword.trim()) {
+        throw new Error('Informe a nova senha.');
       }
       if (newPassword !== confirmPassword) {
         throw new Error('A confirmação da nova senha não confere.');
@@ -77,7 +77,7 @@ export function ChangePasswordModal({
     },
   });
 
-  const isMinLengthValid = newPassword.length >= 8;
+  const isNewPasswordFilled = newPassword.trim().length > 0;
   const isMatchValid = newPassword.length > 0 && newPassword === confirmPassword;
 
   return (
@@ -142,11 +142,10 @@ export function ChangePasswordModal({
             <input
               type={showNew ? 'text' : 'password'}
               required
-              minLength={8}
               autoComplete="new-password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              placeholder="Mínimo de 8 caracteres"
+              placeholder="Digite sua nova senha"
               className="w-full pl-10 pr-10 py-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm font-medium"
             />
             <Lock className="w-5 h-5 text-slate-400 absolute left-3 top-2.5 pointer-events-none" />
@@ -194,17 +193,17 @@ export function ChangePasswordModal({
         <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-lg border border-slate-200 dark:border-slate-700/60 text-xs space-y-1.5">
           <div
             className={`flex items-center gap-1.5 font-medium ${
-              isMinLengthValid
+              isNewPasswordFilled
                 ? 'text-emerald-600 dark:text-emerald-400'
                 : 'text-slate-500 dark:text-slate-400'
             }`}
           >
             <CheckCircle2
               className={`w-4 h-4 shrink-0 ${
-                isMinLengthValid ? 'text-emerald-500' : 'text-slate-300 dark:text-slate-600'
+                isNewPasswordFilled ? 'text-emerald-500' : 'text-slate-300 dark:text-slate-600'
               }`}
             />
-            <span>Mínimo de 8 caracteres</span>
+            <span>Nova senha preenchida</span>
           </div>
           <div
             className={`flex items-center gap-1.5 font-medium ${
@@ -234,7 +233,9 @@ export function ChangePasswordModal({
           </button>
           <button
             type="submit"
-            disabled={mutation.isPending || !currentPassword || !isMinLengthValid || !isMatchValid}
+            disabled={
+              mutation.isPending || !currentPassword || !isNewPasswordFilled || !isMatchValid
+            }
             className="px-5 py-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-lg text-sm font-bold shadow-xs transition disabled:opacity-50 flex items-center gap-1.5"
           >
             {mutation.isPending ? 'Alterando…' : 'Salvar Nova Senha'}

@@ -46,9 +46,9 @@ export class CreateManagedUserDto {
   @Matches(LOGIN_PATTERN, { message: 'O login contém caracteres não permitidos.' })
   public login!: string;
 
-  @ApiProperty({ minLength: 8, maxLength: 128, writeOnly: true })
+  @ApiProperty({ minLength: 1, maxLength: 128, writeOnly: true })
   @IsString()
-  @MinLength(8)
+  @MinLength(1, { message: 'A senha é obrigatória.' })
   @MaxLength(128)
   public password!: string;
 }
@@ -79,9 +79,9 @@ export class UpdateUserStatusDto {
 }
 
 export class ResetUserPasswordDto {
-  @ApiProperty({ minLength: 8, maxLength: 128, writeOnly: true })
+  @ApiProperty({ minLength: 1, maxLength: 128, writeOnly: true })
   @IsString()
-  @MinLength(8)
+  @MinLength(1, { message: 'A senha é obrigatória.' })
   @MaxLength(128)
   public password!: string;
 }
@@ -129,13 +129,13 @@ export class ChangeOwnPasswordDto {
   public currentPassword!: string;
 
   @ApiProperty({
-    minLength: 8,
+    minLength: 1,
     maxLength: 128,
     writeOnly: true,
-    description: 'Nova senha (mínimo 8 caracteres)',
+    description: 'Nova senha',
   })
   @IsString()
-  @MinLength(8, { message: 'A nova senha deve ter no mínimo 8 caracteres.' })
+  @MinLength(1, { message: 'Informe a nova senha.' })
   @MaxLength(128, { message: 'A nova senha deve ter no máximo 128 caracteres.' })
   public newPassword!: string;
 }
