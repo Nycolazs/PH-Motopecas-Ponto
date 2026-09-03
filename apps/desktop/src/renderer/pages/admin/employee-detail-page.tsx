@@ -463,6 +463,8 @@ export function AdminEmployeeDetailPage(): React.JSX.Element {
           onClose={() => setManualPunchOpen(false)}
           employees={[employee]}
           initialEmployeeId={employee.id}
+          initialDate={selectedDay?.businessDate}
+          existingDays={monthly?.days}
           onSuccess={() => void refetchMonthly()}
         />
       )}
