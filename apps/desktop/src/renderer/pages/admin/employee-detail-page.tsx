@@ -73,9 +73,11 @@ export function AdminEmployeeDetailPage(): React.JSX.Element {
     return <div className="p-6">Colaborador não identificado.</div>;
   }
 
-  const selectedDay = selectedDayDate
-    ? monthly?.days.find((d: DailyAttendance) => d.businessDate === selectedDayDate)
-    : monthly?.days[0];
+  const selectedDay =
+    (selectedDayDate
+      ? monthly?.days.find((d: DailyAttendance) => d.businessDate === selectedDayDate)
+      : undefined) ??
+    (monthly?.days && monthly.days.length > 0 ? monthly.days[monthly.days.length - 1] : undefined);
 
   return (
     <div className="space-y-6">
@@ -228,7 +230,7 @@ export function AdminEmployeeDetailPage(): React.JSX.Element {
             <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-2.5">
               {monthly.days.map((day: DailyAttendance) => {
                 const dayNumber = day.businessDate.split('-')[2];
-                const isSelected = selectedDayDate === day.businessDate;
+                const isSelected = selectedDay?.businessDate === day.businessDate;
 
                 return (
                   <button

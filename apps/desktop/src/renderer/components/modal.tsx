@@ -67,7 +67,7 @@ export function Modal({
             <X className="w-5 h-5" />
           </button>
         </div>
-        <div className="p-6 overflow-y-auto">{children}</div>
+        <div className="p-6 overflow-y-auto overflow-x-hidden">{children}</div>
       </div>
     </div>,
     document.body,

@@ -111,7 +111,7 @@ export function PunchCorrectionModal({
       isOpen={isOpen}
       onClose={onClose}
       title={showDeleteConfirm ? 'Excluir Batida de Ponto' : 'Corrigir Horário de Ponto'}
-      maxWidth="md"
+      maxWidth="lg"
     >
       {showDeleteConfirm ? (
         <div className="space-y-4">
@@ -228,19 +228,19 @@ export function PunchCorrectionModal({
               <span>Excluir Batida</span>
             </button>
 
-            <div className="flex items-center gap-2.5 shrink-0">
+            <div className="flex items-center gap-2 shrink-0">
               <button
                 type="button"
                 disabled={loading || deleting}
                 onClick={onClose}
-                className="secondary-button text-sm px-4 py-2"
+                className="secondary-button text-sm px-3.5 py-2"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
                 disabled={loading || deleting}
-                className="primary-button text-sm px-5 py-2 whitespace-nowrap"
+                className="primary-button text-sm px-4 py-2 whitespace-nowrap"
               >
                 {loading ? 'Salvando...' : 'Confirmar Correção'}
               </button>
