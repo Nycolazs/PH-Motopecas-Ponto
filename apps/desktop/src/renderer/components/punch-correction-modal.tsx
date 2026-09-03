@@ -201,7 +201,7 @@ export function PunchCorrectionModal({
             </div>
           )}
 
-          <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-slate-200/80 dark:border-slate-800">
+          <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-slate-200 dark:border-slate-800">
             <button
               type="button"
               disabled={deleting}
@@ -227,132 +227,7 @@ export function PunchCorrectionModal({
             hasAdjustments ? 'grid-cols-1 md:grid-cols-12 items-start' : 'grid-cols-1'
           }`}
         >
-          {/* Left Column: History & Origin (Shown on the left when adjustments exist) */}
-          {hasAdjustments && history && (
-            <div className="md:col-span-6 space-y-4 border-b md:border-b-0 md:border-r border-slate-200 dark:border-slate-800 pb-5 md:pb-0 md:pr-6">
-              {/* Header Box: Current Punch info */}
-              <div className="p-3.5 bg-slate-50 dark:bg-slate-800/80 rounded-xl border border-slate-200 dark:border-slate-700/80 space-y-2">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-slate-500 dark:text-slate-400 font-medium">
-                    Colaborador:
-                  </span>
-                  <span className="font-bold text-slate-900 dark:text-white truncate max-w-[180px]">
-                    {employeeName}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between text-xs border-t border-slate-200/60 dark:border-slate-700/50 pt-2">
-                  <span className="text-slate-500 dark:text-slate-400 font-medium">
-                    Horário Atual Efetivo:
-                  </span>
-                  <span className="font-mono font-bold text-blue-600 dark:text-blue-400">
-                    {formattedOriginal}
-                  </span>
-                </div>
-              </div>
-
-              {/* Adjustments Timeline Header */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <History className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
-                  <h3 className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wide">
-                    Histórico de Ajustes
-                  </h3>
-                </div>
-                <span className="text-[10px] font-bold px-2 py-0.5 bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 rounded-md border border-amber-200 dark:border-amber-800/50">
-                  {history.adjustments.length} ajuste(s)
-                </span>
-              </div>
-
-              {/* Timeline Container */}
-              <div className="space-y-3 max-h-[340px] overflow-y-auto pr-1">
-                {/* Initial registration card */}
-                <div className="p-3 bg-slate-50 dark:bg-slate-850 rounded-xl border border-slate-200 dark:border-slate-800 text-xs space-y-1.5 shadow-2xs">
-                  <div className="flex items-center justify-between text-[11px]">
-                    <span className="font-bold text-slate-500 uppercase tracking-wider text-[10px]">
-                      Batida Original
-                    </span>
-                    <span className="text-slate-400 font-mono text-[11px]">
-                      {formatDateTimeBR(history.createdAt)}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-2 pt-0.5">
-                    <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                    <span className="font-mono font-semibold text-slate-800 dark:text-slate-200">
-                      Horário inicial: {formatDateTimeBR(history.originalOccurredAt)}
-                    </span>
-                  </div>
-
-                  <div className="text-[11px] text-slate-500 dark:text-slate-400">
-                    {history.origin === 'ADMIN_INSERTION'
-                      ? `Inserção manual por ${
-                          history.createdByAdmin
-                            ? `${history.createdByAdmin.name} (@${history.createdByAdmin.login})`
-                            : 'Administrador'
-                        }`
-                      : 'Registro original pelo colaborador'}
-                    {history.insertionReason && (
-                      <span className="italic ml-1">
-                        - Motivo: "{formatReason(history.insertionReason)}"
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Adjustments */}
-                {history.adjustments.map((adj) => {
-                  const transition = formatTransitionDisplay(
-                    adj.previousOccurredAt,
-                    adj.correctedOccurredAt,
-                  );
-                  return (
-                    <div
-                      key={adj.id}
-                      className="p-3 bg-white dark:bg-slate-900 rounded-xl border-l-4 border-l-amber-500 border border-slate-200 dark:border-slate-800 text-xs space-y-2 shadow-2xs"
-                    >
-                      <div className="flex items-center justify-between text-[11px]">
-                        <span className="font-bold text-amber-700 dark:text-amber-400">
-                          Ajuste #{adj.sequence}
-                        </span>
-                        <span className="text-slate-400 font-mono text-[11px]">
-                          {formatDateTimeBR(adj.createdAt)}
-                        </span>
-                      </div>
-
-                      {/* Transition */}
-                      <div className="flex items-center gap-2 p-2 bg-slate-50 dark:bg-slate-800/80 rounded-lg text-xs">
-                        <span className="font-mono text-slate-400 line-through">
-                          {transition.from}
-                        </span>
-                        <ArrowRight className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                        <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">
-                          {transition.to}
-                        </span>
-                      </div>
-
-                      {/* Author */}
-                      <div className="flex items-center gap-1.5 text-[11px] text-slate-600 dark:text-slate-400">
-                        <User className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                        <span>
-                          Por <strong>{adj.admin.name}</strong> (@{adj.admin.login})
-                        </span>
-                      </div>
-
-                      {/* Reason */}
-                      <div className="p-2 bg-amber-50/80 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-900/40 rounded-lg flex items-start gap-2 text-xs">
-                        <MessageSquareQuote className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
-                        <span className="text-slate-800 dark:text-amber-200 italic leading-relaxed">
-                          "{formatReason(adj.reason)}"
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* Right Column: Correction Form */}
+          {/* Left Column: Correction Form */}
           <div className={hasAdjustments ? 'md:col-span-6 space-y-4' : 'col-span-1 space-y-4'}>
             <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
               {error && (
@@ -361,9 +236,9 @@ export function PunchCorrectionModal({
                 </div>
               )}
 
-              {/* If no adjustments exist yet, show the top employee summary */}
+              {/* If no adjustments exist yet, show the employee info on top */}
               {!hasAdjustments && (
-                <div className="grid grid-cols-2 gap-3 p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200/80 dark:border-slate-700/60">
+                <div className="grid grid-cols-2 gap-3 p-3.5 bg-slate-50 dark:bg-slate-800/80 rounded-xl border border-slate-200 dark:border-slate-700/80">
                   <div className="min-w-0">
                     <span className="text-xs font-medium text-slate-500 dark:text-slate-400 block mb-0.5">
                       Colaborador
@@ -376,7 +251,7 @@ export function PunchCorrectionModal({
                     <span className="text-xs font-medium text-slate-500 dark:text-slate-400 block mb-0.5">
                       Horário Original
                     </span>
-                    <span className="text-sm font-mono font-medium text-slate-800 dark:text-slate-200 block truncate">
+                    <span className="text-sm font-mono font-bold text-blue-600 dark:text-blue-400 block truncate">
                       {formattedOriginal}
                     </span>
                   </div>
@@ -396,7 +271,7 @@ export function PunchCorrectionModal({
                   required
                   value={correctedDateTime}
                   onChange={(e) => setCorrectedDateTime(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white text-sm focus:outline-hidden focus:ring-2 focus:ring-blue-500 transition-colors font-mono"
+                  className="w-full px-3.5 py-2.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white text-sm focus:outline-hidden focus:ring-2 focus:ring-blue-500 transition-colors font-mono"
                 />
               </div>
 
@@ -414,12 +289,12 @@ export function PunchCorrectionModal({
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
                   placeholder="Ex.: Esqueceu de registrar saída para almoço às 12:00..."
-                  className="w-full px-3.5 py-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white text-sm focus:outline-hidden focus:ring-2 focus:ring-blue-500 transition-colors resize-none"
+                  className="w-full px-3.5 py-2.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white text-sm focus:outline-hidden focus:ring-2 focus:ring-blue-500 transition-colors resize-none"
                 />
               </div>
 
               {/* Actions Footer */}
-              <div className="flex items-center justify-between gap-3 pt-4 border-t border-slate-200/80 dark:border-slate-800">
+              <div className="flex items-center justify-between gap-3 pt-4 border-t border-slate-200 dark:border-slate-800">
                 <button
                   type="button"
                   disabled={loading || deleting}
@@ -450,6 +325,135 @@ export function PunchCorrectionModal({
               </div>
             </form>
           </div>
+
+          {/* Right Column: History & Previous Adjustments (Placed on the RIGHT as requested) */}
+          {hasAdjustments && history && (
+            <div className="md:col-span-6 space-y-4 border-t md:border-t-0 md:border-l border-slate-200 dark:border-slate-800 pt-5 md:pt-0 md:pl-6">
+              {/* Header Box: Current Punch info */}
+              <div className="p-3.5 bg-slate-50 dark:bg-slate-800/80 rounded-xl border border-slate-200 dark:border-slate-700/80 space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-slate-500 dark:text-slate-400 font-medium">
+                    Colaborador:
+                  </span>
+                  <span className="font-bold text-slate-900 dark:text-white truncate max-w-[180px]">
+                    {employeeName}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-xs border-t border-slate-200/60 dark:border-slate-700/60 pt-2">
+                  <span className="text-slate-500 dark:text-slate-400 font-medium">
+                    Horário Atual Efetivo:
+                  </span>
+                  <span className="font-mono font-bold text-blue-600 dark:text-blue-400">
+                    {formattedOriginal}
+                  </span>
+                </div>
+              </div>
+
+              {/* Adjustments Timeline Header */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <History className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                  <h3 className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wide">
+                    Histórico de Ajustes
+                  </h3>
+                </div>
+                <span className="text-[10px] font-bold px-2 py-0.5 bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 rounded-md border border-amber-200 dark:border-amber-800/60">
+                  {history.adjustments.length} ajuste(s)
+                </span>
+              </div>
+
+              {/* Timeline Container */}
+              <div className="space-y-3 max-h-[340px] overflow-y-auto pr-1">
+                {/* Initial registration card */}
+                <div className="p-3 bg-slate-100/90 dark:bg-slate-800/90 rounded-xl border border-slate-200 dark:border-slate-700 text-xs space-y-1.5 shadow-2xs">
+                  <div className="flex items-center justify-between text-[11px]">
+                    <span className="font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider text-[10px]">
+                      Batida Original
+                    </span>
+                    <span className="text-slate-500 dark:text-slate-400 font-mono text-[11px]">
+                      {formatDateTimeBR(history.createdAt)}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2 pt-0.5">
+                    <Clock className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 shrink-0" />
+                    <span className="font-mono font-semibold text-slate-900 dark:text-slate-100">
+                      Horário inicial: {formatDateTimeBR(history.originalOccurredAt)}
+                    </span>
+                  </div>
+
+                  <div className="text-[11px] text-slate-600 dark:text-slate-400">
+                    {history.origin === 'ADMIN_INSERTION'
+                      ? `Inserção manual por ${
+                          history.createdByAdmin
+                            ? `${history.createdByAdmin.name} (@${history.createdByAdmin.login})`
+                            : 'Administrador'
+                        }`
+                      : 'Registro original pelo colaborador'}
+                    {history.insertionReason && (
+                      <span className="italic ml-1 text-amber-800 dark:text-amber-300">
+                        - Motivo: "{formatReason(history.insertionReason)}"
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Adjustments */}
+                {history.adjustments.map((adj) => {
+                  const transition = formatTransitionDisplay(
+                    adj.previousOccurredAt,
+                    adj.correctedOccurredAt,
+                  );
+                  return (
+                    <div
+                      key={adj.id}
+                      className="p-3 bg-white dark:bg-slate-800 rounded-xl border-l-4 border-l-amber-500 border border-slate-200 dark:border-slate-700 text-xs space-y-2 shadow-2xs"
+                    >
+                      <div className="flex items-center justify-between text-[11px]">
+                        <span className="font-bold text-amber-700 dark:text-amber-400">
+                          Ajuste #{adj.sequence}
+                        </span>
+                        <span className="text-slate-500 dark:text-slate-400 font-mono text-[11px]">
+                          {formatDateTimeBR(adj.createdAt)}
+                        </span>
+                      </div>
+
+                      {/* Transition */}
+                      <div className="flex items-center gap-2 p-2 bg-slate-100 dark:bg-slate-900/90 rounded-lg text-xs border border-slate-200/60 dark:border-slate-700/60">
+                        <span className="font-mono text-slate-400 dark:text-slate-500 line-through">
+                          {transition.from}
+                        </span>
+                        <ArrowRight className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
+                        <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                          {transition.to}
+                        </span>
+                      </div>
+
+                      {/* Author */}
+                      <div className="flex items-center gap-1.5 text-[11px] text-slate-600 dark:text-slate-400">
+                        <User className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                        <span>
+                          Por{' '}
+                          <strong className="text-slate-900 dark:text-slate-100">
+                            {adj.admin.name}
+                          </strong>{' '}
+                          (@{adj.admin.login})
+                        </span>
+                      </div>
+
+                      {/* Reason */}
+                      <div className="p-2 bg-amber-50/90 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 rounded-lg flex items-start gap-2 text-xs">
+                        <MessageSquareQuote className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                        <span className="text-slate-900 dark:text-amber-100 italic leading-relaxed">
+                          "{formatReason(adj.reason)}"
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </Modal>
