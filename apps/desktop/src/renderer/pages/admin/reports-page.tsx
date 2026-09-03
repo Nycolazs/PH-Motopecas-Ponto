@@ -415,13 +415,13 @@ export function AdminReportsPage(): React.JSX.Element {
             <table className="print-table w-full text-left text-xs">
               <thead className="bg-slate-100 dark:bg-slate-800 print:bg-slate-100 text-slate-700 dark:text-slate-300 print:text-black font-bold uppercase tracking-wider border-b border-slate-200 dark:border-slate-700 print:border-slate-300 text-[10px]">
                 <tr>
-                  <th className="py-2 px-3 w-28">Data</th>
-                  <th className="py-2 px-2 w-14 text-center">Dia</th>
-                  <th className="py-2 px-2.5 w-24">Situação</th>
-                  <th className="py-2 px-3">Batidas / Registros</th>
-                  <th className="py-2 px-2.5 text-right w-20">Previsto</th>
-                  <th className="py-2 px-2.5 text-right w-20">Trabalhado</th>
-                  <th className="py-2 px-3 text-right w-20">Saldo</th>
+                  <th className="py-2 px-2.5 w-24 whitespace-nowrap">Data</th>
+                  <th className="py-2 px-1.5 w-10 text-center">Dia</th>
+                  <th className="py-2 px-2 w-24 whitespace-nowrap">Situação</th>
+                  <th className="py-2 px-2.5">Batidas / Registros</th>
+                  <th className="py-2 px-2 text-right w-16 whitespace-nowrap">Previsto</th>
+                  <th className="py-2 px-2 text-right w-16 whitespace-nowrap">Trabalhado</th>
+                  <th className="py-2 px-2.5 text-right w-16 whitespace-nowrap">Saldo</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800 print:divide-slate-200 font-sans">
@@ -442,13 +442,13 @@ export function AdminReportsPage(): React.JSX.Element {
                           : 'bg-slate-50/50 dark:bg-slate-800/20 print:bg-slate-50/40'
                       }`}
                     >
-                      <td className="py-2 px-3 font-semibold text-slate-900 dark:text-white print:text-black whitespace-nowrap">
+                      <td className="py-2 px-2.5 font-semibold text-slate-900 dark:text-white print:text-black whitespace-nowrap">
                         {formatDateBR(day.businessDate)}
                       </td>
-                      <td className="py-2 px-2 text-center text-slate-500 dark:text-slate-400 print:text-slate-700 font-medium">
+                      <td className="py-2 px-1.5 text-center text-slate-500 dark:text-slate-400 print:text-slate-700 font-medium">
                         {getWeekdayShortBR(day.businessDate)}
                       </td>
-                      <td className="py-2 px-2.5 whitespace-nowrap">
+                      <td className="py-2 px-2 whitespace-nowrap">
                         <span
                           className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-semibold border ${
                             isDayOff
@@ -461,13 +461,13 @@ export function AdminReportsPage(): React.JSX.Element {
                           {statusText}
                         </span>
                       </td>
-                      <td className="py-2 px-3 font-mono text-[11px] text-slate-800 dark:text-slate-200 print:text-black">
+                      <td className="py-2 px-2.5 font-mono text-[11px] text-slate-800 dark:text-slate-200 print:text-black whitespace-nowrap">
                         {day.chronology.punches.length === 0 ? (
                           <span className="text-slate-400 print:text-slate-500 font-sans italic text-[10px]">
                             {isDayOff ? 'Folga' : 'Sem registros'}
                           </span>
                         ) : (
-                          <span className="font-semibold tracking-wide">
+                          <span className="font-semibold whitespace-nowrap">
                             {day.chronology.punches
                               .map((p: EffectivePunch) => {
                                 const d = new Date(p.effectiveOccurredAt);
@@ -476,18 +476,18 @@ export function AdminReportsPage(): React.JSX.Element {
                                   minute: '2-digit',
                                 });
                               })
-                              .join('   •   ')}
+                              .join('  •  ')}
                           </span>
                         )}
                       </td>
-                      <td className="py-2 px-2.5 text-right font-mono text-slate-600 dark:text-slate-400 print:text-slate-700">
+                      <td className="py-2 px-2 text-right font-mono text-slate-600 dark:text-slate-400 print:text-slate-700 whitespace-nowrap">
                         {formatMinutesDuration(day.expectedMinutes)}
                       </td>
-                      <td className="py-2 px-2.5 text-right font-mono font-bold text-slate-900 dark:text-white print:text-black">
+                      <td className="py-2 px-2 text-right font-mono font-bold text-slate-900 dark:text-white print:text-black whitespace-nowrap">
                         {formatMinutesDuration(day.workedMinutes)}
                       </td>
                       <td
-                        className={`py-2 px-3 text-right font-mono font-bold ${
+                        className={`py-2 px-2.5 text-right font-mono font-bold whitespace-nowrap ${
                           hasPositiveBalance
                             ? 'text-emerald-600 dark:text-emerald-400 print:text-emerald-700'
                             : hasNegativeBalance
