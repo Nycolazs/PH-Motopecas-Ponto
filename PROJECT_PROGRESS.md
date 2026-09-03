@@ -246,7 +246,7 @@ curl http://127.0.0.1:3000/health/ready
       - Frontend `ChangePasswordModal` with current password check, new password visibility toggles, real-time match and length validators, and fluid toast notification;
       - Added password change quick-action in Employee desktop navigation bar, employee home greeting card, and Admin sidebar profile;
     - Incomplete Punches Module (`/admin/incompletos`):
-      - Backend endpoint `GET /attendance/incompletes` with `AttendanceIncompletesQueryDto`, scanning active employees for finalized incomplete/unclosed punch days (excluding the ongoing today and active `WORKING` or `LUNCH` states);
+      - Backend endpoint `GET /attendance/incompletes` with `AttendanceIncompletesQueryDto`, scanning active employees for incomplete/unclosed punch days from all past days prior to today (strictly excluding the current day);
       - Admin Sidebar navigation item "Incompletos" positioned between "Solicitações" and "Funcionários" with real-time pending incomplete days badge counter;
       - Complete overview screen `IncompletePunchesPage` with KPI summary cards (Total Dias Incompletos, Funcionários Afetados, Status Geral), search filter, month picker, formatted punch sequences, and "Corrigir Ponto" navigation buttons;
       - Integrated deep-linking in `AdminEmployeeDetailPage`: Automatically pre-selects and highlights the exact incomplete date passed via URL query parameters (`?date=YYYY-MM-DD`);
