@@ -251,7 +251,9 @@ curl http://127.0.0.1:3000/health/ready
       - Complete overview screen `IncompletePunchesPage` with KPI summary cards (Total Dias Incompletos, Funcionários Afetados, Status Geral), search filter, month picker, formatted punch sequences, and "Corrigir Ponto" navigation buttons;
       - Integrated deep-linking in `AdminEmployeeDetailPage`: Automatically pre-selects and highlights the exact incomplete date passed via URL query parameters (`?date=YYYY-MM-DD`);
     - MonthPicker component: Built a modern, interactive month & year selection popover (`MonthPicker`) with year navigation buttons, 12 Portuguese month chips, current month indicator, and quick-action shortcuts, replacing the native browser `<input type="month">`;
-    - Manual Punch enhancements: Separated date and time input fields in `ManualPunchModal`, auto-filled the selected day date from `EmployeeDetailPage`, and added a confirmation prompt when inserting punches on days that already have full/completed punches;
+    - Manual Punch enhancements:
+      - Separated date and time input fields in `ManualPunchModal`, auto-filled the selected day date from `EmployeeDetailPage`, and added a confirmation prompt when inserting punches on days that already have full/completed punches;
+      - Fixed mid-sequence punch insertion conflict: updated database trigger `validate_time_punch_insert` via migration `20260903170000_allow_mid_sequence_manual_punch` and added automatic chronological re-alignment of `kind` across the day's punches, allowing insertion between existing punches without chronology conflicts;
     - Modal width optimization: Updated punch modals to `maxWidth="lg"` (`512px`) and added `overflow-x-hidden` to avoid clipping or horizontal scrollbars;
     - Employee detail auto-select: Automatically pre-selects the most recent day of the reference month;
     - Full automated validation gate `pnpm check` passing 100% (223/223 unit and integration tests passing, strict TypeScript, zero ESLint warnings, Prettier, Vite production bundles, and NestJS compilation);
