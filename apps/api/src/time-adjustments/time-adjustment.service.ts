@@ -256,6 +256,11 @@ export class TimeAdjustmentService {
           evaluationInstant,
           transaction,
         });
+        const employeeRecord = await transaction.user.findUnique({
+          where: { id: employeeId },
+          select: { name: true, login: true },
+        });
+
         const auditEventId = await this.audit.record(
           {
             actorId: actor.id,
@@ -264,14 +269,22 @@ export class TimeAdjustmentService {
             targetId: punchId,
             ...context,
             beforeState: {
+              employeeId,
+              employeeName: employeeRecord?.name ?? null,
               occurredAt: currentOccurredAt.toISOString(),
               sequence: currentSequence,
             },
             afterState: {
+              employeeId,
+              employeeName: employeeRecord?.name ?? null,
               occurredAt: correctedOccurredAt.toISOString(),
               sequence,
             },
-            metadata: { reason },
+            metadata: {
+              reason,
+              employeeName: employeeRecord?.name ?? null,
+              employeeLogin: employeeRecord?.login ?? null,
+            },
           },
           transaction,
         );

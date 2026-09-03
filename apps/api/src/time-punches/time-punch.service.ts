@@ -335,6 +335,11 @@ export class TimePunchService {
           evaluationInstant,
           transaction,
         });
+        const employeeRecord = await transaction.user.findUnique({
+          where: { id: input.employeeId },
+          select: { name: true, login: true },
+        });
+
         const auditEventId = await this.audit.record(
           {
             actorId: actor.id,
@@ -344,11 +349,17 @@ export class TimePunchService {
             ...context,
             afterState: {
               employeeId: input.employeeId,
+              employeeName: employeeRecord?.name ?? null,
+              employeeLogin: employeeRecord?.login ?? null,
               occurredAt: occurredAt.toISOString(),
               kind,
               origin: TimePunchOrigin.ADMIN_INSERTION,
             },
-            metadata: { reason },
+            metadata: {
+              reason,
+              employeeName: employeeRecord?.name ?? null,
+              employeeLogin: employeeRecord?.login ?? null,
+            },
           },
           transaction,
         );

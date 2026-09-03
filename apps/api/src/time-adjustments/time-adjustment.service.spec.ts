@@ -109,6 +109,7 @@ function createHarness(options?: {
   const transaction = {
     $queryRaw: queryRaw,
     timeAdjustment: { create: vi.fn().mockResolvedValue({ id: 'adjustment-id' }) },
+    user: { findUnique: vi.fn().mockResolvedValue({ name: 'Employee', login: 'employee' }) },
   };
   const prisma = {
     $transaction: vi.fn(

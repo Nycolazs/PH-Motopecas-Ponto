@@ -93,6 +93,9 @@ function createHarness(clockValues: Date[]) {
     timePunchAdjustmentRequest: {
       deleteMany: vi.fn().mockResolvedValue({ count: 0 }),
     },
+    user: {
+      findUnique: vi.fn().mockResolvedValue(employee),
+    },
   };
   const prisma = {
     timePunch: {
