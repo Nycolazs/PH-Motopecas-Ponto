@@ -72,6 +72,66 @@ describe('daily attendance calculation', () => {
     expect(summary.status).toBe('NORMAL');
   });
 
+  it('calculates a normal Saturday when punches have sub-minute seconds (e.g. 08:00:11 to 12:00:09)', () => {
+    const summary = calculateDailyAttendance({
+      businessDate: '2026-09-05',
+      expectation: expectationFor('2026-09-05'),
+      punches: [
+        {
+          id: 'punch-1',
+          kind: 'CLOCK_IN',
+          occurredAt: '2026-09-05T11:00:11.622Z', // 08:00:11 SP
+        },
+        {
+          id: 'punch-2',
+          kind: 'CLOCK_OUT',
+          occurredAt: '2026-09-05T15:00:09.054Z', // 12:00:09 SP
+        },
+      ],
+      isFinalized: true,
+    });
+
+    expect(summary.expectedMinutes).toBe(240);
+    expect(summary.workedMinutes).toBe(240);
+    expect(summary.balanceMinutes).toBe(0);
+    expect(summary.status).toBe('NORMAL');
+  });
+
+  it('calculates normal weekday hours when punches have sub-minute seconds across lunch intervals', () => {
+    const summary = calculateDailyAttendance({
+      businessDate: '2026-09-01',
+      expectation: expectationFor('2026-09-01'),
+      punches: [
+        {
+          id: 'punch-1',
+          kind: 'CLOCK_IN',
+          occurredAt: '2026-09-01T11:00:45.123Z', // 08:00:45 SP
+        },
+        {
+          id: 'punch-2',
+          kind: 'CLOCK_OUT',
+          occurredAt: '2026-09-01T15:00:10.500Z', // 12:00:10 SP
+        },
+        {
+          id: 'punch-3',
+          kind: 'CLOCK_IN',
+          occurredAt: '2026-09-01T16:00:50.800Z', // 13:00:50 SP
+        },
+        {
+          id: 'punch-4',
+          kind: 'CLOCK_OUT',
+          occurredAt: '2026-09-01T20:00:15.200Z', // 17:00:15 SP
+        },
+      ],
+      isFinalized: true,
+    });
+
+    expect(summary.expectedMinutes).toBe(480);
+    expect(summary.workedMinutes).toBe(480);
+    expect(summary.balanceMinutes).toBe(0);
+    expect(summary.status).toBe('NORMAL');
+  });
+
   it('keeps a closed Sunday at zero without missing hours', () => {
     const summary = finalizedSummary([], '2026-08-23');
 

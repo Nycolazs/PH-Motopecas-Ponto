@@ -182,6 +182,7 @@ export function buildPunchChronology(resolution: EffectivePunchResolution): Punc
 
   const intervals: WorkedInterval[] = [];
   let workedMilliseconds = 0;
+  let minuteResolutionWorkedMinutes = 0;
   const hasNonIncreasingInstant = integrityIssues.some(
     (entry) => entry.code === 'NON_INCREASING_INSTANT',
   );
@@ -210,6 +211,10 @@ export function buildPunchChronology(resolution: EffectivePunchResolution): Punc
       );
     }
 
+    const startMinute = Math.floor(startMilliseconds / 60_000);
+    const endMinute = Math.floor(endMilliseconds / 60_000);
+    minuteResolutionWorkedMinutes += Math.max(0, endMinute - startMinute);
+
     intervals.push({
       clockInPunchId: clockIn.id,
       clockOutPunchId: clockOut.id,
@@ -225,6 +230,9 @@ export function buildPunchChronology(resolution: EffectivePunchResolution): Punc
   const hasOpenInterval =
     !kindOrOrderIssue && punches.length % 2 === 1 && punches.at(-1)?.kind === 'CLOCK_IN';
 
+  const rawFlooredMinutes = Math.floor(workedMilliseconds / 60_000);
+  const workedMinutes = Math.max(minuteResolutionWorkedMinutes, rawFlooredMinutes);
+
   return {
     punches,
     integrityIssues,
@@ -234,6 +242,6 @@ export function buildPunchChronology(resolution: EffectivePunchResolution): Punc
     hasOpenInterval,
     isIncomplete: punches.length % 2 === 1 || integrityIssues.length > 0,
     workedMilliseconds,
-    workedMinutes: Math.floor(workedMilliseconds / 60_000),
+    workedMinutes,
   };
 }

@@ -342,23 +342,26 @@ curl http://127.0.0.1:3000/health/ready
       - Automatically detects midday lunch break (when 2 punches occur on lunch-enabled days like Monday-Friday);
       - Respects days without lunch (such as Saturday with 2 punches), transitioning directly to `OFF_DUTY` ("Fechado") without showing lunch;
       - Prioritized `workState` over static expectation status in `StatusBadge` so live working/lunch states display with clear colors (green pulse for working, amber for lunch, dark slate for closed/off duty);
-    - Administrative Time Punch Deletion (Exclusão de Batidas):
-      - Database migration `20260903150000_allow_time_punch_deletion` adding `TIME_PUNCH_DELETED` audit action, `DELETE_TIME_PUNCH` idempotency operation, cascading foreign keys, and removing immutable triggers on time punches and adjustments;
-      - Backend endpoint `DELETE /time-punches/:punchId` in `TimePunchController` and `TimePunchService.deletePunch`, deleting adjustments/requests, updating `kind` sequentially on remaining punches of that day, recalculating `dailySummary`, and logging audit trail;
-      - Frontend `PunchCorrectionModal` with "Excluir Batida" action, confirmation screen with clear consequences warning, instant recalculation, and fluid toast feedback;
-      - Full automated verification gate `pnpm check` / `pnpm test` passing 100% (223/223 unit and integration tests).
+    - Attendance Minute Resolution & Zero-Balance Precision:
+      - Fixed calculation in `packages/shared/src/attendance/punches.ts` where punches registered on expected hours (e.g. 08:00 to 12:00) with non-zero seconds (e.g. 08:00:11 to 12:00:09) were losing 1 minute (-1min, 'MISSING_HOURS') due to millisecond flooring;
+      - Calculated interval duration using minute-resolution boundaries `Math.max(0, endMinute - startMinute)`, bounded with aggregate milliseconds, ensuring that on-time punches always reflect the exact hours/minutes shown on the display (0min balance and 'NORMAL' status);
+      - Added unit test suite in `packages/shared/test/attendance/daily.test.ts` verifying sub-minute seconds across Saturday and weekday lunch intervals;
+      - Synchronized across backend, frontend submodules, and verified with 225/225 tests passing.
 
 ## Handoff Notes
 
 All user requests and core requirements for PH-Ponto have been delivered, verified, and pushed to GitHub:
 
-1. **Exclusão de Batidas de Ponto pelo Administrador:**
+1. **Cálculo Preciso de Minutos Trabalhados e Saldo Diário:**
+   - Batidas registradas no horário correto (ex: 08:00 a 12:00) não sofrem mais perda de 1 minuto decorrente dos segundos do clique (`Math.floor` de milissegundos).
+   - O saldo diário agora reflete perfeitamente os minutos exibidos nas marcações (0min e status "Normal").
+2. **Exclusão de Batidas de Ponto pelo Administrador:**
    - Adicionada opção de excluir batidas diretamente no modal de correção de ponto em `/admin/funcionarios` e `/admin/pontos`.
    - Ao excluir, o sistema reordena os tipos das batidas restantes do dia (`CLOCK_IN` / `CLOCK_OUT`), recalcula o saldo de horas e registra o evento na trilha de auditoria.
-2. **Gestão de Férias e Recessos:**
+3. **Gestão de Férias e Recessos:**
    - Adicionada aba completa em `/configuracoes` para cadastrar períodos de férias por colaborador com cálculo automático de dias e validação contra sobreposições.
-3. **Status Operacionais em Tempo Real (Trabalhando, Almoço, Fechado):**
+4. **Status Operacionais em Tempo Real (Trabalhando, Almoço, Fechado):**
    - O painel administrativo e a tela de pontos refletem exatamente o estado do colaborador em tempo real.
-4. **Ícone Oficial no Windows & Desktop:**
+5. **Ícone Oficial no Windows & Desktop:**
    - O aplicativo exibe o ícone oficial da PH Motopeças no executável, instalador NSIS, barra de tarefas e bandeja do sistema.
-5. **Garantia de Qualidade:** Todos os 223 testes unitários e de integração passando com 100% de sucesso.
+6. **Garantia de Qualidade:** Todos os 225 testes unitários e de integração passando com 100% de sucesso.
