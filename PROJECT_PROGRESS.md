@@ -2,15 +2,15 @@
 
 ## Current Phase
 
-Phase 8 — Desktop release v0.1.6 ready for production publication
+Phase 8 — Desktop release v0.1.6 published and verified
 
 ## Overall Status
 
-RELEASE_CANDIDATE
+RELEASED
 
 ## Last Updated
 
-2026-09-19 17:13 America/Sao_Paulo
+2026-09-19 17:19 America/Sao_Paulo
 
 ## Local Interactive Test Environment — 2026-09-19
 
@@ -42,7 +42,7 @@ RELEASE_CANDIDATE
 - No production database migration, submodule change, commit, push, deployment, or installer publication had been made at the end of the local feature verification. The release candidate below adds the required packaging and publication controls.
 - Earlier release/deployment statements below are historical, not evidence of a release of this change.
 
-## Release Candidate — v0.1.6
+## Desktop Release — v0.1.6
 
 - The first v0.1.5 GitHub Actions run packaged and validated Windows, macOS, and Linux. It intentionally blocked publication because the Windows smoke test attempted to read a runtime preference that Electron does not expose. The installed-client hidden-window check remains the behavioral proof of the same policy. No GitHub Release was published for v0.1.5.
 - Bumped the root, API, shared, and desktop packages to `0.1.6`; existing installed `0.1.4` clients will therefore recognize this as a newer version.
@@ -52,6 +52,9 @@ RELEASE_CANDIDATE
 - Added a Windows CI smoke test that silently installs the generated NSIS installer, starts the installed executable, asserts the hardened Electron preferences, verifies login, a successful punch, hidden-window idle logout, offline UI, and silent uninstall. Its screenshots are uploaded as build evidence.
 - Final local release gate passed on Node 24.18.1 and pnpm 11.21.0: `pnpm check` (243 tests), `pnpm --filter @ph-ponto/desktop build:electron`, release manifest verification, and `pnpm audit --audit-level=high` (0 high/critical; 2 low and 5 moderate remain).
 - Local macOS packaging had no valid Developer ID identity, so its artifacts are unsigned. The repository exposes only `GH_PAT` as an Actions secret; production macOS signing requires a valid Developer ID certificate to be added separately. Windows installer execution is covered by the new GitHub-hosted Windows smoke test because this workstation is macOS.
+- Published the non-draft [v0.1.6 GitHub Release](https://github.com/Nycolazs/PH-Motopecas-Ponto/releases/tag/v0.1.6) at 2026-09-19 20:18 UTC from commit `452d739`. All Windows, macOS, and Linux build jobs and the release publication job passed in [workflow run 35466718184](https://github.com/Nycolazs/PH-Motopecas-Ponto/actions/runs/35466718184).
+- The Windows smoke test passed the generated installer through silent installation, login, punch, hidden-window inactivity logout, offline state, and silent uninstall. Release evidence includes `installed-punch.png` and `idle-logout.png`.
+- Downloaded the public `latest.yml`, `latest-mac.yml`, and `latest-linux.yml` after publication. Each declares `0.1.6` and references the matching installer artifacts, so packaged clients can discover the new release.
 
 ## Completed
 
@@ -135,11 +138,11 @@ RELEASE_CANDIDATE
 
 ## Currently Working On
 
-- Commit and publish the v0.1.6 desktop release, then verify its GitHub Actions evidence and released update manifest.
+- Monitor automatic update adoption and configure Developer ID signing before distributing macOS builds to managed devices.
 
 ## Next Steps
 
-- Push the release commit and `v0.1.6` tag, then wait for the Windows, macOS, and Linux build matrix and the published GitHub Release.
+- Verify an installed Windows `0.1.4` client downloads `0.1.6` on its next background check and applies it after the application is closed or restarted.
 
 ## Architecture Decisions
 
