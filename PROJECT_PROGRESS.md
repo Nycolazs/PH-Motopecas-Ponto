@@ -2,7 +2,7 @@
 
 ## Current Phase
 
-Phase 8 — Desktop release v0.1.5 ready for production publication
+Phase 8 — Desktop release v0.1.6 ready for production publication
 
 ## Overall Status
 
@@ -10,7 +10,7 @@ RELEASE_CANDIDATE
 
 ## Last Updated
 
-2026-09-19 17:08 America/Sao_Paulo
+2026-09-19 17:13 America/Sao_Paulo
 
 ## Local Interactive Test Environment — 2026-09-19
 
@@ -42,12 +42,13 @@ RELEASE_CANDIDATE
 - No production database migration, submodule change, commit, push, deployment, or installer publication had been made at the end of the local feature verification. The release candidate below adds the required packaging and publication controls.
 - Earlier release/deployment statements below are historical, not evidence of a release of this change.
 
-## Release Candidate — v0.1.5
+## Release Candidate — v0.1.6
 
-- Bumped the root, API, shared, and desktop packages to `0.1.5`; existing installed `0.1.4` clients will therefore recognize this as a newer version.
+- The first v0.1.5 GitHub Actions run packaged and validated Windows, macOS, and Linux. It intentionally blocked publication because the Windows smoke test attempted to read a runtime preference that Electron does not expose. The installed-client hidden-window check remains the behavioral proof of the same policy. No GitHub Release was published for v0.1.5.
+- Bumped the root, API, shared, and desktop packages to `0.1.6`; existing installed `0.1.4` clients will therefore recognize this as a newer version.
 - The packaged client already uses the GitHub Releases provider for `Nycolazs/PH-Motopecas-Ponto`, starts an update check 15 seconds after launch, repeats it every 30 minutes, downloads stable updates in the background, and installs them when the user closes or restarts PH-Ponto.
-- Updated `build-desktop.yml` so a matching `v0.1.5` tag must pass dependency auditing, frontend tests, package creation, manifest/checksum validation, and platform artifact upload before publishing a non-draft GitHub release.
-- Added release manifest verification that checks version, size, SHA-512, referenced artifact names, and records SHA-256 checksums. Locally packaged and verified macOS arm64 and x64 DMG/ZIP update artifacts for `0.1.5`.
+- Updated `build-desktop.yml` so a matching `v0.1.6` tag must pass dependency auditing, frontend tests, package creation, manifest/checksum validation, and platform artifact upload before publishing a non-draft GitHub release.
+- Added release manifest verification that checks version, size, SHA-512, referenced artifact names, and records SHA-256 checksums. Locally packaged and verified macOS arm64 and x64 DMG/ZIP update artifacts using the same release layout.
 - Added a Windows CI smoke test that silently installs the generated NSIS installer, starts the installed executable, asserts the hardened Electron preferences, verifies login, a successful punch, hidden-window idle logout, offline UI, and silent uninstall. Its screenshots are uploaded as build evidence.
 - Final local release gate passed on Node 24.18.1 and pnpm 11.21.0: `pnpm check` (243 tests), `pnpm --filter @ph-ponto/desktop build:electron`, release manifest verification, and `pnpm audit --audit-level=high` (0 high/critical; 2 low and 5 moderate remain).
 - Local macOS packaging had no valid Developer ID identity, so its artifacts are unsigned. The repository exposes only `GH_PAT` as an Actions secret; production macOS signing requires a valid Developer ID certificate to be added separately. Windows installer execution is covered by the new GitHub-hosted Windows smoke test because this workstation is macOS.
@@ -134,11 +135,11 @@ RELEASE_CANDIDATE
 
 ## Currently Working On
 
-- Commit and publish the v0.1.5 desktop release, then verify its GitHub Actions evidence and released update manifest.
+- Commit and publish the v0.1.6 desktop release, then verify its GitHub Actions evidence and released update manifest.
 
 ## Next Steps
 
-- Push the release commit and `v0.1.5` tag, then wait for the Windows, macOS, and Linux build matrix and the published GitHub Release.
+- Push the release commit and `v0.1.6` tag, then wait for the Windows, macOS, and Linux build matrix and the published GitHub Release.
 
 ## Architecture Decisions
 

@@ -125,7 +125,6 @@ try {
   assert.equal(runtime.preferences.sandbox, true);
   assert.equal(runtime.preferences.contextIsolation, true);
   assert.equal(runtime.preferences.nodeIntegration, false);
-  assert.equal(runtime.preferences.backgroundThrottling, false);
 
   // Isolate the installed client from production accounts and attendance records.
   await application.evaluate(({ ipcMain }, session) => {
