@@ -168,5 +168,7 @@ export function createSecureWebPreferences(preloadPath: string): Electron.WebPre
     webSecurity: true,
     allowRunningInsecureContent: false,
     spellcheck: false,
+    // Keep the post-punch logout deadline running while minimized or hidden in the tray.
+    backgroundThrottling: false,
   };
 }

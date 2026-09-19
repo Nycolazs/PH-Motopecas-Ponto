@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
 import {
   Clock,
   FileText,
@@ -66,7 +65,6 @@ import { useQuery } from '@tanstack/react-query';
 
 export function AdminLayout(): React.JSX.Element {
   const { logout, session, api } = useAuth();
-  const queryClient = useQueryClient();
   const online = useOnline();
   const fortalezaClock = useFortalezaClock();
 
@@ -171,9 +169,7 @@ export function AdminLayout(): React.JSX.Element {
             <div className="flex items-center space-x-1 shrink-0">
               <button
                 type="button"
-                onClick={() => {
-                  void logout().finally(() => queryClient.clear());
-                }}
+                onClick={() => void logout()}
                 title="Sair do sistema"
                 aria-label="Sair"
                 className="p-1.5 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-md transition-colors"

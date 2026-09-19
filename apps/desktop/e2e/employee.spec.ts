@@ -1,4 +1,6 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
+
+test.use({ viewport: { width: 1366, height: 768 } });
 
 const employeeSession = {
   accessToken: 'employee-access-token',
@@ -86,12 +88,11 @@ const periodTotals = {
     holiday: 0,
     dayOff: 0,
     closed: 0,
+    vacation: 0,
   },
 };
 
-test('employee logs in, records an authoritative punch, and opens owned history', async ({
-  page,
-}) => {
+test.beforeEach(async ({ page }) => {
   await page.addInitScript((session) => {
     let activeSession: typeof session | null = null;
     Object.defineProperty(window, 'phPonto', {
@@ -198,7 +199,9 @@ test('employee logs in, records an authoritative punch, and opens owned history'
 
     await route.abort('failed');
   });
+});
 
+async function loginEmployee(page: Page): Promise<void> {
   await page.goto('/#/');
   await expect(page).toHaveTitle(/PH-Ponto/);
   await expect(page.getByRole('heading', { name: 'Bater Ponto' })).toBeVisible();
@@ -208,10 +211,19 @@ test('employee logs in, records an authoritative punch, and opens owned history'
   await page.getByRole('button', { name: 'Entrar' }).click();
 
   await expect(page.getByRole('heading', { name: 'Seu ponto de hoje' })).toBeVisible();
+}
+
+test('employee logs in, records an authoritative punch, and opens owned history', async ({
+  page,
+}, testInfo) => {
+  await loginEmployee(page);
   await page.getByRole('button', { name: 'Bater ponto' }).click();
 
   await expect(page.getByText('Ponto registrado com sucesso')).toBeVisible();
   await expect(page.getByText('Horário oficial: 08:02')).toBeVisible();
+  await page.screenshot({ path: testInfo.outputPath('punch-success-light.png') });
+  await page.getByRole('button', { name: 'Ativar modo escuro' }).click();
+  await page.screenshot({ path: testInfo.outputPath('punch-success-dark.png') });
   await expect(page.getByRole('list', { name: 'Pontos registrados hoje' })).toContainText(
     'Entrada',
   );
@@ -220,4 +232,94 @@ test('employee logs in, records an authoritative punch, and opens owned history'
   await expect(page.getByRole('heading', { name: 'Histórico de pontos' })).toBeVisible();
   await expect(page.getByRole('table')).toContainText('14 de ago. de 2026');
   await expect(page.getByRole('table')).toContainText('Trabalhando');
+});
+
+test('waits for punch confirmation and hides employee data even when remote logout is slow', async ({
+  page,
+}) => {
+  await page.clock.install({ time: new Date('2026-08-14T12:00:00Z') });
+  await loginEmployee(page);
+  let confirmPunch!: () => void;
+  const confirmation = new Promise<void>((resolve) => {
+    confirmPunch = resolve;
+  });
+  await page.route('**/time-punches', async (route) => {
+    await confirmation;
+    await route.fallback();
+  });
+  await page.getByRole('button', { name: 'Bater ponto' }).click();
+  await expect(page.getByRole('button', { name: 'Registrando ponto' })).toBeDisabled();
+  await page.clock.runFor(15_000);
+  await expect(page.getByRole('heading', { name: 'Seu ponto de hoje' })).toBeVisible();
+  await expect(page.getByText('Ponto registrado com sucesso')).toHaveCount(0);
+
+  confirmPunch();
+  await expect(page.getByText('Ponto registrado com sucesso')).toBeVisible();
+  await page.evaluate(() => {
+    const bridge = window.phPonto;
+    if (bridge === undefined) throw new Error('Missing test bridge');
+    const logout = bridge.auth.logout;
+    bridge.auth.logout = async () => {
+      await new Promise<void>((resolve) => window.setTimeout(resolve, 60_000));
+      return logout();
+    };
+  });
+  await page.clock.runFor(10_000);
+  await expect(page.getByRole('heading', { name: 'Bater Ponto' })).toBeVisible();
+  await expect(page.getByRole('list', { name: 'Pontos registrados hoje' })).toHaveCount(0);
+});
+
+test('logs out after ten idle seconds following a punch, including in history', async ({
+  page,
+}) => {
+  await page.clock.install({ time: new Date('2026-08-14T12:00:00Z') });
+  await loginEmployee(page);
+  await page.clock.runFor(15_000);
+  await expect(page.getByRole('heading', { name: 'Seu ponto de hoje' })).toBeVisible();
+
+  await page.getByRole('button', { name: 'Bater ponto' }).click();
+  await expect(page.getByText('Ponto registrado com sucesso')).toBeVisible();
+  await expect(
+    page.getByText('Sua sessão será encerrada após 10 segundos sem atividade.'),
+  ).toBeVisible();
+  await page.clock.runFor(9_000);
+  await expect(page.getByRole('heading', { name: 'Seu ponto de hoje' })).toBeVisible();
+
+  await page.getByRole('link', { name: 'Histórico' }).click();
+  await expect(page.getByRole('heading', { name: 'Histórico de pontos' })).toBeVisible();
+  await page.clock.runFor(9_000);
+  await expect(page.getByRole('heading', { name: 'Histórico de pontos' })).toBeVisible();
+  await page.keyboard.press('Tab');
+  await page.clock.runFor(9_000);
+  await expect(page.getByRole('heading', { name: 'Histórico de pontos' })).toBeVisible();
+  await page.clock.runFor(1_000);
+  await expect(page.getByRole('heading', { name: 'Bater Ponto' })).toBeVisible();
+  await expect(page.getByRole('table')).toHaveCount(0);
+  await expect(page.getByLabel('Login')).toHaveValue('');
+  await expect(page.getByLabel('Senha', { exact: true })).toHaveValue('');
+
+  // A new login starts unarmed even though today's punch already exists on the server.
+  await loginEmployee(page);
+  await page.clock.runFor(15_000);
+  await expect(page.getByRole('heading', { name: 'Seu ponto de hoje' })).toBeVisible();
+});
+
+test('keeps the session after an unconfirmed punch and arms logout on a successful retry', async ({
+  page,
+}) => {
+  await page.clock.install({ time: new Date('2026-08-14T12:00:00Z') });
+  await loginEmployee(page);
+  const punchRoute = '**/time-punches';
+  await page.route(punchRoute, (route) => route.abort('failed'));
+  await page.getByRole('button', { name: 'Bater ponto' }).click();
+  await expect(page.getByText('Ponto registrado com sucesso')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Bater ponto' })).toBeEnabled();
+  await page.clock.runFor(15_000);
+  await expect(page.getByRole('heading', { name: 'Seu ponto de hoje' })).toBeVisible();
+
+  await page.unroute(punchRoute);
+  await page.getByRole('button', { name: 'Bater ponto' }).click();
+  await expect(page.getByText('Ponto registrado com sucesso')).toBeVisible();
+  await page.clock.runFor(10_000);
+  await expect(page.getByRole('heading', { name: 'Bater Ponto' })).toBeVisible();
 });

@@ -2,15 +2,55 @@
 
 ## Current Phase
 
-Phase 8 — Release Verification & Monorepo Reorganization Complete
+Phase 8 — Desktop release v0.1.5 ready for production publication
 
 ## Overall Status
 
-READY_FOR_RELEASE
+RELEASE_CANDIDATE
 
 ## Last Updated
 
-2026-08-19 09:30 America/Sao_Paulo
+2026-09-19 17:08 America/Sao_Paulo
+
+## Local Interactive Test Environment — 2026-09-19
+
+- Started the actual Electron app for the user's manual test, connected exclusively to the local API and database.
+- Docker/Colima remains stopped. Initialized a dedicated persistent Homebrew PostgreSQL 16.13 cluster at the ignored `data/local-postgres`, listening on `127.0.0.1:55432` with UTC server time and password-authenticated TCP access. The unrelated existing PostgreSQL service on port 5432 was not changed.
+- Created a private, ignored root `.env` with generated local authentication secrets. Applied all 5 migrations using `pnpm db:migrate`, then compiled the API with `pnpm build:api`; both completed successfully.
+- API running at `http://127.0.0.1:3000`; `/health/ready` returned HTTP 200 and `status: ok`. Started from `apps/api` with `node --env-file=../../.env dist/main.js`.
+- Vite running at `http://127.0.0.1:5173`; HTTP 200 confirmed. Started with `pnpm --filter @ph-ponto/desktop exec vite --host 127.0.0.1`.
+- Installed the workspace-pinned Electron runtime and launched the real main/preload/renderer with `API_BASE_URL=http://localhost:3000 VITE_DEV_SERVER_URL=http://localhost:5173 pnpm --filter @ph-ponto/desktop exec electron .`. No sandbox-disabling CLI flag was used. Electron process is running with no startup errors in its log.
+- Created the active EMPLOYEE `teste.ponto` (display name `Funcionário de Teste`) through the authenticated local employee API. Verified employee login and attendance retrieval, confirmed zero initial punches, and revoked the verification sessions. The test password was provided directly to the user and is not recorded here.
+- Left the database, API, Vite, and Electron running for the requested manual test. API/Vite/Electron logs are in ignored `data/local-api.log`, `data/local-vite.log`, and `data/local-electron.log`. No production service or remote database was accessed.
+
+## Latest Change — Desktop Post-Punch Logout
+
+- Request: sign an employee out after 10 seconds without interaction following a successfully confirmed punch in Electron.
+- Current source of truth: the root pnpm workspace builds `apps/api`, `apps/desktop`, and `packages/shared`. The separate Git submodule copies are not used by the root desktop build and are unchanged.
+- Implemented a session-scoped inactivity timer in the employee layout, armed only by a successful punch response. Pointer, keyboard, touch, wheel, and input activity restart the interval across employee routes and modals. Background polling and clock rendering do not extend it.
+- Electron timers continue while the window is hidden/minimized; focus and visibility events check the original deadline after suspension. The policy is limited to Electron employees, with no database or attendance calculation changes.
+- Logout immediately clears renderer identity and cached queries, invokes the existing main-process logout/vault revocation flow, rejects stale refresh results, and serializes the next login after logout completion.
+- Added a pt-BR explanation to the punch confirmation and regression tests for the timer, session cleanup, refresh races, navigation, and failed-punch retry.
+- Validation environment: macOS arm64, Node 24.18.1, pnpm 11.21.0, base commit `91c674b`.
+- `pnpm install --frozen-lockfile`, `pnpm shared:build`, and `pnpm db:generate` passed. Initial verification exposed test-only Promise inference and paused-clock fixture issues; both were corrected before the final runs.
+- Final `pnpm check` passed: ESLint, formatting, strict typechecks, 243 unit/renderer tests (shared 64, API 110, desktop 69), and the production renderer build. Changed renderer files were also explicitly checked with `eslint --no-ignore` and `prettier --ignore-path /dev/null` because the repository defaults exclude renderer directories.
+- `pnpm --filter @ph-ponto/desktop build:electron` passed, compiling the Electron main/preload code separately from the root gate's renderer build.
+- `pnpm --filter @ph-ponto/desktop test:e2e` passed all 5 Chromium flows, using the test Electron bridge: existing employee/admin workflows; pending punch and slow logout; activity across history navigation and a fresh login; unsuccessful punch and successful retry.
+- PostgreSQL integration initially failed with `ECONNREFUSED` because the local Docker database was unavailable. Reran `pnpm --filter @ph-ponto/api test:integration` against the isolated local PostgreSQL 16.13 test database: all 5 migrations applied and all 25 integration tests passed. The production PostgreSQL 18 container was not exercised in this run.
+- Visually inspected the generated employee punch-success screenshots at 1366x768 in light/dark themes: the inactivity notice, keyboard-accessible controls, punch timeline, and summaries remain visible without clipping. Screenshots are in the ignored desktop `test-results` directory.
+- Existing non-blocking output: Vite warns about the renderer bundle exceeding 500 kB; API integration emits a `pg` concurrency deprecation; the pre-existing admin E2E fixture aborts unmocked avatar/incomplete-summary requests while its assertions pass.
+- No production database migration, submodule change, commit, push, deployment, or installer publication had been made at the end of the local feature verification. The release candidate below adds the required packaging and publication controls.
+- Earlier release/deployment statements below are historical, not evidence of a release of this change.
+
+## Release Candidate — v0.1.5
+
+- Bumped the root, API, shared, and desktop packages to `0.1.5`; existing installed `0.1.4` clients will therefore recognize this as a newer version.
+- The packaged client already uses the GitHub Releases provider for `Nycolazs/PH-Motopecas-Ponto`, starts an update check 15 seconds after launch, repeats it every 30 minutes, downloads stable updates in the background, and installs them when the user closes or restarts PH-Ponto.
+- Updated `build-desktop.yml` so a matching `v0.1.5` tag must pass dependency auditing, frontend tests, package creation, manifest/checksum validation, and platform artifact upload before publishing a non-draft GitHub release.
+- Added release manifest verification that checks version, size, SHA-512, referenced artifact names, and records SHA-256 checksums. Locally packaged and verified macOS arm64 and x64 DMG/ZIP update artifacts for `0.1.5`.
+- Added a Windows CI smoke test that silently installs the generated NSIS installer, starts the installed executable, asserts the hardened Electron preferences, verifies login, a successful punch, hidden-window idle logout, offline UI, and silent uninstall. Its screenshots are uploaded as build evidence.
+- Final local release gate passed on Node 24.18.1 and pnpm 11.21.0: `pnpm check` (243 tests), `pnpm --filter @ph-ponto/desktop build:electron`, release manifest verification, and `pnpm audit --audit-level=high` (0 high/critical; 2 low and 5 moderate remain).
+- Local macOS packaging had no valid Developer ID identity, so its artifacts are unsigned. The repository exposes only `GH_PAT` as an Actions secret; production macOS signing requires a valid Developer ID certificate to be added separately. Windows installer execution is covered by the new GitHub-hosted Windows smoke test because this workstation is macOS.
 
 ## Completed
 
@@ -94,13 +134,11 @@ READY_FOR_RELEASE
 
 ## Currently Working On
 
-- Production stack (PostgreSQL, Backend API, Frontend Web) running in isolated Docker containers in production environment.
-- Auto-deploy pipeline active via cron, syncing GitHub commits to server containers automatically.
+- Commit and publish the v0.1.5 desktop release, then verify its GitHub Actions evidence and released update manifest.
 
 ## Next Steps
 
-- Proceed with Cloudflare Tunnel configuration or Zero Trust token setup when provided by the user.
-- Interactive end-to-end testing of time punch, employee management, and report generation flows.
+- Push the release commit and `v0.1.5` tag, then wait for the Windows, macOS, and Linux build matrix and the published GitHub Release.
 
 ## Architecture Decisions
 
@@ -123,7 +161,7 @@ READY_FOR_RELEASE
 - The release gate blocks open Critical/High security findings and skipped mandatory validations.
 - HTTP routes are protected by default through global access-token and role guards; only explicit `@Public()` routes bypass authentication.
 - Refresh credentials are opaque `sessionId.secret` values; PostgreSQL stores only keyed HMAC-SHA256 hashes, every rotation appends a session row, and replay revokes the complete immutable family.
-- Electron main owns login/refresh/logout HTTP calls and the rotating refresh credential; it encrypts the persisted credential with Electron `safeStorage` when available and falls back to memory-only sessions instead of exposing or weakly persisting it. The renderer receives only the short-lived access token and identity in React memory through narrow typed IPC.
+- Electron main owns login/refresh/logout HTTP calls and the rotating refresh credential. The vault supports OS encryption, but the current `apps/desktop/src/main/index.ts` deliberately configures employee sessions as memory-only across restarts. The renderer receives only the short-lived access token and identity in React memory through narrow typed IPC.
 - Electron production compilation uses a test-excluding build tsconfig plus explicit cleanup limited to the generated main/preload/shared/renderer directories; the normal typecheck config still includes test sources.
 - User/admin mutations lock identities, preserve role-specific endpoints, revoke affected sessions, and append the audit event in the same transaction.
 - Local integration preparation accepts only database names ending in `_test`; the development `ph_ponto` database is never truncated by tests.
@@ -141,7 +179,7 @@ READY_FOR_RELEASE
 - PostgreSQL: Compose service is healthy at `127.0.0.1:55432`; container traffic uses port 5432; both the server process and every Prisma client session use UTC.
 - Electron: Phase 4 production build succeeds with no emitted test artifacts or refresh-token preload field; `pnpm dev:desktop` launched the real main/preload/renderer stack successfully on macOS with zero TypeScript/runtime console errors and was stopped manually after verification.
 - Docker: Compose 5.1.3 and Buildx 0.36.1 are available; the current Phase 3 API image size reported by Docker is 173,385,328 bytes.
-- logo: no PNG, JPEG, WebP, SVG, or ICO PH Motopeças asset exists in the workspace.
+- logo: the official assets are present at `apps/desktop/src/renderer/assets/phmotos-logo.png` and `app-icon.png`, with packaging icons under `apps/desktop/build`.
 
 ## Commands That Work
 
@@ -197,8 +235,9 @@ curl http://127.0.0.1:3000/health/ready
 
 ## Known Issues
 
-- The PH Motopeças logo referenced by the product brief was not supplied. The application uses a temporary accessible text mark only; do not fabricate the logo or treat the current mark/installer icon as final branding.
-- The Windows installer has not yet been executed on `windows-latest` locally (development environment is macOS); packaging is automated in CI via `.github/workflows/build-windows.yml`.
+- The earlier missing-logo blocker is resolved; official renderer and packaging assets are present.
+- The Windows installer cannot run on this macOS workstation; the release workflow runs and records the installer smoke test on `windows-latest` in `.github/workflows/build-desktop.yml`.
+- macOS artifacts cannot be Developer ID-signed until a valid Apple signing certificate is configured as a GitHub Actions secret.
 
 ## Important Files
 

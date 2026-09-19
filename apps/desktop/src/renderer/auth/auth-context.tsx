@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 
 import type { ElectronApi } from '../../shared/electron-api.js';
 import { ApiClient } from '../api/client.js';
@@ -23,6 +24,7 @@ function authBridge(): AuthBridge {
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }): React.JSX.Element {
+  const queryClient = useQueryClient();
   const [state, setState] = useState<AuthContextValue['state']>('RESTORING');
   const [session, setSession] = useState<DesktopSession | null>(null);
   const [persistence, setPersistence] = useState<SessionPersistence | null>(null);
@@ -31,6 +33,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }): React
   const [restoreUnavailable, setRestoreUnavailable] = useState(false);
   const sessionRef = useRef<DesktopSession | null>(null);
   const refreshPromise = useRef<Promise<DesktopSession> | null>(null);
+  const logoutPromise = useRef<Promise<void> | null>(null);
+  const sessionGeneration = useRef(0);
 
   const applyResult = useCallback((result: AuthBridgeResult): DesktopSession | null => {
     sessionRef.current = result.session;
@@ -41,6 +45,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }): React
   }, []);
 
   const expireSession = useCallback(() => {
+    if (sessionRef.current === null) return;
+    sessionGeneration.current += 1;
     sessionRef.current = null;
     setSession(null);
     setState('ANONYMOUS');
@@ -48,16 +54,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }): React
   }, []);
 
   const refresh = useCallback(async (): Promise<DesktopSession> => {
+    if (logoutPromise.current !== null || sessionRef.current === null) {
+      throw new Error('AUTHENTICATION_REQUIRED');
+    }
     if (refreshPromise.current !== null) return refreshPromise.current;
+    const generation = sessionGeneration.current;
     const pending = authBridge()
       .refresh()
       .then((result) => {
+        if (generation !== sessionGeneration.current) throw new Error('AUTHENTICATION_REQUIRED');
         const restored = applyResult(result);
         if (restored === null) throw new Error('AUTHENTICATION_REQUIRED');
         return restored;
       })
       .finally(() => {
-        refreshPromise.current = null;
+        if (refreshPromise.current === pending) refreshPromise.current = null;
       });
     refreshPromise.current = pending;
     return pending;
@@ -75,15 +86,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }): React
 
   useEffect(() => {
     let active = true;
+    const generation = sessionGeneration.current;
     try {
       void authBridge()
         .restore()
         .then((result) => {
-          if (!active) return;
+          if (!active || generation !== sessionGeneration.current) return;
           applyResult(result);
         })
         .catch(() => {
-          if (!active) return;
+          if (!active || generation !== sessionGeneration.current) return;
           sessionRef.current = null;
           setSession(null);
           setState('ANONYMOUS');
@@ -101,7 +113,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }): React
 
   const login = useCallback(
     async (input: LoginInput): Promise<void> => {
+      await logoutPromise.current;
+      const generation = ++sessionGeneration.current;
       const result = await authBridge().login(input);
+      if (generation !== sessionGeneration.current) throw new Error('AUTHENTICATION_REQUIRED');
       const nextSession = applyResult(result);
       if (nextSession === null) throw new Error('AUTHENTICATION_REQUIRED');
       setSessionExpired(false);
@@ -112,21 +127,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }): React
   );
 
   const logout = useCallback(async (): Promise<void> => {
-    let unconfirmed = false;
+    if (logoutPromise.current !== null) return logoutPromise.current;
+
+    // Hide employee data immediately, even when remote revocation is slow or offline.
+    sessionGeneration.current += 1;
+    sessionRef.current = null;
+    refreshPromise.current = null;
+    setSession(null);
+    setPersistence(null);
+    setSessionExpired(false);
+    setLogoutUnconfirmed(false);
+    setState('ANONYMOUS');
+    queryClient.clear();
+
+    const pending = (async () => {
+      let unconfirmed = false;
+      try {
+        const result = await authBridge().logout();
+        unconfirmed = result.remoteRevocation === 'UNCONFIRMED';
+      } catch {
+        unconfirmed = true;
+      } finally {
+        setLogoutUnconfirmed(unconfirmed);
+      }
+    })();
+    logoutPromise.current = pending;
     try {
-      const result = await authBridge().logout();
-      unconfirmed = result.remoteRevocation === 'UNCONFIRMED';
-    } catch {
-      unconfirmed = true;
+      await pending;
     } finally {
-      sessionRef.current = null;
-      setSession(null);
-      setPersistence(null);
-      setSessionExpired(false);
-      setLogoutUnconfirmed(unconfirmed);
-      setState('ANONYMOUS');
+      logoutPromise.current = null;
     }
-  }, []);
+  }, [queryClient]);
 
   const value = useMemo<AuthContextValue>(
     () => ({

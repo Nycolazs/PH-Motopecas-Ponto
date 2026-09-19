@@ -1,6 +1,6 @@
 {
   "name": "@ph-ponto/desktop",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "private": true,
   "description": "Secure Electron desktop client for PH-Ponto",
   "author": "PH Motopeças <contato@phmotopecas.com.br>",
@@ -22,7 +22,7 @@
     "e2e:install:ci": "cross-env PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers playwright install --with-deps chromium",
     "test:e2e": "cross-env PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers playwright test",
     "package:windows": "pnpm build:all && electron-builder --win nsis --x64 --publish never",
-    "package:mac": "pnpm build:all && electron-builder --mac dmg zip --publish never",
+    "package:mac": "pnpm build:all && electron-builder --mac dmg zip --arm64 --x64 --publish never",
     "package:linux": "pnpm build:all && electron-builder --linux AppImage deb --x64 --publish never"
   },
   "dependencies": {
@@ -54,6 +54,7 @@
     "electron": "^43.4.0",
     "electron-builder": "^26.0.12",
     "jsdom": "^27.0.0",
+    "js-yaml": "4.3.2",
     "tailwindcss": "^4.3.3",
     "typescript": "^6.0.3",
     "vite": "^8.2.1",

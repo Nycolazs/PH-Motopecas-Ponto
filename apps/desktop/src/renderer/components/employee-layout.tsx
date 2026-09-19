@@ -4,6 +4,7 @@ import { Clock3, History, KeyRound, LogOut, RotateCw, WifiOff } from 'lucide-rea
 import { NavLink, Outlet } from 'react-router-dom';
 
 import { useAuth } from '../auth/use-auth.js';
+import { usePostPunchIdleLogout } from '../auth/use-post-punch-idle-logout.js';
 import { Brand } from './brand.js';
 import { ChangePasswordModal } from './change-password-modal.js';
 import { ThemeButton } from './theme-button.js';
@@ -26,6 +27,10 @@ function useOnline(): boolean {
 
 export function EmployeeLayout(): React.JSX.Element {
   const { logout, session } = useAuth();
+  const onPunchSuccess = usePostPunchIdleLogout(
+    window.phPonto?.auth !== undefined && session?.user.role === 'EMPLOYEE',
+    logout,
+  );
   const queryClient = useQueryClient();
   const { showToast } = useToast();
   const online = useOnline();
@@ -68,7 +73,10 @@ export function EmployeeLayout(): React.JSX.Element {
             disabled={isRefreshing}
             onClick={() => void handleRefresh()}
           >
-            <RotateCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} aria-hidden="true" />
+            <RotateCw
+              className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`}
+              aria-hidden="true"
+            />
           </button>
           <button
             className="icon-button"
@@ -85,9 +93,7 @@ export function EmployeeLayout(): React.JSX.Element {
             type="button"
             aria-label="Sair do PH-Ponto"
             title="Sair"
-            onClick={() => {
-              void logout().finally(() => queryClient.clear());
-            }}
+            onClick={() => void logout()}
           >
             <LogOut aria-hidden="true" />
           </button>
@@ -100,7 +106,7 @@ export function EmployeeLayout(): React.JSX.Element {
         </div>
       )}
       <main className="employee-content">
-        <Outlet context={{ employeeName: session?.user.name ?? '' }} />
+        <Outlet context={{ employeeName: session?.user.name ?? '', onPunchSuccess }} />
       </main>
 
       <ChangePasswordModal

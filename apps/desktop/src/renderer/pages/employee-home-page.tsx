@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useOutletContext } from 'react-router-dom';
 import { BUSINESS_TIME_ZONE, DISPLAY_LOCALE } from '@ph-ponto/shared';
 import {
   CalendarDays,
@@ -125,6 +126,7 @@ function SummaryCard({
 
 export function EmployeeHomePage(): React.JSX.Element {
   const { api, session } = useAuth();
+  const { onPunchSuccess } = useOutletContext<{ onPunchSuccess: () => void }>();
   const queryClient = useQueryClient();
   const now = useVisualClock();
   const [successTime, setSuccessTime] = useState<string | null>(null);
@@ -156,6 +158,7 @@ export function EmployeeHomePage(): React.JSX.Element {
       return api.createPunch(pendingIdempotencyKey.current);
     },
     onSuccess: (result) => {
+      onPunchSuccess();
       pendingIdempotencyKey.current = null;
       setSuccessTime(result.punch.effectiveOccurredAt);
       queryClient.setQueryData(['attendance', employeeId, 'today'], result.dailySummary);
@@ -240,6 +243,11 @@ export function EmployeeHomePage(): React.JSX.Element {
           <span>
             <strong>Ponto registrado com sucesso</strong>
             Horário oficial: {formatInstantTime(successTime)}
+            {window.phPonto?.auth !== undefined && (
+              <small className="block">
+                Sua sessão será encerrada após 10 segundos sem atividade.
+              </small>
+            )}
           </span>
           <button
             type="button"

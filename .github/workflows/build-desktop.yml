@@ -24,9 +24,9 @@ jobs:
             package_cmd: pnpm package:windows
             artifact_pattern: |
               apps/desktop/release/PH-Ponto-Setup-*.exe
+              apps/desktop/release/PH-Ponto-Setup-*.exe.blockmap
               apps/desktop/release/latest.yml
-              PH-Motopeças-Ponto-Frontend/release/PH-Ponto-Setup-*.exe
-              PH-Motopeças-Ponto-Frontend/release/latest.yml
+              apps/desktop/release/SHA256SUMS-win32.txt
             artifact_name: PH-Ponto-Windows-x64
 
           - name: macOS (Apple Silicon & Intel)
@@ -35,10 +35,9 @@ jobs:
             artifact_pattern: |
               apps/desktop/release/PH-Ponto-*.dmg
               apps/desktop/release/PH-Ponto-*.zip
+              apps/desktop/release/PH-Ponto-*.blockmap
               apps/desktop/release/latest-mac.yml
-              PH-Motopeças-Ponto-Frontend/release/PH-Ponto-*.dmg
-              PH-Motopeças-Ponto-Frontend/release/PH-Ponto-*.zip
-              PH-Motopeças-Ponto-Frontend/release/latest-mac.yml
+              apps/desktop/release/SHA256SUMS-darwin.txt
             artifact_name: PH-Ponto-macOS
 
           - name: Linux (AppImage & DEB)
@@ -48,9 +47,7 @@ jobs:
               apps/desktop/release/PH-Ponto-*.AppImage
               apps/desktop/release/PH-Ponto-*.deb
               apps/desktop/release/latest-linux.yml
-              PH-Motopeças-Ponto-Frontend/release/PH-Ponto-*.AppImage
-              PH-Motopeças-Ponto-Frontend/release/PH-Ponto-*.deb
-              PH-Motopeças-Ponto-Frontend/release/latest-linux.yml
+              apps/desktop/release/SHA256SUMS-linux.txt
             artifact_name: PH-Ponto-Linux-x64
 
     steps:
@@ -86,17 +83,40 @@ jobs:
       - name: Run frontend unit tests
         run: pnpm test:frontend
 
+      - name: Verify release tag and dependency security
+        shell: bash
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            node -e 'const p = require("./apps/desktop/package.json"); if (process.env.GITHUB_REF_NAME !== `v${p.version}`) throw new Error("Release tag does not match desktop version");'
+          fi
+          pnpm audit --audit-level=high
+
       - name: Package Desktop Client (${{ matrix.platform.name }})
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: ${{ matrix.platform.package_cmd }}
+
+      - name: Verify update manifests and artifact checksums
+        run: pnpm --filter @ph-ponto/desktop exec node scripts/verify-release.mjs
+
+      - name: Smoke test the Windows installer
+        if: runner.os == 'Windows'
+        run: pnpm --filter @ph-ponto/desktop exec node scripts/smoke-windows-release.mjs
 
       - name: Upload Artifact (${{ matrix.platform.name }})
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.platform.artifact_name }}
           path: ${{ matrix.platform.artifact_pattern }}
-          if-no-files-found: warn
+          if-no-files-found: error
+
+      - name: Upload Windows smoke evidence
+        if: always() && runner.os == 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: Windows-smoke-evidence
+          path: apps/desktop/release-smoke/
+          if-no-files-found: ignore
 
   release:
     name: Publish GitHub Release
@@ -110,9 +130,12 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: release-artifacts
+          pattern: PH-Ponto-*
 
       - name: Create Release and Upload Binaries
         uses: softprops/action-gh-release@v2
         with:
           files: release-artifacts/**/*
           generate_release_notes: true
+          draft: false
+          fail_on_unmatched_files: true

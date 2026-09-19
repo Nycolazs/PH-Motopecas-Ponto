@@ -100,6 +100,7 @@ describe('Electron security policy', () => {
       sandbox: true,
       webSecurity: true,
       allowRunningInsecureContent: false,
+      backgroundThrottling: false,
     });
   });
 
