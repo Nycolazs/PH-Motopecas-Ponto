@@ -230,7 +230,7 @@ export function EmployeeHomePage(): React.JSX.Element {
         </div>
         <div
           className="business-clock"
-          aria-label={`Horário de Fortaleza: ${clockFormatter.format(now)}`}
+          aria-label={`Horário de São Paulo: ${clockFormatter.format(now)}`}
         >
           <time dateTime={now.toISOString()}>{clockFormatter.format(now)}</time>
           <span>{formatDateBR(now)}</span>

@@ -7,12 +7,16 @@ export default tseslint.config(
     ignores: [
       '**/node_modules/**',
       '**/dist/**',
-      '**/public/**',
-      '**/renderer/**',
+      'public/**',
+      'renderer/**',
+      'apps/desktop/public/**',
+      'apps/desktop/renderer/**',
       '**/coverage/**',
       '**/out/**',
       '**/release/**',
-      '.playwright-browsers/**',
+      '**/.playwright-browsers/**',
+      '**/playwright-report/**',
+      '**/test-results/**',
       '**/src/generated/**',
       '.agents/**',
       'PH-Motopeças-Ponto-Frontend/**',
@@ -41,9 +45,9 @@ export default tseslint.config(
   },
   {
     files: [
-      'backend/**/*.ts',
-      'frontend/src/main/**/*.ts',
-      'frontend/src/preload/**/*.ts',
+      'apps/api/**/*.ts',
+      'apps/desktop/src/main/**/*.ts',
+      'apps/desktop/src/preload/**/*.ts',
       '**/*.config.ts',
       '**/vite.config.ts',
       '**/playwright.config.ts',
@@ -53,7 +57,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ['frontend/src/renderer/**/*.{ts,tsx}'],
+    files: ['apps/desktop/src/renderer/**/*.{ts,tsx}'],
     languageOptions: {
       globals: globals.browser,
     },

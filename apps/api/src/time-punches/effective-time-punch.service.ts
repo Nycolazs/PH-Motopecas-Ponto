@@ -56,7 +56,8 @@ export class EffectiveTimePunchService {
         p."employee_id" AS "employeeId",
         p."occurred_at" AS "originalOccurredAt",
         COALESCE(latest."corrected_occurred_at", p."occurred_at") AS "effectiveOccurredAt",
-        p."kind",
+        CASE WHEN row_number() OVER (ORDER BY COALESCE(latest."corrected_occurred_at", p."occurred_at"), p."id") % 2 = 1
+          THEN 'CLOCK_IN' ELSE 'CLOCK_OUT' END::"TimePunchKind" AS "kind",
         p."origin",
         p."created_by_admin_id" AS "createdByAdminId",
         p."insertion_reason" AS "insertionReason",
@@ -71,6 +72,7 @@ export class EffectiveTimePunchService {
         LIMIT 1
       ) latest ON true
       WHERE p."employee_id" = ${employeeId}::uuid
+        AND NOT EXISTS (SELECT 1 FROM "time_punch_voids" v WHERE v."time_punch_id" = p."id")
         AND p."occurred_at" >= ${start}
         AND p."occurred_at" < ${endExclusive}
       ORDER BY "effectiveOccurredAt" ASC, p."id" ASC

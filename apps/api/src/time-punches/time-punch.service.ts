@@ -5,7 +5,6 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { instantRangeForBusinessDate } from '@ph-ponto/shared';
 
 import { AuditService } from '../audit/audit.service.js';
 import { toDailyAttendanceView } from '../attendance/attendance.view.js';
@@ -291,34 +290,6 @@ export class TimePunchService {
           select: { id: true },
         });
 
-        const { start: dateStart, endExclusive: dateEndExclusive } =
-          instantRangeForBusinessDate(businessDate);
-        const allPunchesOnDate = await transaction.timePunch.findMany({
-          where: {
-            employeeId: input.employeeId,
-            occurredAt: { gte: dateStart, lt: dateEndExclusive },
-          },
-          include: {
-            adjustments: { orderBy: { sequence: 'desc' }, take: 1 },
-          },
-        });
-
-        allPunchesOnDate.sort((a, b) => {
-          const aEff = a.adjustments[0]?.correctedOccurredAt ?? a.occurredAt;
-          const bEff = b.adjustments[0]?.correctedOccurredAt ?? b.occurredAt;
-          const diff = aEff.getTime() - bEff.getTime();
-          return diff === 0 ? a.id.localeCompare(b.id) : diff;
-        });
-
-        for (let i = 0; i < allPunchesOnDate.length; i++) {
-          const expectedKind = i % 2 === 0 ? TimePunchKind.CLOCK_IN : TimePunchKind.CLOCK_OUT;
-          if (allPunchesOnDate[i]!.kind !== expectedKind) {
-            await transaction.timePunch.update({
-              where: { id: allPunchesOnDate[i]!.id },
-              data: { kind: expectedKind },
-            });
-          }
-        }
         const punch = createdPunch({
           id: persisted.id,
           employeeId: input.employeeId,
@@ -389,78 +360,74 @@ export class TimePunchService {
   public async deletePunch(
     actor: AuthenticatedUser,
     punchId: string,
+    reason: string,
+    idempotencyKey: string,
     context: ClientContext,
-  ): Promise<{ success: boolean; message: string; auditEventId: string }> {
-    const existing = await this.prisma.timePunch.findUnique({
-      where: { id: punchId },
-      include: {
-        employee: { select: { id: true, name: true } },
-        adjustments: { orderBy: { sequence: 'asc' } },
-      },
-    });
-
-    if (!existing) {
-      throw new NotFoundException({
-        code: 'RESOURCE_NOT_FOUND',
-        message: 'Ponto não encontrado.',
+  ): Promise<{
+    body: { success: boolean; message: string; auditEventId: string };
+    replayed: boolean;
+  }> {
+    const normalizedReason = reason.trim();
+    if (!normalizedReason || normalizedReason.length > 500) {
+      throw new BadRequestException({
+        code: 'VALIDATION_ERROR',
+        message: 'Informe o motivo da anulação (até 500 caracteres).',
       });
     }
-
-    const employeeId = existing.employeeId;
-    const businessDate = businessDateFromInstant(existing.occurredAt);
-    const { start, endExclusive } = instantRangeForBusinessDate(businessDate);
-
-    const auditEventId = await this.prisma.$transaction(async (transaction) => {
-      await this.locks.lockEmployee(transaction, employeeId, false);
-      await this.locks.lockEmployeeStream(transaction, employeeId);
-
-      // Delete adjustment requests associated with this punch
-      await transaction.timePunchAdjustmentRequest.deleteMany({
-        where: { timePunchId: punchId },
+    const now = this.clock();
+    return this.prisma.$transaction(async (transaction) => {
+      const claim = await this.idempotency.begin<{
+        success: boolean;
+        message: string;
+        auditEventId: string;
+      }>(transaction, {
+        actorId: actor.id,
+        requiredRole: 'ADMIN',
+        operation: IdempotencyOperation.DELETE_TIME_PUNCH,
+        key: idempotencyKey,
+        fingerprintPayload: { punchId, reason: normalizedReason },
+        now,
       });
-
-      // Delete adjustments associated with this punch
-      await transaction.timeAdjustment.deleteMany({
-        where: { timePunchId: punchId },
-      });
-
-      // Delete the punch itself
-      await transaction.timePunch.delete({
+      if (claim.kind === 'REPLAY') return { body: claim.response, replayed: true };
+      const target = await transaction.timePunch.findUnique({
         where: { id: punchId },
-      });
-
-      // Re-align kinds of remaining punches for this employee on that date
-      const remainingPunches = await transaction.timePunch.findMany({
-        where: {
-          employeeId,
-          occurredAt: { gte: start, lt: endExclusive },
-        },
         include: {
-          adjustments: { orderBy: { sequence: 'desc' }, take: 1 },
+          employee: { select: { name: true } },
+          adjustments: { orderBy: { sequence: 'asc' } },
         },
       });
-
-      remainingPunches.sort((a, b) => {
-        const aEff = a.adjustments[0]?.correctedOccurredAt ?? a.occurredAt;
-        const bEff = b.adjustments[0]?.correctedOccurredAt ?? b.occurredAt;
-        const diff = aEff.getTime() - bEff.getTime();
-        return diff === 0 ? a.id.localeCompare(b.id) : diff;
-      });
-
-      for (let i = 0; i < remainingPunches.length; i++) {
-        const expectedKind = i % 2 === 0 ? TimePunchKind.CLOCK_IN : TimePunchKind.CLOCK_OUT;
-        if (remainingPunches[i]!.kind !== expectedKind) {
-          await transaction.timePunch.update({
-            where: { id: remainingPunches[i]!.id },
-            data: { kind: expectedKind },
-          });
-        }
+      if (!target)
+        throw new NotFoundException({
+          code: 'RESOURCE_NOT_FOUND',
+          message: 'Ponto não encontrado.',
+        });
+      await this.locks.lockEmployee(transaction, target.employeeId, false);
+      await this.locks.lockEmployeeStream(transaction, target.employeeId);
+      if (await transaction.timePunchVoid.findUnique({ where: { timePunchId: punchId } })) {
+        throw new ConflictException({
+          code: 'PUNCH_ALREADY_VOIDED',
+          message: 'Este ponto já foi anulado. Atualize os dados.',
+        });
       }
-
-      const effectiveLastOccurredAt =
-        existing.adjustments.at(-1)?.correctedOccurredAt ?? existing.occurredAt;
-
-      return this.audit.record(
+      await transaction.timePunchVoid.create({
+        data: {
+          timePunchId: punchId,
+          adminId: actor.id,
+          reason: normalizedReason,
+          idempotencyRecordId: claim.recordId,
+          createdAt: now,
+        },
+      });
+      await transaction.timePunchAdjustmentRequest.updateMany({
+        where: { timePunchId: punchId, status: 'PENDING' },
+        data: {
+          status: 'REJECTED',
+          reviewedById: actor.id,
+          reviewedAt: now,
+          reviewComment: 'Solicitação encerrada porque o ponto foi anulado pelo administrador.',
+        },
+      });
+      const auditEventId = await this.audit.record(
         {
           actorId: actor.id,
           action: AuditAction.TIME_PUNCH_DELETED,
@@ -468,28 +435,32 @@ export class TimePunchService {
           targetId: punchId,
           ...context,
           beforeState: {
-            employeeId,
-            employeeName: existing.employee.name,
-            occurredAt: existing.occurredAt.toISOString(),
-            effectiveOccurredAt: effectiveLastOccurredAt.toISOString(),
-            kind: existing.kind,
-            origin: existing.origin,
-            adjustmentsCount: existing.adjustments.length,
+            employeeId: target.employeeId,
+            employeeName: target.employee.name,
+            occurredAt: target.occurredAt.toISOString(),
+            effectiveOccurredAt: (
+              target.adjustments.at(-1)?.correctedOccurredAt ?? target.occurredAt
+            ).toISOString(),
+            kind: target.kind,
+            adjustmentsCount: target.adjustments.length,
           },
           metadata: {
-            businessDate,
-            employeeId,
+            reason: normalizedReason,
+            operation: 'VOID',
+            originalPreserved: true,
+            employeeId: target.employeeId,
           },
         },
         transaction,
       );
+      const body = {
+        success: true,
+        message: 'Ponto anulado. O registro original e seu histórico foram preservados.',
+        auditEventId,
+      };
+      await this.idempotency.complete(transaction, claim.recordId, 200, toIdempotencyJson(body));
+      return { body, replayed: false };
     });
-
-    return {
-      success: true,
-      message: 'Batida de ponto excluída com sucesso.',
-      auditEventId,
-    };
   }
 
   private async rejectDuplicateEmployeePunch(

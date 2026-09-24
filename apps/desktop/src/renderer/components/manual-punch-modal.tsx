@@ -60,10 +60,10 @@ export function ManualPunchModal({
   const targetDay = existingDays?.find((d) => d.businessDate === punchDate);
   const hasFullPunches = Boolean(
     targetDay &&
-      (targetDay.punchCount >= 4 ||
-        (targetDay.punchCount > 0 &&
-          targetDay.status !== 'INCOMPLETE' &&
-          targetDay.workState === 'OFF_DUTY')),
+    (targetDay.punchCount >= 4 ||
+      (targetDay.punchCount > 0 &&
+        targetDay.status !== 'INCOMPLETE' &&
+        targetDay.workState === 'OFF_DUTY')),
   );
 
   const executeInsert = async (): Promise<void> => {

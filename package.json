@@ -29,15 +29,15 @@
     "pretypecheck": "pnpm shared:build",
     "typecheck": "pnpm -r --if-present typecheck",
     "pretest": "pnpm shared:build",
-    "test": "pnpm -r --if-present test",
+    "test": "pnpm -r --if-present test && pnpm test:tooling",
+    "test:tooling": "node --test apps/api/scripts/*.test.mjs scripts/*.test.mjs",
     "pretest:integration": "pnpm shared:build",
     "test:integration": "pnpm --filter @ph-ponto/api test:integration",
     "pretest:frontend": "pnpm shared:build",
     "test:frontend": "pnpm --filter @ph-ponto/desktop test",
     "pretest:e2e": "pnpm shared:build",
     "test:e2e": "pnpm --filter @ph-ponto/desktop test:e2e",
-    "build": "pnpm shared:build && pnpm --filter @ph-ponto/desktop build:renderer && node scripts/copy-web-dist.mjs",
-    "postbuild": "node scripts/copy-web-dist.mjs",
+    "build": "pnpm shared:build && pnpm --filter @ph-ponto/api build && pnpm --filter @ph-ponto/desktop build:all && node scripts/copy-web-dist.mjs",
     "prebuild:api": "pnpm shared:build",
     "build:api": "pnpm --filter @ph-ponto/api build",
     "prebuild:backend": "pnpm shared:build",
@@ -62,7 +62,8 @@
     "docker:up": "docker compose up -d --build",
     "docker:down": "docker compose down",
     "docker:logs": "docker compose logs -f",
-    "check": "pnpm lint && pnpm format:check && pnpm typecheck && pnpm test && pnpm build"
+    "check": "pnpm lint && pnpm format:check && pnpm typecheck && pnpm test && pnpm build",
+    "check:full": "pnpm check && pnpm test:integration && pnpm test:e2e"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

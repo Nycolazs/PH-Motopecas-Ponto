@@ -225,7 +225,11 @@ describe('UserManagementService', () => {
       data: { passwordHash: 'argon2id-hash' },
       select: { id: true },
     });
-    expect(fixture.sessions.revokeAllForUser).not.toHaveBeenCalled();
+    expect(fixture.sessions.revokeAllForUser).toHaveBeenCalledWith(
+      '30000000-0000-4000-8000-000000000001',
+      SessionRevocationReason.PASSWORD_RESET,
+      fixture.transaction,
+    );
     const auditPayload = JSON.stringify(fixture.audit.record.mock.calls);
     expect(auditPayload).not.toContain('new-safe-password');
     expect(auditPayload).not.toContain('argon2id-hash');

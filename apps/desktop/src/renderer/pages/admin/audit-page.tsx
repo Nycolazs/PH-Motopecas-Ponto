@@ -565,7 +565,9 @@ export function AdminAuditPage(): React.JSX.Element {
                               </span>
                             </div>
                           ) : (
-                            <span className="text-slate-400 italic text-[11px]">Sem observação</span>
+                            <span className="text-slate-400 italic text-[11px]">
+                              Sem observação
+                            </span>
                           )}
                         </td>
                         <td className="py-3.5 px-4 text-right">
@@ -633,7 +635,9 @@ export function AdminAuditPage(): React.JSX.Element {
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4 text-slate-400 shrink-0" />
                   <div>
-                    <span className="text-slate-400 text-[11px] block">Data e Hora do Registro:</span>
+                    <span className="text-slate-400 text-[11px] block">
+                      Data e Hora do Registro:
+                    </span>
                     <span className="font-semibold text-slate-900 dark:text-white font-mono">
                       {formatDateTimeBR(detailItem.createdAt)}
                     </span>
@@ -724,7 +728,9 @@ export function AdminAuditPage(): React.JSX.Element {
                             key={k}
                             className="flex justify-between gap-2 border-b border-slate-100 dark:border-slate-800/40 py-1 last:border-0"
                           >
-                            <span className="text-slate-500 text-[11px]">{FIELD_LABELS[k] ?? k}:</span>
+                            <span className="text-slate-500 text-[11px]">
+                              {FIELD_LABELS[k] ?? k}:
+                            </span>
                             <span className="font-semibold text-slate-900 dark:text-white text-right">
                               {formatValue(k, v, userMap)}
                             </span>
@@ -744,7 +750,9 @@ export function AdminAuditPage(): React.JSX.Element {
                             key={k}
                             className="flex justify-between gap-2 border-b border-emerald-100 dark:border-emerald-900/30 py-1 last:border-0"
                           >
-                            <span className="text-slate-500 text-[11px]">{FIELD_LABELS[k] ?? k}:</span>
+                            <span className="text-slate-500 text-[11px]">
+                              {FIELD_LABELS[k] ?? k}:
+                            </span>
                             <span className="font-semibold text-emerald-950 dark:text-emerald-200 text-right">
                               {formatValue(k, v, userMap)}
                             </span>
@@ -762,7 +770,9 @@ export function AdminAuditPage(): React.JSX.Element {
                           key={k}
                           className="flex flex-col border-b border-slate-200/60 dark:border-slate-700/40 py-1.5 last:border-0"
                         >
-                          <span className="text-slate-400 text-[11px]">{FIELD_LABELS[k] ?? k}:</span>
+                          <span className="text-slate-400 text-[11px]">
+                            {FIELD_LABELS[k] ?? k}:
+                          </span>
                           <span className="font-semibold text-slate-900 dark:text-white">
                             {formatValue(k, v, userMap)}
                           </span>
@@ -782,7 +792,9 @@ export function AdminAuditPage(): React.JSX.Element {
                 className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-blue-600 transition-colors cursor-pointer"
               >
                 <Code className="w-3.5 h-3.5" />
-                <span>{showTechnicalJson ? 'Ocultar JSON Técnico' : 'Ver Dados Técnicos (JSON)'}</span>
+                <span>
+                  {showTechnicalJson ? 'Ocultar JSON Técnico' : 'Ver Dados Técnicos (JSON)'}
+                </span>
               </button>
 
               <div className="flex items-center gap-2">

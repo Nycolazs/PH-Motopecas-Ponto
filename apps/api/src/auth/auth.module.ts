@@ -15,11 +15,12 @@ import { PasswordService } from './password.service.js';
 import { RolesGuard } from './roles.guard.js';
 import { SessionRevocationService } from './session-revocation.service.js';
 import { TokenService } from './token.service.js';
+import { WebAuthController } from './web-auth.controller.js';
 
 @Global()
 @Module({
   imports: [JwtModule.register({}), AuditModule],
-  controllers: [AuthController],
+  controllers: [AuthController, WebAuthController],
   providers: [
     authConfigurationProvider,
     authClockProvider,

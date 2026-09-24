@@ -379,12 +379,18 @@ export class ApiClient {
     );
   }
 
-  public deletePunch(punchId: string): Promise<{ success: boolean; message: string }> {
+  public deletePunch(
+    punchId: string,
+    reason: string,
+    idempotencyKey: string,
+  ): Promise<{ success: boolean; message: string }> {
     return this.request(
       `/time-punches/${encodeURIComponent(punchId)}`,
       z.object({ success: z.boolean(), message: z.string() }),
       {
         method: 'DELETE',
+        headers: { 'Content-Type': 'application/json', 'Idempotency-Key': idempotencyKey },
+        body: JSON.stringify({ reason }),
       },
     );
   }

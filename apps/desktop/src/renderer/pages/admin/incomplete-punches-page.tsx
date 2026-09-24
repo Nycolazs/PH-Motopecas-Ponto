@@ -124,7 +124,7 @@ export function IncompletePunchesPage(): React.JSX.Element {
               Dias Incompletos
             </p>
             <p className="text-2xl font-bold text-slate-900 dark:text-white">
-              {isLoading ? '--' : data?.totalIncompleteDays ?? 0}
+              {isLoading ? '--' : (data?.totalIncompleteDays ?? 0)}
             </p>
           </div>
         </div>
@@ -138,7 +138,7 @@ export function IncompletePunchesPage(): React.JSX.Element {
               Funcionários Afetados
             </p>
             <p className="text-2xl font-bold text-slate-900 dark:text-white">
-              {isLoading ? '--' : data?.totalAffectedEmployees ?? 0}
+              {isLoading ? '--' : (data?.totalAffectedEmployees ?? 0)}
             </p>
           </div>
         </div>
@@ -206,9 +206,7 @@ export function IncompletePunchesPage(): React.JSX.Element {
               <CheckCircle2 className="w-8 h-8" />
             </div>
             <h3 className="text-base font-bold text-slate-900 dark:text-white">
-              {searchTerm
-                ? 'Nenhum resultado para a busca'
-                : 'Nenhum ponto incompleto neste mês'}
+              {searchTerm ? 'Nenhum resultado para a busca' : 'Nenhum ponto incompleto neste mês'}
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto">
               {searchTerm

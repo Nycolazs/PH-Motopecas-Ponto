@@ -31,7 +31,7 @@ jobs:
       API_PORT: 3000
       JWT_SECRET: ci-access-secret-at-least-32-characters
       JWT_REFRESH_SECRET: ci-refresh-secret-at-least-32-characters
-      APP_TIMEZONE: America/Fortaleza
+      APP_TIMEZONE: America/Sao_Paulo
       INITIAL_ADMIN_USERNAME: ci-admin
       INITIAL_ADMIN_PASSWORD: ci-password-not-used-in-production
       API_BASE_URL: http://localhost:3000

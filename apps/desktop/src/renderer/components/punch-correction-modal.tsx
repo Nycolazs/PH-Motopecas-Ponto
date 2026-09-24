@@ -73,6 +73,8 @@ export function PunchCorrectionModal({
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [voidReason, setVoidReason] = useState('');
+  const [voidKey, setVoidKey] = useState(() => crypto.randomUUID());
   const [error, setError] = useState<string | null>(null);
 
   // Fetch full adjustment history for this punch
@@ -157,8 +159,8 @@ export function PunchCorrectionModal({
     try {
       setDeleting(true);
       setError(null);
-      await api.deletePunch(punchId);
-      toast.success('Batida de ponto excluída com sucesso.');
+      await api.deletePunch(punchId, voidReason.trim(), voidKey);
+      toast.success('Ponto anulado. O histórico foi preservado.');
       await invalidateAllPunchData();
       onSuccess();
       onClose();
@@ -176,7 +178,7 @@ export function PunchCorrectionModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={showDeleteConfirm ? 'Excluir Batida de Ponto' : 'Corrigir Horário de Ponto'}
+      title={showDeleteConfirm ? 'Anular batida de ponto' : 'Corrigir Horário de Ponto'}
       maxWidth={hasAdjustments ? '4xl' : 'lg'}
     >
       {showDeleteConfirm ? (
@@ -185,15 +187,31 @@ export function PunchCorrectionModal({
             <AlertTriangle className="w-5 h-5 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
             <div className="space-y-1.5">
               <h4 className="text-sm font-bold text-rose-900 dark:text-rose-200">
-                Excluir permanentemente este registro de ponto?
+                Anular este registro de ponto?
               </h4>
               <p className="text-xs text-rose-700 dark:text-rose-300 leading-relaxed">
-                Esta ação removerá a batida de <strong>{formattedOriginal}</strong> do colaborador{' '}
-                <strong>{employeeName}</strong>. As demais batidas do dia serão reorganizadas e o
-                saldo de horas será recalculado automaticamente.
+                A batida de <strong>{formattedOriginal}</strong> de <strong>{employeeName}</strong>{' '}
+                deixará de participar do cálculo de horas. O registro original e todas as correções
+                permanecerão no histórico de auditoria.
               </p>
             </div>
           </div>
+
+          <label className="block text-sm font-medium">
+            Motivo da anulação
+            <textarea
+              className="form-input mt-2 w-full"
+              value={voidReason}
+              maxLength={500}
+              required
+              onChange={(event) => {
+                setVoidReason(event.target.value);
+                setVoidKey(crypto.randomUUID());
+              }}
+              disabled={deleting}
+              rows={3}
+            />
+          </label>
 
           {error && (
             <div className="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 rounded-lg text-rose-700 dark:text-rose-300 text-sm">
@@ -212,12 +230,12 @@ export function PunchCorrectionModal({
             </button>
             <button
               type="button"
-              disabled={deleting}
+              disabled={deleting || !voidReason.trim()}
               onClick={() => void handleDelete()}
               className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-lg transition-colors cursor-pointer shadow-xs whitespace-nowrap"
             >
               <Trash2 className="w-4 h-4 shrink-0" />
-              <span>{deleting ? 'Excluindo...' : 'Sim, Excluir Ponto'}</span>
+              <span>{deleting ? 'Anulando...' : 'Confirmar anulação'}</span>
             </button>
           </div>
         </div>
@@ -433,7 +451,7 @@ export function PunchCorrectionModal({
               className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/60 border border-rose-200 dark:border-rose-900/50 rounded-lg transition-colors cursor-pointer whitespace-nowrap shadow-2xs"
             >
               <Trash2 className="w-4 h-4 shrink-0" />
-              <span>Excluir Batida</span>
+              <span>Anular batida</span>
             </button>
 
             <div className="flex items-center gap-2.5">

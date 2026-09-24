@@ -82,7 +82,22 @@ const rawEnvironmentSchema = z
         message: 'DESKTOP_DEV_ORIGIN deve ser uma origem HTTP loopback com porta explícita.',
       })
       .default('http://localhost:5173'),
-    ADMIN_WEB_ORIGIN: z.string().trim().optional(),
+    ADMIN_WEB_ORIGIN: z
+      .string()
+      .trim()
+      .refine(
+        (value) => {
+          try {
+            return value
+              .split(',')
+              .every((origin) => isOriginUrl(origin.trim(), ['http:', 'https:']));
+          } catch {
+            return false;
+          }
+        },
+        { message: 'ADMIN_WEB_ORIGIN deve listar somente origens HTTP(S) explícitas.' },
+      )
+      .optional(),
     JWT_SECRET: z.string().min(32).max(4_096),
     JWT_REFRESH_SECRET: z.string().min(32).max(4_096),
     JWT_ISSUER: z.string().trim().min(3).max(128).default('ph-ponto-api'),
@@ -98,8 +113,8 @@ const rawEnvironmentSchema = z
     AUTH_LOGIN_WINDOW_SECONDS: z.coerce.number().int().min(60).max(3_600).default(900),
     AUTH_LOGIN_MAX_ATTEMPTS: z.coerce.number().int().min(3).max(20).default(5),
     AUTH_LOGIN_BLOCK_SECONDS: z.coerce.number().int().min(60).max(86_400).default(900),
-    INITIAL_ADMIN_USERNAME: z.string().trim().min(3).max(64).default('admin'),
-    INITIAL_ADMIN_PASSWORD: z.string().min(3).max(256).default('admin'),
+    INITIAL_ADMIN_USERNAME: z.string().trim().min(3).max(64).optional(),
+    INITIAL_ADMIN_PASSWORD: z.string().min(12).max(256).optional(),
     UPLOAD_DIR: z.string().trim().min(1).max(1_024),
     SWAGGER_ENABLED: booleanSchema.optional(),
     TRUST_PROXY_COUNT: z.coerce.number().int().min(0).max(10).default(0),
@@ -108,6 +123,26 @@ const rawEnvironmentSchema = z
     READINESS_TIMEOUT_MS: z.coerce.number().int().min(100).max(30_000).default(3_000),
   })
   .superRefine((environment, context) => {
+    if (
+      (environment.INITIAL_ADMIN_USERNAME === undefined) !==
+      (environment.INITIAL_ADMIN_PASSWORD === undefined)
+    ) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Informe login e senha inicial juntos.',
+        path: ['INITIAL_ADMIN_PASSWORD'],
+      });
+    }
+    if (
+      environment.INITIAL_ADMIN_PASSWORD !== undefined &&
+      knownDevelopmentPasswords.has(environment.INITIAL_ADMIN_PASSWORD)
+    ) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Substitua a senha inicial de exemplo.',
+        path: ['INITIAL_ADMIN_PASSWORD'],
+      });
+    }
     if (environment.JWT_SECRET === environment.JWT_REFRESH_SECRET) {
       context.addIssue({
         code: 'custom',
@@ -139,14 +174,6 @@ const rawEnvironmentSchema = z
           path: [field],
         });
       }
-    }
-
-    if (knownDevelopmentPasswords.has(environment.INITIAL_ADMIN_PASSWORD)) {
-      context.addIssue({
-        code: 'custom',
-        message: 'A senha inicial padrão não pode ser usada em produção.',
-        path: ['INITIAL_ADMIN_PASSWORD'],
-      });
     }
   });
 

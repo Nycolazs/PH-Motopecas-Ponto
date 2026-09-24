@@ -243,7 +243,7 @@ export class TimeAdjustmentService {
           employeeId: target.employeeId,
           originalOccurredAt: target.occurredAt,
           effectiveOccurredAt: correctedOccurredAt,
-          kind: target.kind,
+          kind: dayPunches[targetIndex]!.kind,
           origin: target.origin,
           createdByAdminId: target.createdByAdminId,
           insertionReason: target.insertionReason,

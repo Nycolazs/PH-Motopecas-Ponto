@@ -16,7 +16,7 @@ Version=1.0
 Name=PH-Ponto
 GenericName=Controle de Ponto
 Comment=Sistema de Controle de Ponto - PH Motopeças
-Exec="${execPath}" --hidden --no-sandbox
+Exec="${execPath}" --hidden
 Icon=ph-ponto
 Terminal=false
 StartupNotify=false
@@ -79,6 +79,17 @@ export function initAutoStartDefault(): void {
   if (!app.isPackaged) return;
 
   try {
+    if (process.platform === 'linux') {
+      const desktopPath = getLinuxAutostartPath();
+      if (existsSync(desktopPath)) {
+        const currentEntry = readFileSync(desktopPath, 'utf8');
+        const sandboxedEntry = currentEntry.replace(/ --no-sandbox(?=\s|$)/g, '');
+        if (sandboxedEntry !== currentEntry) {
+          writeFileSync(desktopPath, sandboxedEntry, 'utf8');
+        }
+      }
+    }
+
     const markerPath = join(app.getPath('userData'), '.autostart_configured');
     if (!existsSync(markerPath)) {
       setAutoStartEnabled(true);

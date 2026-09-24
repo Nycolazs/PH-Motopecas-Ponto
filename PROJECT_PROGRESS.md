@@ -2,15 +2,35 @@
 
 ## Current Phase
 
-Phase 8 — Desktop release v0.1.6 published and verified
+HR-2 — Company, identity/access, roles, and responsive navigation shell
 
 ## Overall Status
 
-RELEASED
+IN_PROGRESS — HR evolution in active local development. HR-0 and HR-1 completed and verified.
 
 ## Last Updated
 
-2026-09-19 17:19 America/Sao_Paulo
+2026-09-23 America/Sao_Paulo
+
+## Active HR Implementation
+
+- User approved the phase-based implementation plan. Refer to `docs/implementation/MASTER_PLAN.md`, `STATUS.md`, `TASKS.md`, `DECISIONS.md`, `HANDOFF.md`, and `TESTING.md`.
+- Single-company ADMIN-only HR; PDF/paper signatures; separate app access and employment; documentary suspensions; explicit manual termination. No production access, deployment, pushes or tags.
+- Authoritative source remains `apps/api`, `apps/desktop`, and `packages/shared`; submodules are not independent implementation targets.
+- **HR-0 Completed**: Durable planning documentation created; local script/database isolation enforced with loopback checks (`local-targets.mjs`); renderer added to ESLint and formatting; 12 tooling tests added and passed; build artifact pollution prevented.
+- **HR-1 Completed**:
+  - Secure web session bridge implemented via `WebAuthController` with HttpOnly cookies, origin validation, CSRF checks, and refresh session revocation on logout.
+  - Bootstrap admin credentials hardened (requires explicit credentials `>=12` characters, no known defaults permitted in configuration).
+  - Admin password reset now safely revokes all active refresh sessions for the targeted user.
+  - Business timezone standardized back to `America/Sao_Paulo` end-to-end across shared models, backend services, frontend components, and tests.
+  - Time punch deletion replaced with append-only immutable voiding (`TimePunchVoid` model and migration `20260924010000_preserve_voided_punch_history`). Effective attendance chronology derives kinds without deleting original historical punch rows.
+  - Linux autostart sandbox bypass removed; avatar uploads validated and re-encoded.
+  - Quality verification: `pnpm check:full` passed 100% (262 unit/tooling tests, 25 PostgreSQL integration tests, 5 Playwright E2E suites, strict lint, format, typecheck, and builds).
+- **Next Phase — HR-2**:
+  - Task HR2-001: Backend Company model and singleton management endpoints with DTO validation.
+  - Task HR2-002: Separate application access (`accessEnabled`) from employment (`isActive`) while preserving existing users/IDs.
+  - Task HR2-003: Backend JobRole with immutable versioning and non-overlapping principal role assignments.
+  - Task HR2-004: Frontend responsive navigation shell adapting for Company Setup, Management, Attendance, and Administration.
 
 ## Local Interactive Test Environment — 2026-09-19
 

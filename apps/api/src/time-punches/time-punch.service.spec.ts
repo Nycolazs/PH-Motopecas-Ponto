@@ -92,6 +92,11 @@ function createHarness(clockValues: Date[]) {
     },
     timePunchAdjustmentRequest: {
       deleteMany: vi.fn().mockResolvedValue({ count: 0 }),
+      updateMany: vi.fn().mockResolvedValue({ count: 0 }),
+    },
+    timePunchVoid: {
+      findUnique: vi.fn().mockResolvedValue(null),
+      create: vi.fn().mockResolvedValue({ id: 'void-id' }),
     },
     user: {
       findUnique: vi.fn().mockResolvedValue(employee),
@@ -254,15 +259,11 @@ describe('TimePunchService', () => {
     expect(harness.idempotencyShape.complete).toHaveBeenCalledOnce();
   });
 
-  it('deletes a punch, realigns remaining punch kinds, and records audit', async () => {
+  it('voids a punch with audit and idempotency without deleting or rewriting history', async () => {
     const punchId = '74134cf8-b7ec-48a7-b7c1-6f9ce60c37ea';
     const occurredAt = new Date('2026-08-14T12:00:00.000Z');
-    const harness = createHarness([]);
-    (
-      harness.service as unknown as {
-        prisma: { timePunch: { findUnique: ReturnType<typeof vi.fn> } };
-      }
-    ).prisma.timePunch.findUnique.mockResolvedValueOnce({
+    const harness = createHarness([new Date('2026-09-24T00:00:00Z')]);
+    harness.transaction.timePunch.findUnique.mockResolvedValueOnce({
       id: punchId,
       employeeId: employee.id,
       occurredAt,
@@ -272,13 +273,28 @@ describe('TimePunchService', () => {
       adjustments: [],
     });
 
-    const result = await harness.service.deletePunch(admin, punchId, context);
+    const result = await harness.service.deletePunch(
+      admin,
+      punchId,
+      'Registro duplicado',
+      key,
+      context,
+    );
 
-    expect(result.success).toBe(true);
-    expect(result.auditEventId).toBe('audit-event-id');
-    expect(harness.transaction.timePunch.delete).toHaveBeenCalledWith({
-      where: { id: punchId },
+    expect(result.body.success).toBe(true);
+    expect(result.body.auditEventId).toBe('audit-event-id');
+    expect(harness.transaction.timePunchVoid.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        timePunchId: punchId,
+        reason: 'Registro duplicado',
+        adminId: admin.id,
+      }),
     });
+    expect(harness.transaction.timePunch.delete).not.toHaveBeenCalled();
+    expect(harness.transaction.timePunch.update).not.toHaveBeenCalled();
+    expect(harness.transaction.timeAdjustment.deleteMany).not.toHaveBeenCalled();
+    expect(harness.transaction.timePunchAdjustmentRequest.deleteMany).not.toHaveBeenCalled();
+    expect(harness.idempotencyShape.complete).toHaveBeenCalledOnce();
     expect(harness.auditShape.record).toHaveBeenCalledWith(
       expect.objectContaining({
         action: 'TIME_PUNCH_DELETED',
@@ -286,6 +302,29 @@ describe('TimePunchService', () => {
       }),
       transactionLike(harness.transaction),
     );
+  });
+
+  it('replays a void response without creating another audit or void', async () => {
+    const harness = createHarness([new Date('2026-09-24T00:00:00Z')]);
+    const response = { success: true, message: 'Ponto anulado.', auditEventId: 'audit-id' };
+    harness.idempotencyShape.begin.mockResolvedValueOnce({
+      kind: 'REPLAY',
+      response,
+      responseStatus: 200,
+    });
+    expect(
+      await harness.service.deletePunch(admin, employee.id, 'Duplicado', key, context),
+    ).toEqual({ body: response, replayed: true });
+    expect(harness.transaction.timePunchVoid.create).not.toHaveBeenCalled();
+    expect(harness.auditShape.record).not.toHaveBeenCalled();
+  });
+
+  it('rejects an empty void reason before persistence', async () => {
+    const harness = createHarness([]);
+    await expect(
+      harness.service.deletePunch(admin, employee.id, ' ', key, context),
+    ).rejects.toMatchObject({ status: 400 });
+    expect(harness.idempotencyShape.begin).not.toHaveBeenCalled();
   });
 });
 

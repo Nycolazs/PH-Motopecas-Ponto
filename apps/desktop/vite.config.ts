@@ -22,8 +22,8 @@ export default defineConfig({
     strictPort: true,
   },
   build: {
-    outDir: fileURLToPath(new URL('./dist', import.meta.url)),
-    emptyOutDir: false,
+    outDir: fileURLToPath(new URL('./dist/renderer', import.meta.url)),
+    emptyOutDir: true,
     sourcemap: true,
   },
 });

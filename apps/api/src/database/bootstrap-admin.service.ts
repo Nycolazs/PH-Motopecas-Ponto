@@ -1,4 +1,4 @@
-import { Inject, Injectable, Logger, type OnApplicationBootstrap } from '@nestjs/common';
+import { Inject, Injectable, type OnApplicationBootstrap } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { argon2id, hash } from 'argon2';
 
@@ -85,8 +85,6 @@ const BASELINE_DAYS = Object.freeze([
 
 @Injectable()
 export class BootstrapAdminService implements OnApplicationBootstrap {
-  private readonly logger = new Logger(BootstrapAdminService.name);
-
   public constructor(
     @Inject(PrismaService) private readonly prisma: PrismaService,
     @Inject(ConfigService)
@@ -94,27 +92,25 @@ export class BootstrapAdminService implements OnApplicationBootstrap {
   ) {}
 
   public async onApplicationBootstrap(): Promise<void> {
-    try {
-      await this.ensureBootstrapAdminAndSchedule();
-    } catch (error) {
-      this.logger.error('Falha ao verificar ou inicializar administrador padrão.', error);
-    }
+    if (this.configService.get('INITIAL_ADMIN_USERNAME', { infer: true }) === undefined) return;
+    await this.ensureBootstrapAdminAndSchedule();
   }
 
   public async ensureBootstrapAdminAndSchedule(): Promise<{
     adminCreated: boolean;
     scheduleCreated: boolean;
   }> {
-    const adminUsername =
-      this.configService.get('INITIAL_ADMIN_USERNAME', { infer: true }) || 'admin';
-    const adminPassword =
-      this.configService.get('INITIAL_ADMIN_PASSWORD', { infer: true }) || 'admin';
+    const adminUsername = this.configService.get('INITIAL_ADMIN_USERNAME', { infer: true });
+    const adminPassword = this.configService.get('INITIAL_ADMIN_PASSWORD', { infer: true });
+    if (adminUsername === undefined || adminPassword === undefined || adminPassword.length < 12) {
+      throw new Error('Bootstrap requires explicitly configured credentials.');
+    }
+
+    const normalized = normalizeLogin(adminUsername);
 
     if (typeof this.prisma?.$transaction !== 'function') {
       return { adminCreated: false, scheduleCreated: false };
     }
-
-    const normalized = normalizeLogin(adminUsername);
 
     return this.prisma.$transaction(
       async (tx) => {
@@ -132,15 +128,9 @@ export class BootstrapAdminService implements OnApplicationBootstrap {
           });
 
           if (existingUser) {
-            targetAdmin = await tx.user.update({
-              where: { id: existingUser.id },
-              data: {
-                role: UserRole.ADMIN,
-                isActive: true,
-                passwordHash: await hash(adminPassword, ARGON2ID_POLICY),
-              },
-            });
-            this.logger.log(`Usuário "${existingUser.login}" promovido para ADMINISTRADOR ativo.`);
+            throw new Error(
+              'Bootstrap login already exists; refusing to change identity or credentials.',
+            );
           } else {
             const passwordHash = await hash(adminPassword, ARGON2ID_POLICY);
             targetAdmin = await tx.user.create({
@@ -154,9 +144,6 @@ export class BootstrapAdminService implements OnApplicationBootstrap {
               },
             });
             adminCreated = true;
-            this.logger.log(
-              `Administrador padrão criado com sucesso (Nome: "Administrador", Login: "${adminUsername.trim()}").`,
-            );
           }
         }
 
@@ -175,7 +162,6 @@ export class BootstrapAdminService implements OnApplicationBootstrap {
             },
           });
           scheduleCreated = true;
-          this.logger.log('Jornada semanal padrão (baseline) criada com sucesso.');
         }
 
         return { adminCreated, scheduleCreated };

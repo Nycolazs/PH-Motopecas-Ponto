@@ -69,6 +69,7 @@ export class AdjustmentRequestsService {
       where: {
         id: input.timePunchId,
         employeeId: actor.id,
+        void: null,
       },
       include: {
         adjustments: {

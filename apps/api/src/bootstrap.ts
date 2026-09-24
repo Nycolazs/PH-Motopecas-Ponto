@@ -6,52 +6,32 @@ import { PRODUCT_NAME } from '@ph-ponto/shared';
 import helmet from 'helmet';
 
 import type { EnvironmentVariables } from './config/environment.js';
+import { webAllowedOrigins } from './config/allowed-origins.js';
 import { ApiExceptionFilter } from './http/api-exception.filter.js';
 import { createValidationPipe } from './http/validation.js';
 
 export function configureApplication(app: NestExpressApplication): void {
   const config = app.get(ConfigService<EnvironmentVariables, true>);
-  const nodeEnvironment = config.get('NODE_ENV', { infer: true });
-  const allowedOrigins = new Set(['ph-ponto://app']);
-
-  const adminWebOrigin = config.get('ADMIN_WEB_ORIGIN', { infer: true });
-  if (adminWebOrigin) {
-    for (const origin of adminWebOrigin.split(',')) {
-      const trimmed = origin.trim().replace(/\/+$/, '');
-      if (trimmed.length > 0) {
-        allowedOrigins.add(trimmed);
-      }
-    }
-  }
-
-  if (nodeEnvironment !== 'production') {
-    allowedOrigins.add(config.get('DESKTOP_DEV_ORIGIN', { infer: true }));
-    allowedOrigins.add(config.get('API_BASE_URL', { infer: true }));
-    allowedOrigins.add('http://localhost:5173');
-    allowedOrigins.add('http://127.0.0.1:5173');
-    allowedOrigins.add('http://localhost:3333');
-    allowedOrigins.add('http://127.0.0.1:3333');
-    allowedOrigins.add('http://localhost:3000');
-    allowedOrigins.add('http://127.0.0.1:3000');
-  }
+  const allowedOrigins = new Set(['ph-ponto://app', ...webAllowedOrigins(config)]);
 
   app.set('trust proxy', config.get('TRUST_PROXY_COUNT', { infer: true }));
   app.useBodyParser('json', { limit: '10mb' });
   app.useBodyParser('urlencoded', { extended: true, limit: '10mb' });
   app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
   app.enableCors({
-    credentials: false,
+    credentials: true,
     methods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Authorization', 'Content-Type', 'Idempotency-Key', 'X-Request-Id'],
+    allowedHeaders: [
+      'Authorization',
+      'Content-Type',
+      'Idempotency-Key',
+      'X-Request-Id',
+      'X-CSRF-Protection',
+    ],
     exposedHeaders: ['Idempotency-Replayed', 'X-Request-Id'],
     maxAge: 600,
     origin: (origin, callback) => {
-      if (
-        origin === undefined ||
-        allowedOrigins.has(origin) ||
-        adminWebOrigin === '*' ||
-        (adminWebOrigin?.includes('*.vercel.app') && origin.endsWith('.vercel.app'))
-      ) {
+      if (origin === undefined || allowedOrigins.has(origin)) {
         callback(null, true);
         return;
       }

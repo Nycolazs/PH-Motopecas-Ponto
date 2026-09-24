@@ -44,7 +44,7 @@ describe('BootstrapAdminService', () => {
 
     configGet = vi.fn((key: string) => {
       if (key === 'INITIAL_ADMIN_USERNAME') return 'admin';
-      if (key === 'INITIAL_ADMIN_PASSWORD') return 'admin';
+      if (key === 'INITIAL_ADMIN_PASSWORD') return 'bootstrap-strong-secret-123';
       return undefined;
     });
 

@@ -33,6 +33,7 @@ import {
   EmptyTimePunchDto,
   ManualTimePunchDto,
   TimePunchMutationResponseDto,
+  VoidTimePunchDto,
 } from './time-punch.dto.js';
 import { TimePunchService } from './time-punch.service.js';
 import type { MutationHttpResult } from './time-punch.types.js';
@@ -101,14 +102,28 @@ export class TimePunchController {
   @Delete(':punchId')
   @Roles('ADMIN')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Exclui permanentemente um registro de ponto' })
+  @ApiOperation({ summary: 'Anula um ponto preservando o registro original e as correções' })
+  @ApiHeader({ name: 'Idempotency-Key', required: true, description: 'UUID da ação.' })
+  @ApiBody({ type: VoidTimePunchDto })
   @ApiParam({ name: 'punchId', format: 'uuid' })
-  @ApiOkResponse({ description: 'Ponto excluído com sucesso' })
+  @ApiOkResponse({ description: 'Ponto anulado com histórico preservado' })
   public async delete(
     @CurrentUser() actor: AuthenticatedUser,
     @Param('punchId', new ParseUUIDPipe()) punchId: string,
+    @Headers('idempotency-key') rawIdempotencyKey: string | undefined,
+    @Body() input: VoidTimePunchDto,
     @Req() request: Request,
+    @Res({ passthrough: true }) response: Response,
   ): Promise<{ success: boolean; message: string }> {
-    return this.punches.deletePunch(actor, punchId, this.clientContexts.fromRequest(request));
+    const key = this.idempotencyKeys.transform(rawIdempotencyKey);
+    const result = await this.punches.deletePunch(
+      actor,
+      punchId,
+      input.reason,
+      key,
+      this.clientContexts.fromRequest(request),
+    );
+    applyReplayHeader(response, result.replayed);
+    return result.body;
   }
 }

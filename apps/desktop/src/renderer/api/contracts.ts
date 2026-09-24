@@ -560,4 +560,3 @@ export type VacationList = z.infer<typeof vacationListSchema>;
 export type CreateVacationInput = z.infer<typeof createVacationInputSchema>;
 export type IncompleteAttendanceDayItem = z.infer<typeof incompleteAttendanceDayItemSchema>;
 export type IncompleteAttendance = z.infer<typeof incompleteAttendanceSchema>;
-

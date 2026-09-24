@@ -9,7 +9,7 @@ describe('product constants', () => {
   });
 
   it('uses the authoritative business timezone and display locale', () => {
-    expect(BUSINESS_TIME_ZONE).toBe('America/Fortaleza');
+    expect(BUSINESS_TIME_ZONE).toBe('America/Sao_Paulo');
     expect(DISPLAY_LOCALE).toBe('pt-BR');
   });
 });

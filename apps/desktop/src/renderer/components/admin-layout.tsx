@@ -37,7 +37,7 @@ function useOnline(): boolean {
 
 import { BUSINESS_TIME_ZONE } from '@ph-ponto/shared';
 
-function useFortalezaClock(): string {
+function useBusinessClock(): string {
   const [time, setTime] = useState('');
 
   useEffect(() => {
@@ -66,7 +66,7 @@ import { useQuery } from '@tanstack/react-query';
 export function AdminLayout(): React.JSX.Element {
   const { logout, session, api } = useAuth();
   const online = useOnline();
-  const fortalezaClock = useFortalezaClock();
+  const businessClock = useBusinessClock();
 
   const { data: pendingData } = useQuery({
     queryKey: ['pending-adjustments-count'],
@@ -187,7 +187,7 @@ export function AdminLayout(): React.JSX.Element {
         <header className="h-16 px-6 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between shrink-0 shadow-2xs">
           <div className="flex items-center space-x-3">
             <span className="text-xs font-semibold px-2.5 py-1 rounded-md bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 font-mono">
-              Fortaleza: {fortalezaClock || '--:--:--'}
+              São Paulo: {businessClock || '--:--:--'}
             </span>
           </div>
 

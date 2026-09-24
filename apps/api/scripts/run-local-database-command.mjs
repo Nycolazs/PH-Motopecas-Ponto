@@ -1,6 +1,8 @@
 import { spawn } from 'node:child_process';
 import process from 'node:process';
 
+import { assertLocalApiUrl, assertLocalMode, validateLocalDatabaseUrl } from './local-targets.mjs';
+
 const DEVELOPMENT_DEFAULTS = Object.freeze({
   NODE_ENV: 'development',
   DATABASE_URL: 'postgresql://ph_ponto:ph_ponto_dev@127.0.0.1:55432/ph_ponto?schema=public',
@@ -24,13 +26,11 @@ try {
 }
 
 function localEnvironment() {
-  if (process.env.NODE_ENV === 'production') {
-    throw new Error(
-      'The local database helper is disabled in production. Provide explicit configuration and use db:migrate:deploy.',
-    );
-  }
-
-  return { ...DEVELOPMENT_DEFAULTS, ...process.env };
+  assertLocalMode(process.env);
+  const environment = { ...DEVELOPMENT_DEFAULTS, ...process.env };
+  validateLocalDatabaseUrl(environment.DATABASE_URL);
+  assertLocalApiUrl(environment.API_BASE_URL);
+  return environment;
 }
 
 function runCommand(command, arguments_, environment) {

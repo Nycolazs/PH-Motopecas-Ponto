@@ -12,4 +12,4 @@ process.env.INITIAL_ADMIN_PASSWORD ??= 'test-bootstrap-password';
 process.env.AUTH_LOGIN_MAX_ATTEMPTS ??= '3';
 process.env.UPLOAD_DIR ??= join(tmpdir(), 'ph-ponto-api-integration-uploads');
 process.env.SWAGGER_ENABLED ??= 'false';
-process.env.APP_TIMEZONE = 'America/Fortaleza';
+process.env.APP_TIMEZONE = 'America/Sao_Paulo';

@@ -53,7 +53,7 @@ export function RequestAdjustmentModal({
         throw new Error('Informe a justificativa do ajuste.');
       }
 
-      // Construct ISO timestamp with -03:00 timezone for Fortaleza
+      // Construct ISO timestamp with -03:00 timezone for São Paulo
       const requestedOccurredAt = `${businessDate}T${timeValue}:00-03:00`;
 
       return api.createAdjustmentRequest({

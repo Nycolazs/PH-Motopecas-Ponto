@@ -1,5 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
-import { Camera, Image as ImageIcon, Move, RotateCcw, Trash2, Upload, VideoOff, ZoomIn } from 'lucide-react';
+import {
+  Camera,
+  Image as ImageIcon,
+  Move,
+  RotateCcw,
+  Trash2,
+  Upload,
+  VideoOff,
+  ZoomIn,
+} from 'lucide-react';
 
 import { useApiClient } from '../auth/use-auth.js';
 import { AvatarImage } from './avatar-image.js';
@@ -181,7 +190,7 @@ export function AvatarModal({
       const scaleFactor = minDimension / containerSize;
 
       const side = minDimension / zoom;
-      
+
       // Calculate sx and sy taking panning offset into account
       const panXSource = (offset.x * scaleFactor) / zoom;
       const panYSource = (offset.y * scaleFactor) / zoom;
@@ -347,7 +356,7 @@ export function AvatarModal({
                 }}
                 className="w-full h-full object-cover select-none pointer-events-none transition-none"
               />
-              
+
               {/* Subtle drag hint overlay */}
               <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity bg-black/20 pointer-events-none">
                 <span className="bg-black/70 text-white text-[10px] font-semibold px-2 py-1 rounded-full flex items-center gap-1">

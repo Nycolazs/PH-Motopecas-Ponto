@@ -1,7 +1,12 @@
 import { spawn } from 'node:child_process';
+import { mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import process from 'node:process';
 
 import pg from 'pg';
+
+import { integrationDatabaseTarget, validateLocalDatabaseUrl } from './local-targets.mjs';
 
 try {
   process.loadEnvFile?.('.env');
@@ -14,29 +19,8 @@ try {
   // Optional root environment file
 }
 
-const DEFAULT_INTEGRATION_DATABASE_URL = process.env.DATABASE_URL
-  ? process.env.DATABASE_URL.replace(/\/([a-zA-Z0-9_]+)(\?|$)/, '/$1_test$2')
-  : 'postgresql://ph_ponto:ph_ponto_dev@127.0.0.1:55432/ph_ponto_test?schema=public';
-
-function integrationDatabaseUrl() {
-  const value = process.env.TEST_DATABASE_URL ?? DEFAULT_INTEGRATION_DATABASE_URL;
-  const parsed = new URL(value);
-  const databaseName = decodeURIComponent(parsed.pathname.slice(1));
-
-  if (process.env.NODE_ENV === 'production') {
-    throw new Error('Integration tests cannot run with NODE_ENV=production.');
-  }
-
-  if (!/^[a-zA-Z0-9_]+_test$/.test(databaseName)) {
-    throw new Error(
-      `Refusing to prepare non-test database "${databaseName}". The name must end in _test.`,
-    );
-  }
-
-  return { databaseName, value };
-}
-
 async function ensureDatabaseExists(databaseUrl, databaseName) {
+  validateLocalDatabaseUrl(databaseUrl, { testOnly: true });
   const maintenanceUrl = new URL(databaseUrl);
   maintenanceUrl.pathname = '/postgres';
   maintenanceUrl.searchParams.delete('schema');
@@ -60,11 +44,7 @@ async function ensureDatabaseExists(databaseUrl, databaseName) {
 }
 
 async function resetIntegrationSchema(databaseUrl) {
-  const parsed = new URL(databaseUrl);
-  const configuredSchema = parsed.searchParams.get('schema') ?? 'public';
-  if (configuredSchema !== 'public') {
-    throw new Error('Integration tests only reset the isolated public schema.');
-  }
+  validateLocalDatabaseUrl(databaseUrl, { testOnly: true });
 
   const client = new pg.Client({ connectionString: databaseUrl });
   await client.connect();
@@ -102,18 +82,30 @@ function runCommand(command, arguments_, environment) {
   });
 }
 
-const { databaseName, value: databaseUrl } = integrationDatabaseUrl();
+const { databaseName, value: databaseUrl } = integrationDatabaseTarget(process.env);
+const uploadDirectory = await mkdtemp(join(tmpdir(), 'ph-ponto-integration-'));
 const environment = {
   ...process.env,
   NODE_ENV: 'test',
   DATABASE_URL: databaseUrl,
+  API_BASE_URL: 'http://127.0.0.1:3333',
+  JWT_SECRET: 'test-access-secret-with-at-least-32-characters',
+  JWT_REFRESH_SECRET: 'test-refresh-secret-with-at-least-32-characters',
+  INITIAL_ADMIN_USERNAME: 'admin',
+  INITIAL_ADMIN_PASSWORD: 'test-bootstrap-password',
+  UPLOAD_DIR: uploadDirectory,
   SWAGGER_ENABLED: 'false',
   AUTH_LOGIN_MAX_ATTEMPTS: '3',
-  APP_TIMEZONE: 'America/Fortaleza',
+  APP_TIMEZONE: 'America/Sao_Paulo',
 };
 
-await ensureDatabaseExists(databaseUrl, databaseName);
-await resetIntegrationSchema(databaseUrl);
-await runCommand('prisma', ['generate'], environment);
-await runCommand('prisma', ['migrate', 'deploy'], environment);
-await runCommand('vitest', ['run', '--config', 'vitest.integration.config.ts'], environment);
+try {
+  await ensureDatabaseExists(databaseUrl, databaseName);
+  await resetIntegrationSchema(databaseUrl);
+  await runCommand('prisma', ['generate'], environment);
+  await runCommand('prisma', ['migrate', 'deploy'], environment);
+  await runCommand('vitest', ['run', '--config', 'vitest.integration.config.ts'], environment);
+} finally {
+  // Only this run's freshly allocated temporary upload directory is removed.
+  await rm(uploadDirectory, { recursive: true, force: true });
+}

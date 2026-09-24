@@ -8,6 +8,14 @@ const EXPLICIT_OFFSET_PATTERN = /(?:Z|[+-]\d{2}:\d{2})$/;
 
 export class EmptyTimePunchDto {}
 
+export class VoidTimePunchDto {
+  @ApiProperty({ minLength: 1, maxLength: 500 })
+  @IsString()
+  @MinLength(1)
+  @MaxLength(500)
+  public reason!: string;
+}
+
 export class ManualTimePunchDto {
   @ApiProperty({ format: 'uuid' })
   @IsUUID()

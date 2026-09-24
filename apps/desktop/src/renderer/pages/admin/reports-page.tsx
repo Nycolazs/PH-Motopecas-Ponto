@@ -1,22 +1,13 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import {
-  FileSpreadsheet,
-  FileText,
-  Printer,
-  RefreshCw,
-} from 'lucide-react';
+import { FileSpreadsheet, FileText, Printer, RefreshCw } from 'lucide-react';
 
 import type { DailyAttendance, EffectivePunch, ManagedUser } from '../../api/contracts.js';
 import { useApiClient } from '../../auth/use-auth.js';
 import { DateInput } from '../../components/date-input.js';
 import { SelectInput } from '../../components/select-input.js';
 import { useToast } from '../../components/toast-context.js';
-import {
-  formatDateBR,
-  formatDateTimeBR,
-  getWeekdayShortBR,
-} from '../../lib/format.js';
+import { formatDateBR, formatDateTimeBR, getWeekdayShortBR } from '../../lib/format.js';
 import { formatMinutesDuration } from '@ph-ponto/shared';
 import logoUrl from '../../assets/phmotos-logo.png';
 
@@ -47,7 +38,10 @@ function getPreviousMonthRange(): { from: string; to: string } {
   };
 }
 
-function getStatusLabel(status: string | null | undefined, workState: string | null | undefined): string {
+function getStatusLabel(
+  status: string | null | undefined,
+  workState: string | null | undefined,
+): string {
   if (status === 'HOLIDAY') return 'Feriado';
   if (status === 'DAY_OFF') return 'Folga';
   if (status === 'CLOSED') return 'Fechado';
@@ -179,7 +173,8 @@ export function AdminReportsPage(): React.JSX.Element {
             <FileText className="w-5 h-5 mr-2 text-blue-600" /> Relatórios e Espelho de Ponto
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Gere espelhos de ponto oficiais em PDF para impressão e exporte dados consolidados em CSV
+            Gere espelhos de ponto oficiais em PDF para impressão e exporte dados consolidados em
+            CSV
           </p>
         </div>
 
@@ -434,11 +429,10 @@ export function AdminReportsPage(): React.JSX.Element {
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800 print:divide-slate-200 font-sans">
                 {periodData.days.map((day: DailyAttendance, idx: number) => {
                   const statusText = getStatusLabel(day.status, day.workState);
-                  const isDayOff = day.status === 'DAY_OFF' || day.status === 'HOLIDAY' || day.status === 'CLOSED';
-                  const hasNegativeBalance =
-                    day.balanceMinutes !== null && day.balanceMinutes < 0;
-                  const hasPositiveBalance =
-                    day.balanceMinutes !== null && day.balanceMinutes > 0;
+                  const isDayOff =
+                    day.status === 'DAY_OFF' || day.status === 'HOLIDAY' || day.status === 'CLOSED';
+                  const hasNegativeBalance = day.balanceMinutes !== null && day.balanceMinutes < 0;
+                  const hasPositiveBalance = day.balanceMinutes !== null && day.balanceMinutes > 0;
 
                   return (
                     <tr

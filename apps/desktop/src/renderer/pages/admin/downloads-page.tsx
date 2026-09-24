@@ -87,7 +87,11 @@ export function AdminDownloadsPage(): React.JSX.Element {
       badge: 'Apple Silicon & Intel',
       badgeColor: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20',
       icon: (
-        <svg className="w-8 h-8 text-slate-700 dark:text-slate-200" viewBox="0 0 24 24" fill="currentColor">
+        <svg
+          className="w-8 h-8 text-slate-700 dark:text-slate-200"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+        >
           <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.62-.75 1.04-1.8 1.01-2.85-.92.04-2.07.62-2.73 1.37-.58.66-1.09 1.73-1.02 2.76 1.03.08 2.12-.53 2.74-1.28z" />
         </svg>
       ),
@@ -121,15 +125,18 @@ export function AdminDownloadsPage(): React.JSX.Element {
               <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
               Versão Oficial v{CURRENT_VERSION}
             </span>
-            <span className="text-xs text-slate-400 dark:text-slate-500 font-mono">Build Estável</span>
+            <span className="text-xs text-slate-400 dark:text-slate-500 font-mono">
+              Build Estável
+            </span>
           </div>
           <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white flex items-center gap-2.5">
             <MonitorDown className="w-7 h-7 text-blue-600 dark:text-blue-400" />
             Download do Aplicativo Desktop
           </h1>
           <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 max-w-3xl">
-            Instale o aplicativo de registro de ponto nos computadores dos colaboradores. O aplicativo conta com
-            verificação de horário oficial do servidor, ícone oficial da PH Motopeças, inicialização automática com o sistema e atualizações em segundo plano.
+            Instale o aplicativo de registro de ponto nos computadores dos colaboradores. O
+            aplicativo conta com verificação de horário oficial do servidor, ícone oficial da PH
+            Motopeças, inicialização automática com o sistema e atualizações em segundo plano.
           </p>
         </div>
       </div>
@@ -147,7 +154,9 @@ export function AdminDownloadsPage(): React.JSX.Element {
                 <div className="p-3 bg-white dark:bg-slate-800 rounded-xl shadow-xs border border-slate-200/60 dark:border-slate-700">
                   {os.icon}
                 </div>
-                <span className={`px-2.5 py-1 text-[11px] font-bold rounded-full border ${os.badgeColor}`}>
+                <span
+                  className={`px-2.5 py-1 text-[11px] font-bold rounded-full border ${os.badgeColor}`}
+                >
                   {os.badge}
                 </span>
               </div>
@@ -224,7 +233,10 @@ export function AdminDownloadsPage(): React.JSX.Element {
                 </p>
                 <ul className="space-y-1.5">
                   {os.instructions.map((instruction, idx) => (
-                    <li key={idx} className="flex items-start gap-2 text-xs text-slate-600 dark:text-slate-400">
+                    <li
+                      key={idx}
+                      className="flex items-start gap-2 text-xs text-slate-600 dark:text-slate-400"
+                    >
                       <CheckCircle2 className="w-3.5 h-3.5 text-blue-500 shrink-0 mt-0.5" />
                       <span>{instruction}</span>
                     </li>
@@ -243,9 +255,12 @@ export function AdminDownloadsPage(): React.JSX.Element {
             <ShieldCheck className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-slate-900 dark:text-white">Segurança & Confiabilidade</h3>
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+              Segurança & Confiabilidade
+            </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              Horário com autoridade do servidor de Fortaleza, criptografia de dados e bloqueio de adulterações locais.
+              Horário com autoridade do servidor de São Paulo, criptografia de dados e bloqueio de
+              adulterações locais.
             </p>
           </div>
         </div>
@@ -255,9 +270,12 @@ export function AdminDownloadsPage(): React.JSX.Element {
             <RefreshCw className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-slate-900 dark:text-white">Atualizações Automáticas</h3>
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+              Atualizações Automáticas
+            </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              Verificação silenciosa em segundo plano e instalação automática para que o app esteja sempre na versão mais recente.
+              Verificação silenciosa em segundo plano e instalação automática para que o app esteja
+              sempre na versão mais recente.
             </p>
           </div>
         </div>
@@ -267,9 +285,12 @@ export function AdminDownloadsPage(): React.JSX.Element {
             <Laptop className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-slate-900 dark:text-white">Iniciar com o Sistema</h3>
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+              Iniciar com o Sistema
+            </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              Minimiza para a bandeja do sistema ao fechar e inicia automaticamente com o computador pronto para o colaborador.
+              Minimiza para a bandeja do sistema ao fechar e inicia automaticamente com o computador
+              pronto para o colaborador.
             </p>
           </div>
         </div>

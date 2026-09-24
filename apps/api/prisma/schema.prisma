@@ -170,6 +170,7 @@ model User {
   updatedSettings            AppSetting[]                 @relation("SettingUpdatedBy")
   vacations                  Vacation[]                   @relation("EmployeeVacations")
   createdVacations           Vacation[]                   @relation("VacationsCreatedBy")
+  punchVoids                 TimePunchVoid[]              @relation("PunchVoidedBy")
 
   @@index([role, isActive])
   @@map("users")
@@ -315,6 +316,7 @@ model IdempotencyRecord {
   actor          User            @relation(fields: [actorId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   timePunch      TimePunch?
   timeAdjustment TimeAdjustment?
+  timePunchVoid  TimePunchVoid?
 
   @@unique([actorId, operation, keyHash])
   @@index([expiresAt])
@@ -338,12 +340,28 @@ model TimePunch {
   idempotencyRecord IdempotencyRecord             @relation(fields: [idempotencyRecordId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   adjustments       TimeAdjustment[]
   adjustmentRequests TimePunchAdjustmentRequest[]
+  void              TimePunchVoid?
 
-  @@unique([employeeId, occurredAt])
   @@index([employeeId, occurredAt, id])
   @@index([occurredAt])
   @@index([createdByAdminId, createdAt])
   @@map("time_punches")
+}
+
+model TimePunchVoid {
+  id                  String   @id @default(uuid()) @db.Uuid
+  timePunchId         String   @unique @map("time_punch_id") @db.Uuid
+  adminId             String   @map("admin_id") @db.Uuid
+  reason              String   @db.VarChar(500)
+  idempotencyRecordId String   @unique @map("idempotency_record_id") @db.Uuid
+  createdAt           DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  timePunch         TimePunch        @relation(fields: [timePunchId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  admin             User             @relation("PunchVoidedBy", fields: [adminId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  idempotencyRecord IdempotencyRecord @relation(fields: [idempotencyRecordId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@index([createdAt])
+  @@map("time_punch_voids")
 }
 
 model TimeAdjustment {
@@ -357,7 +375,7 @@ model TimeAdjustment {
   idempotencyRecordId String   @unique @map("idempotency_record_id") @db.Uuid
   createdAt           DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
-  timePunch         TimePunch                   @relation(fields: [timePunchId], references: [id], onDelete: Cascade, onUpdate: Restrict)
+  timePunch         TimePunch                   @relation(fields: [timePunchId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   admin             User                        @relation("AdjustmentAdmin", fields: [adminId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   idempotencyRecord IdempotencyRecord           @relation(fields: [idempotencyRecordId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   adjustmentRequest TimePunchAdjustmentRequest?
@@ -384,7 +402,7 @@ model TimePunchAdjustmentRequest {
   createdAt           DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt           DateTime                @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  timePunch      TimePunch       @relation(fields: [timePunchId], references: [id], onDelete: Cascade, onUpdate: Restrict)
+  timePunch      TimePunch       @relation(fields: [timePunchId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   employee       User            @relation("AdjustmentRequester", fields: [employeeId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   reviewedBy     User?           @relation("AdjustmentReviewer", fields: [reviewedById], references: [id], onDelete: Restrict, onUpdate: Restrict)
   timeAdjustment TimeAdjustment? @relation(fields: [timeAdjustmentId], references: [id], onDelete: Restrict, onUpdate: Restrict)

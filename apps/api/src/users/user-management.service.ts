@@ -307,6 +307,11 @@ export class UserManagementService {
         data: { passwordHash },
         select: { id: true },
       });
+      await this.sessions.revokeAllForUser(
+        current.id,
+        SessionRevocationReason.PASSWORD_RESET,
+        transaction,
+      );
       await this.audit.record(
         {
           actorId: actor.id,

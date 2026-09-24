@@ -44,6 +44,7 @@ import {
   type IncompleteAttendanceViewDto,
 } from './attendance.view.js';
 import { ATTENDANCE_CLOCK, type AttendanceClock } from './attendance-clock.js';
+import { effectiveChronology } from './effective-chronology.js';
 
 const MAXIMUM_HISTORY_DAYS = 366;
 
@@ -132,6 +133,7 @@ export class AttendanceService implements AttendanceSummaryResolver {
           }),
           this.resolveExpectation(businessDate, tx),
           tx.timePunch.findMany({
+            where: { void: null },
             take: 10,
             orderBy: [{ occurredAt: 'desc' }, { id: 'desc' }],
             include: {
@@ -151,7 +153,7 @@ export class AttendanceService implements AttendanceSummaryResolver {
 
         const { start, endExclusive } = instantRangeForBusinessDate(businessDate);
         const todayPunches = await tx.timePunch.findMany({
-          where: { occurredAt: { gte: start, lt: endExclusive } },
+          where: { occurredAt: { gte: start, lt: endExclusive }, void: null },
           orderBy: [{ occurredAt: 'asc' }, { id: 'asc' }],
           select: {
             id: true,
@@ -207,7 +209,7 @@ export class AttendanceService implements AttendanceSummaryResolver {
         let notClockedInCount = 0;
 
         for (const emp of targetEmployees) {
-          const punches = punchesByEmployee.get(emp.id) ?? [];
+          const punches = effectiveChronology(punchesByEmployee.get(emp.id) ?? []);
           const empHireDate = businessDateFromInstant(emp.createdAt);
           let empExpectation = expectation;
           const vacationNote = vacationByEmployee.get(emp.id);
@@ -684,7 +686,7 @@ export class AttendanceService implements AttendanceSummaryResolver {
               const { start } = instantRangeForBusinessDate(from);
               const { endExclusive } = instantRangeForBusinessDate(to);
               return transaction.timePunch.findMany({
-                where: { employeeId, occurredAt: { gte: start, lt: endExclusive } },
+                where: { employeeId, occurredAt: { gte: start, lt: endExclusive }, void: null },
                 orderBy: [{ occurredAt: 'asc' }, { id: 'asc' }],
                 select: {
                   id: true,
@@ -782,7 +784,7 @@ export class AttendanceService implements AttendanceSummaryResolver {
           return calculateDailyAttendance({
             businessDate,
             expectation,
-            punches: punchesByDate.get(businessDate) ?? [],
+            punches: effectiveChronology(punchesByDate.get(businessDate) ?? []),
             isFinalized: classifyBusinessDate(businessDate, evaluationInstant) === 'FINALIZED',
           });
         });
@@ -808,7 +810,7 @@ export class AttendanceService implements AttendanceSummaryResolver {
   ): Promise<AttendancePunch[]> {
     const { start, endExclusive } = instantRangeForBusinessDate(businessDate);
     const punches = await transaction.timePunch.findMany({
-      where: { employeeId, occurredAt: { gte: start, lt: endExclusive } },
+      where: { employeeId, occurredAt: { gte: start, lt: endExclusive }, void: null },
       orderBy: [{ occurredAt: 'asc' }, { id: 'asc' }],
       select: {
         id: true,
@@ -826,11 +828,13 @@ export class AttendanceService implements AttendanceSummaryResolver {
       },
     });
 
-    return punches.map((punch) => ({
-      id: punch.id,
-      kind: punch.kind,
-      occurredAt: punch.occurredAt,
-      adjustments: punch.adjustments,
-    }));
+    return effectiveChronology(
+      punches.map((punch) => ({
+        id: punch.id,
+        kind: punch.kind,
+        occurredAt: punch.occurredAt,
+        adjustments: punch.adjustments,
+      })),
+    );
   }
 }

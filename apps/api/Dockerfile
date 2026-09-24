@@ -10,7 +10,6 @@ FROM base AS dependencies
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/shared/package.json packages/shared/package.json
 COPY apps/api/package.json apps/api/package.json
-COPY PH-Motopeças-Ponto-Backend/package.json PH-Motopeças-Ponto-Backend/package.json
 RUN --mount=type=cache,id=ph-ponto-pnpm,target=/pnpm/store \
   pnpm install --frozen-lockfile --filter @ph-ponto/api...
 
@@ -18,7 +17,6 @@ FROM dependencies AS build
 COPY tsconfig.base.json ./
 COPY packages/shared packages/shared
 COPY apps/api apps/api
-COPY PH-Motopeças-Ponto-Backend PH-Motopeças-Ponto-Backend
 RUN pnpm --filter @ph-ponto/shared build \
   && pnpm --filter @ph-ponto/api build
 
@@ -28,7 +26,6 @@ WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/shared/package.json packages/shared/package.json
 COPY apps/api/package.json apps/api/package.json
-COPY PH-Motopeças-Ponto-Backend/package.json PH-Motopeças-Ponto-Backend/package.json
 RUN --mount=type=cache,id=ph-pnpm-store,target=/pnpm/store \
   pnpm install --frozen-lockfile --prod --filter @ph-ponto/api... \
   && rm -rf /root/.cache/node/corepack \
@@ -36,13 +33,9 @@ RUN --mount=type=cache,id=ph-pnpm-store,target=/pnpm/store \
   && chown -R node:node /data/uploads
 COPY --from=build --chown=node:node /app/packages/shared/dist packages/shared/dist
 COPY --from=build --chown=node:node /app/apps/api/dist apps/api/dist
-COPY --from=build --chown=node:node /app/apps/api/dist PH-Motopeças-Ponto-Backend/dist
 COPY --chown=node:node apps/api/prisma apps/api/prisma
 COPY --chown=node:node apps/api/prisma.config.ts apps/api/prisma.config.ts
 COPY --chown=node:node apps/api/docker-entrypoint.sh apps/api/docker-entrypoint.sh
-COPY --chown=node:node PH-Motopeças-Ponto-Backend/prisma PH-Motopeças-Ponto-Backend/prisma
-COPY --chown=node:node PH-Motopeças-Ponto-Backend/prisma.config.ts PH-Motopeças-Ponto-Backend/prisma.config.ts
-COPY --chown=node:node PH-Motopeças-Ponto-Backend/docker-entrypoint.sh PH-Motopeças-Ponto-Backend/docker-entrypoint.sh
 WORKDIR /app/apps/api
 USER node
 EXPOSE 3000

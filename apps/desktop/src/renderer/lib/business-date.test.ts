@@ -7,7 +7,7 @@ import {
 } from './business-date.js';
 
 describe('renderer business dates', () => {
-  it('uses Fortaleza rather than the workstation timezone', () => {
+  it('uses São Paulo rather than the workstation timezone', () => {
     expect(businessDateFromInstant(new Date('2026-08-15T01:30:00.000Z'))).toBe('2026-08-14');
     expect(businessDateFromInstant(new Date('2026-08-15T03:00:00.000Z'))).toBe('2026-08-15');
   });

@@ -10,7 +10,7 @@ import {
 } from '../../src/index.js';
 
 describe('attendance business dates', () => {
-  it('interprets UTC instants in America/Fortaleza at the local midnight boundary', () => {
+  it('interprets UTC instants in America/Sao_Paulo at the local midnight boundary', () => {
     expect(businessDateFromInstant('2026-08-15T02:59:59.999Z')).toBe('2026-08-14');
     expect(businessDateFromInstant('2026-08-15T03:00:00.000Z')).toBe('2026-08-15');
   });

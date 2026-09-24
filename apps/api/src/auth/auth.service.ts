@@ -106,7 +106,11 @@ export class AuthService {
     @Inject(AUTH_CLOCK) private readonly clock: AuthClock,
   ) {}
 
-  public async login(input: LoginInput, context: ClientContext): Promise<AuthResponse> {
+  public async login(
+    input: LoginInput,
+    context: ClientContext,
+    requiredRole?: UserRole,
+  ): Promise<AuthResponse> {
     const normalizedLogin = normalizeLogin(input.login);
     const loginBucket = this.clientContexts.hashLoginBucket(normalizedLogin);
     const bucketHashes = [loginBucket, this.clientContexts.hashIpBucket(context.ipHash)];
@@ -132,7 +136,12 @@ export class AuthService {
           })
         : await this.passwords.verify(input.password, user.passwordHash);
 
-    if (user === null || !verification.valid || !user.isActive) {
+    if (
+      user === null ||
+      !verification.valid ||
+      !user.isActive ||
+      (requiredRole !== undefined && user.role !== requiredRole)
+    ) {
       await this.audit.record({
         actorId: user?.id ?? null,
         action: AuditAction.LOGIN_FAILED,
@@ -239,7 +248,11 @@ export class AuthService {
     };
   }
 
-  public async refresh(value: string, context: ClientContext): Promise<AuthResponse> {
+  public async refresh(
+    value: string,
+    context: ClientContext,
+    requiredRole?: UserRole,
+  ): Promise<AuthResponse> {
     const parsed = this.tokens.parseRefreshToken(value);
     if (parsed === undefined) {
       throw invalidSession();
@@ -286,7 +299,8 @@ export class AuthService {
           if (
             session.expiresAt.getTime() <= now.getTime() ||
             session.absoluteExpiresAt.getTime() <= now.getTime() ||
-            !session.user.isActive
+            !session.user.isActive ||
+            (requiredRole !== undefined && session.user.role !== requiredRole)
           ) {
             const reason = session.user.isActive
               ? SessionRevocationReason.EXPIRED
@@ -401,6 +415,45 @@ export class AuthService {
               action: AuditAction.LOGOUT,
               targetType: AuditTargetType.AUTH_SESSION,
               targetId: user.sessionId,
+              ...auditContext(context),
+            },
+            transaction,
+          );
+        },
+        { isolationLevel: 'Serializable' },
+      ),
+    );
+  }
+
+  /** Cookie logout can revoke a family even after its access token expired or rotated. */
+  public async logoutWithRefresh(value: string | undefined, context: ClientContext): Promise<void> {
+    const parsed = value === undefined ? undefined : this.tokens.parseRefreshToken(value);
+    if (parsed === undefined) return;
+    const now = this.clock();
+    await withSerializableRetry(() =>
+      this.prisma.$transaction(
+        async (transaction) => {
+          const session = await transaction.refreshSession.findUnique({
+            where: { id: parsed.sessionId },
+          });
+          if (
+            session === null ||
+            !equalHashes(session.tokenHash, parsed.hash) ||
+            session.revokedAt !== null
+          )
+            return;
+          await this.sessionRevocation.revokeFamily(
+            session.familyId,
+            SessionRevocationReason.LOGOUT,
+            transaction,
+            now,
+          );
+          await this.audit.record(
+            {
+              actorId: session.userId,
+              action: AuditAction.LOGOUT,
+              targetType: AuditTargetType.AUTH_SESSION,
+              targetId: session.id,
               ...auditContext(context),
             },
             transaction,

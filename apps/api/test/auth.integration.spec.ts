@@ -171,7 +171,7 @@ describe('authentication and authorization with real PostgreSQL', () => {
     expect(JSON.stringify(audit)).not.toContain(employeePasswordHash);
   });
 
-  it('protects the last ADMIN and audits password reset without disrupting active sessions', async () => {
+  it('protects the last ADMIN and audits password reset, revoking active sessions', async () => {
     const adminLogin = await login('admin.integration', ADMIN_PASSWORD);
     const adminAccessToken = adminLogin.body.accessToken as string;
 
@@ -206,7 +206,7 @@ describe('authentication and authorization with real PostgreSQL', () => {
     await request(app.getHttpServer())
       .get('/auth/me')
       .auth(employeeLogin.body.accessToken as string, { type: 'bearer' })
-      .expect(200);
+      .expect(401);
     await request(app.getHttpServer())
       .post('/auth/login')
       .send({ login: 'employee.integration', password: EMPLOYEE_PASSWORD })

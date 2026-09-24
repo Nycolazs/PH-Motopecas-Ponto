@@ -174,7 +174,12 @@ interface SeedResult {
 
 async function seedDatabase(): Promise<SeedResult> {
   const environment = validateEnvironment(process.env);
-  const normalizedLogin = normalizeLogin(environment.INITIAL_ADMIN_USERNAME);
+  const adminUsername = environment.INITIAL_ADMIN_USERNAME;
+  const adminPassword = environment.INITIAL_ADMIN_PASSWORD;
+  if (adminUsername === undefined || adminPassword === undefined) {
+    throw new SeedConflictError('Explicit bootstrap credentials are required for seeding.');
+  }
+  const normalizedLogin = normalizeLogin(adminUsername);
   const adapter = new PrismaPg({
     connectionString: environment.DATABASE_URL,
     connectionTimeoutMillis: environment.DATABASE_CONNECTION_TIMEOUT_MS,
@@ -197,9 +202,7 @@ async function seedDatabase(): Promise<SeedResult> {
     }
 
     const needsBootstrapAdmin = observedBootstrapUser === null && observedActiveAdmin === null;
-    const passwordHash = needsBootstrapAdmin
-      ? await hash(environment.INITIAL_ADMIN_PASSWORD, ARGON2ID_POLICY)
-      : null;
+    const passwordHash = needsBootstrapAdmin ? await hash(adminPassword, ARGON2ID_POLICY) : null;
 
     for (let attempt = 0; attempt < 2; attempt += 1) {
       try {
@@ -223,11 +226,11 @@ async function seedDatabase(): Promise<SeedResult> {
                 bootstrapAdmin = existingActiveAdmin;
               } else {
                 const bootstrapPasswordHash =
-                  passwordHash ?? (await hash(environment.INITIAL_ADMIN_PASSWORD, ARGON2ID_POLICY));
+                  passwordHash ?? (await hash(adminPassword, ARGON2ID_POLICY));
                 bootstrapAdmin = await transaction.user.create({
                   data: {
                     name: 'Administrador',
-                    login: environment.INITIAL_ADMIN_USERNAME.trim(),
+                    login: adminUsername.trim(),
                     normalizedLogin,
                     passwordHash: bootstrapPasswordHash,
                     role: UserRole.ADMIN,

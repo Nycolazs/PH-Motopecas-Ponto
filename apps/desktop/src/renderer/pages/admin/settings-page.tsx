@@ -296,7 +296,9 @@ export function AdminSettingsPage(): React.JSX.Element {
             throw new Error(`Horário de saída deve ser posterior à entrada (${d.weekday}).`);
           }
           if (d.lunchEnabled && closeMin - openMin < 60) {
-            throw new Error(`O expediente deve ser superior a 1 hora para permitir 1h de almoço (${d.weekday}).`);
+            throw new Error(
+              `O expediente deve ser superior a 1 hora para permitir 1h de almoço (${d.weekday}).`,
+            );
           }
         }
 
@@ -497,11 +499,7 @@ export function AdminSettingsPage(): React.JSX.Element {
               type="button"
               onClick={() => {
                 setVacationError(null);
-                if (
-                  !vacationEmployeeId &&
-                  employeesData?.items &&
-                  employeesData.items.length > 0
-                ) {
+                if (!vacationEmployeeId && employeesData?.items && employeesData.items.length > 0) {
                   setVacationEmployeeId(employeesData.items[0]?.id ?? '');
                 }
                 setVacationModalOpen(true);
@@ -566,7 +564,11 @@ export function AdminSettingsPage(): React.JSX.Element {
                     Jornada Vigente
                   </div>
                   <h2 className="text-lg font-bold text-slate-900 dark:text-white">
-                    Em vigor desde {formatScheduleEffectiveDate(latestSchedule.effectiveDate, latestSchedule.createdAt)}
+                    Em vigor desde{' '}
+                    {formatScheduleEffectiveDate(
+                      latestSchedule.effectiveDate,
+                      latestSchedule.createdAt,
+                    )}
                   </h2>
                   {latestSchedule.note && (
                     <p className="text-xs text-slate-500 mt-0.5">{latestSchedule.note}</p>
@@ -748,7 +750,8 @@ export function AdminSettingsPage(): React.JSX.Element {
                 Férias e Recessos dos Colaboradores
               </h2>
               <p className="text-xs text-slate-500">
-                Nos dias de férias cadastrados, a jornada prevista do colaborador fica zerada e não é gerada falta.
+                Nos dias de férias cadastrados, a jornada prevista do colaborador fica zerada e não
+                é gerada falta.
               </p>
             </div>
             <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-800/60">
@@ -785,11 +788,7 @@ export function AdminSettingsPage(): React.JSX.Element {
                   >
                     <td className="py-3.5 px-4">
                       <div className="flex items-center space-x-3">
-                        <AvatarImage
-                          userId={vac.employeeId}
-                          name={vac.employee.name}
-                          size="sm"
-                        />
+                        <AvatarImage userId={vac.employeeId} name={vac.employee.name} size="sm" />
                         <div>
                           <div className="font-semibold text-slate-900 dark:text-white">
                             {vac.employee.name}
@@ -807,13 +806,9 @@ export function AdminSettingsPage(): React.JSX.Element {
                       </span>
                     </td>
                     <td className="py-3.5 px-4 text-slate-700 dark:text-slate-300 text-xs">
-                      {vac.note || (
-                        <span className="text-slate-400 italic">Férias regulares</span>
-                      )}
+                      {vac.note || <span className="text-slate-400 italic">Férias regulares</span>}
                     </td>
-                    <td className="py-3.5 px-4 text-xs text-slate-500">
-                      {vac.createdBy.name}
-                    </td>
+                    <td className="py-3.5 px-4 text-xs text-slate-500">{vac.createdBy.name}</td>
                     <td className="py-3.5 px-4 text-right">
                       <button
                         type="button"
@@ -854,7 +849,8 @@ export function AdminSettingsPage(): React.JSX.Element {
               <div className="font-bold">Intervalo de Almoço Flexível (1 hora)</div>
               <p className="text-blue-800/80 dark:text-blue-300/80">
                 Cada funcionário cumpre 1 hora de almoço diária em seu próprio turno de intervalo.
-                Ao marcar a opção de almoço, o sistema deduz automaticamente 1 hora da carga horária de trabalho daquele dia.
+                Ao marcar a opção de almoço, o sistema deduz automaticamente 1 hora da carga horária
+                de trabalho daquele dia.
               </p>
             </div>
           </div>
@@ -1145,13 +1141,19 @@ export function AdminSettingsPage(): React.JSX.Element {
             <SelectInput
               label="Tipo de Exceção *"
               value={exceptionKind}
-              onChange={(v) =>
-                setExceptionKind(v as 'HOLIDAY' | 'CLOSED' | 'SPECIAL_HOURS')
-              }
+              onChange={(v) => setExceptionKind(v as 'HOLIDAY' | 'CLOSED' | 'SPECIAL_HOURS')}
               options={[
                 { value: 'HOLIDAY', label: 'Feriado', sublabel: 'Fechado, Previsto 00:00' },
-                { value: 'CLOSED', label: 'Fechado Administrativo', sublabel: 'Suspensão de expediente' },
-                { value: 'SPECIAL_HOURS', label: 'Horário Especial', sublabel: 'Turno diferenciado' },
+                {
+                  value: 'CLOSED',
+                  label: 'Fechado Administrativo',
+                  sublabel: 'Suspensão de expediente',
+                },
+                {
+                  value: 'SPECIAL_HOURS',
+                  label: 'Horário Especial',
+                  sublabel: 'Turno diferenciado',
+                },
               ]}
               className="w-full"
             />
