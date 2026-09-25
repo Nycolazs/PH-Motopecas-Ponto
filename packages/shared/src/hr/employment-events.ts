@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { uuidSchema } from '../contracts.js';
+
 export const employmentEventTypeSchema = z.enum([
   'ADMISSION',
   'ROLE_CHANGE',
@@ -47,14 +49,14 @@ export const reactivateEmployeeSchema = z.object({
 export type ReactivateEmployeeDto = z.infer<typeof reactivateEmployeeSchema>;
 
 export const employmentEventSchema = z.object({
-  id: z.string().uuid(),
-  employeeId: z.string().uuid(),
+  id: uuidSchema,
+  employeeId: uuidSchema,
   eventType: employmentEventTypeSchema,
   effectiveDate: z.string(),
   title: z.string(),
   description: z.string().nullable().optional(),
   metadata: z.record(z.string(), z.unknown()).nullable().optional(),
-  createdById: z.string().uuid(),
+  createdById: uuidSchema,
   createdByName: z.string().optional(),
   createdAt: z.string(),
 });

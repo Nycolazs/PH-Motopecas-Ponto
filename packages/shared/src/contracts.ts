@@ -6,6 +6,11 @@ export const userRoleSchema = z.enum(USER_ROLES);
 
 export type UserRole = z.infer<typeof userRoleSchema>;
 
+export const UUID_REGEX =
+  /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+
+export const uuidSchema = z.string().regex(UUID_REGEX, 'Identificador UUID inválido.');
+
 export const apiProblemDetailsSchema = z.record(z.string(), z.array(z.string()));
 
 export type ApiProblemDetails = z.infer<typeof apiProblemDetailsSchema>;

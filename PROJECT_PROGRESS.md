@@ -100,6 +100,16 @@ COMPLETED — HR evolution in active local development on `feat/hr-evolution`. P
   - Updated renderer API base URL resolution in `apps/desktop/src/renderer/api/client.ts` and `apps/desktop/src/renderer/auth/web-auth.ts` to prioritize current `window.location.hostname` (`127.0.0.1` vs `localhost`).
   - Set `API_HOST=0.0.0.0` in `.env` so local server binds to all IPv4 interfaces.
   - Quality verification: all 185 API tests passed, all 94 Desktop tests passed, ESLint clean (0 errors, 0 warnings), TypeScript clean, production builds passing.
+- **Company Page & Canonical UUID Schema Validation Fix (2026-09-25)**:
+  - Identified root cause of `"Não foi possível carregar os dados da empresa. Tente novamente mais tarde."` at `/#/admin/empresa`:
+    - The backend `GET /company` returned HTTP 200 with the valid company singleton record whose primary key is `'10000000-0000-0000-0000-000000000001'`.
+    - In `zod@4.4.3`, `.uuid()` strictly enforces RFC-4122 versions (1–8) and variant bits `[89abAB]`. Because `'10000000-0000-0000-0000-000000000001'` has zeros in the version and variant fields, Zod 4 rejected it with `ZodError: Invalid UUID`, causing `ApiClient.request` to throw `INVALID_RESPONSE` ("O servidor retornou uma resposta em formato inválido.") and triggering the error banner.
+    - Defined a canonical `uuidSchema` in `@ph-ponto/shared` (`contracts.ts`) with regex `/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/`, guaranteeing 100% compatibility between PostgreSQL's native `UUID` type and Zod schema validation across all packages.
+    - Replaced `z.string().uuid()` across all shared HR contracts (`company.ts`, `culture.ts`, `regulations.ts`, `documents.ts`, `discipline.ts`, `performance.ts`, `job-role.ts`, `employee-profile.ts`, `employment-events.ts`, `interview.ts`, `timeline.ts`, `acknowledgment.ts`, `role-map.ts`) and desktop contracts (`contracts.ts`, `client.ts`).
+    - Fixed schema tolerance: made `cultureProfileId` optional in `cultureProfileVersionSchema` and allowed union with `z.record(z.string(), z.unknown())` in `companyRegulationVersionSchema.content` to ensure complete resilience with existing database payloads.
+    - Enhanced `CompanyPage` (`apps/desktop/src/renderer/pages/admin/company-page.tsx`) error state with a "Tentar novamente" (`refetch()`) action and specific error message display per `AGENTS.md` guidelines.
+    - Verified all endpoints (`/company`, `/company/setup-status`, `/culture`, `/regulations`, `/documents`, `/acknowledgments/status`) against the running local API with real cloned production data.
+    - Quality verification: 383 unit & tooling tests passed (Shared 91, API 186, Desktop 94, Tooling 12), ESLint clean (0 errors, 0 warnings), Prettier formatted, TypeScript 100% clean, and full production build passing (`pnpm build`).
 - **Next Steps**:
   - Present local test environment status to the user.
   - Retain local isolation on branch `feat/hr-evolution`. No remote pushes or deployments.

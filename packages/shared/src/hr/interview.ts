@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { uuidSchema } from '../contracts.js';
+
 export const interviewRecommendationSchema = z.enum([
   'RECOMMENDED',
   'NOT_RECOMMENDED',
@@ -18,7 +20,7 @@ export const interviewPayloadSchema = z.object({
   candidateName: z.string().min(3, 'Nome do candidato é obrigatório.'),
   candidateEmail: z.string().email('E-mail inválido.').nullable().optional(),
   candidatePhone: z.string().nullable().optional(),
-  jobRoleId: z.string().uuid().nullable().optional(),
+  jobRoleId: uuidSchema.nullable().optional(),
   roleTitle: z.string().min(2, 'Cargo pretendido é obrigatório.'),
   interviewDate: z
     .string()
@@ -33,19 +35,19 @@ export const interviewPayloadSchema = z.object({
 export type InterviewPayloadDto = z.infer<typeof interviewPayloadSchema>;
 
 export const hiringInterviewSchema = z.object({
-  id: z.string().uuid(),
+  id: uuidSchema,
   candidateName: z.string(),
   candidateEmail: z.string().nullable().optional(),
   candidatePhone: z.string().nullable().optional(),
-  jobRoleId: z.string().uuid().nullable().optional(),
+  jobRoleId: uuidSchema.nullable().optional(),
   roleTitle: z.string(),
   interviewDate: z.string(),
   interviewerName: z.string(),
-  evaluatorId: z.string().uuid(),
+  evaluatorId: uuidSchema,
   recommendation: interviewRecommendationSchema,
   notes: z.string().nullable().optional(),
   scores: z.union([z.array(interviewCriterionScoreSchema), z.record(z.string(), z.unknown())]),
-  generatedDocumentId: z.string().uuid().nullable().optional(),
+  generatedDocumentId: uuidSchema.nullable().optional(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });

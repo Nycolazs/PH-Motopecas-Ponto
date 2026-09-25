@@ -25,6 +25,7 @@ export function CompanyPage(): React.JSX.Element {
     data: company,
     isLoading,
     error,
+    refetch,
   } = useQuery({
     queryKey: ['company-data'],
     queryFn: ({ signal }) => api.getCompany(signal),
@@ -84,9 +85,26 @@ export function CompanyPage(): React.JSX.Element {
   if (error) {
     return (
       <div className="p-6 max-w-4xl mx-auto">
-        <div className="p-4 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 flex items-center gap-3">
-          <AlertCircle className="w-5 h-5 shrink-0" />
-          <span>Não foi possível carregar os dados da empresa. Tente novamente mais tarde.</span>
+        <div className="p-5 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <AlertCircle className="w-5 h-5 shrink-0" />
+            <div>
+              <p className="font-semibold text-sm">
+                Não foi possível carregar os dados da empresa.
+              </p>
+              <p className="text-xs text-rose-600 dark:text-rose-400 mt-0.5">
+                {error instanceof Error ? error.message : 'Tente novamente em alguns instantes.'}
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => void refetch()}
+            className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 active:scale-95 text-white text-xs font-semibold shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900 shrink-0"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+            <span>Tentar novamente</span>
+          </button>
         </div>
       </div>
     );

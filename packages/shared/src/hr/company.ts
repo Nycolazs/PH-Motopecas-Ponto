@@ -1,8 +1,10 @@
 import { z } from 'zod';
 
+import { uuidSchema } from '../contracts.js';
+
 export const companySchema = z
   .object({
-    id: z.string().uuid(),
+    id: uuidSchema,
     legalName: z.string().min(1).max(200),
     tradeName: z.string().min(1).max(200),
     cnpj: z.string().min(14).max(18),

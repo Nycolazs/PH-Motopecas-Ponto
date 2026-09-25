@@ -1,16 +1,18 @@
 import { z } from 'zod';
 
+import { uuidSchema } from '../contracts.js';
+
 export const jobRoleVersionSchema = z
   .object({
-    id: z.string().uuid(),
-    jobRoleId: z.string().uuid(),
+    id: uuidSchema,
+    jobRoleId: uuidSchema,
     versionNumber: z.number().int().positive(),
     title: z.string().min(1).max(120),
     cbo: z.string().max(20).nullable().optional(),
     description: z.string().min(1),
     responsibilities: z.array(z.string()),
     requirements: z.array(z.string()),
-    createdById: z.string().uuid(),
+    createdById: uuidSchema,
     publishedAt: z.string().datetime({ offset: true }),
     createdAt: z.string().datetime({ offset: true }),
   })
@@ -20,7 +22,7 @@ export type JobRoleVersionDto = z.infer<typeof jobRoleVersionSchema>;
 
 export const jobRoleSchema = z
   .object({
-    id: z.string().uuid(),
+    id: uuidSchema,
     title: z.string().min(1).max(120),
     department: z.string().max(100).nullable().optional(),
     isActive: z.boolean(),
@@ -76,10 +78,10 @@ export type CreateJobRoleVersionDto = z.infer<typeof createJobRoleVersionSchema>
 
 export const employeeRoleAssignmentSchema = z
   .object({
-    id: z.string().uuid(),
-    employeeId: z.string().uuid(),
-    jobRoleId: z.string().uuid(),
-    jobRoleVersionId: z.string().uuid(),
+    id: uuidSchema,
+    employeeId: uuidSchema,
+    jobRoleId: uuidSchema,
+    jobRoleVersionId: uuidSchema,
     roleTitle: z.string().min(1),
     versionNumber: z.number().int().positive(),
     startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
@@ -98,8 +100,8 @@ export type EmployeeRoleAssignmentDto = z.infer<typeof employeeRoleAssignmentSch
 
 export const assignEmployeeRoleSchema = z
   .object({
-    jobRoleId: z.string().uuid(),
-    jobRoleVersionId: z.string().uuid().optional(),
+    jobRoleId: uuidSchema,
+    jobRoleVersionId: uuidSchema.optional(),
     startDate: z
       .string()
       .regex(/^\d{4}-\d{2}-\d{2}$/, 'Data de início deve estar no formato AAAA-MM-DD.'),

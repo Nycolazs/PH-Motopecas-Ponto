@@ -37,4 +37,3 @@ export function webAllowedOrigins(config: ConfigService<EnvironmentVariables, tr
   }
   return origins;
 }
-

@@ -1,8 +1,9 @@
 import { z } from 'zod';
+import { uuidSchema } from '@ph-ponto/shared';
 
 export const authUserSchema = z
   .object({
-    id: z.string().uuid(),
+    id: uuidSchema,
     name: z.string().trim().min(1),
     login: z.string().trim().min(1),
     role: z.enum(['ADMIN', 'EMPLOYEE']),
@@ -11,7 +12,7 @@ export const authUserSchema = z
 
 export const managedUserSchema = z
   .object({
-    id: z.string().uuid(),
+    id: uuidSchema,
     name: z.string().trim().min(1),
     login: z.string().trim().min(1),
     role: z.enum(['ADMIN', 'EMPLOYEE']),
@@ -72,7 +73,7 @@ const integrityCodeSchema = z.enum([
 
 export const effectivePunchSchema = z
   .object({
-    id: z.string().uuid(),
+    id: uuidSchema,
     kind: punchKindSchema,
     originalOccurredAt: z.string().datetime({ offset: true }),
     effectiveOccurredAt: z.string().datetime({ offset: true }),
@@ -87,16 +88,16 @@ const chronologySchema = z
       z
         .object({
           code: integrityCodeSchema,
-          punchId: z.string().uuid(),
-          adjustmentId: z.string().uuid().optional(),
+          punchId: uuidSchema,
+          adjustmentId: uuidSchema.optional(),
         })
         .strict(),
     ),
     intervals: z.array(
       z
         .object({
-          clockInPunchId: z.string().uuid(),
-          clockOutPunchId: z.string().uuid(),
+          clockInPunchId: uuidSchema,
+          clockOutPunchId: uuidSchema,
           clockInAt: z.string().datetime({ offset: true }),
           clockOutAt: z.string().datetime({ offset: true }),
           elapsedMilliseconds: z.number().int().positive(),
@@ -186,13 +187,13 @@ export const monthlyAttendanceSchema = z
 
 const timePunchSchema = z
   .object({
-    id: z.string().uuid(),
-    employeeId: z.string().uuid(),
+    id: uuidSchema,
+    employeeId: uuidSchema,
     occurredAt: z.string().datetime({ offset: true }),
     effectiveOccurredAt: z.string().datetime({ offset: true }),
     kind: punchKindSchema,
     origin: z.enum(['EMPLOYEE', 'ADMIN_INSERTION']),
-    createdByAdminId: z.string().uuid().nullable(),
+    createdByAdminId: uuidSchema.nullable(),
     insertionReason: z.string().nullable(),
     adjustmentSequence: z.number().int().nonnegative(),
     createdAt: z.string().datetime({ offset: true }),
@@ -203,7 +204,7 @@ export const timePunchMutationSchema = z
   .object({
     punch: timePunchSchema,
     dailySummary: dailyAttendanceSchema,
-    idempotencyKey: z.string().uuid(),
+    idempotencyKey: uuidSchema,
   })
   .strict();
 
@@ -211,21 +212,21 @@ export const adminTimePunchMutationSchema = z
   .object({
     punch: timePunchSchema,
     dailySummary: dailyAttendanceSchema,
-    idempotencyKey: z.string().uuid(),
-    auditEventId: z.string().uuid().optional(),
+    idempotencyKey: uuidSchema,
+    auditEventId: uuidSchema.optional(),
   })
   .strict();
 
 export const timePunchAdjustmentHistorySchema = z
   .object({
-    punchId: z.string().uuid(),
+    punchId: uuidSchema,
     originalOccurredAt: z.string().datetime({ offset: true }),
     kind: punchKindSchema,
     origin: z.enum(['EMPLOYEE', 'ADMIN_INSERTION']),
     insertionReason: z.string().nullable(),
     createdByAdmin: z
       .object({
-        id: z.string().uuid(),
+        id: uuidSchema,
         name: z.string(),
         login: z.string(),
       })
@@ -233,13 +234,13 @@ export const timePunchAdjustmentHistorySchema = z
     createdAt: z.string().datetime({ offset: true }),
     adjustments: z.array(
       z.object({
-        id: z.string().uuid(),
+        id: uuidSchema,
         sequence: z.number().int().nonnegative(),
         previousOccurredAt: z.string().datetime({ offset: true }),
         correctedOccurredAt: z.string().datetime({ offset: true }),
         reason: z.string(),
         admin: z.object({
-          id: z.string().uuid(),
+          id: uuidSchema,
           name: z.string(),
           login: z.string(),
         }),
@@ -254,7 +255,7 @@ export type TimePunchAdjustmentHistory = z.infer<typeof timePunchAdjustmentHisto
 // Overview / Dashboard schemas
 export const employeeTodayStatusSchema = z
   .object({
-    id: z.string().uuid(),
+    id: uuidSchema,
     name: z.string(),
     login: z.string(),
     hasAvatar: z.boolean(),
@@ -273,8 +274,8 @@ export const employeeTodayStatusSchema = z
 
 export const recentPunchSchema = z
   .object({
-    id: z.string().uuid(),
-    employeeId: z.string().uuid(),
+    id: uuidSchema,
+    employeeId: uuidSchema,
     employeeName: z.string(),
     occurredAt: z.string().datetime({ offset: true }),
     effectiveOccurredAt: z.string().datetime({ offset: true }),
@@ -286,8 +287,8 @@ export const recentPunchSchema = z
 
 export const recentAdjustmentSchema = z
   .object({
-    id: z.string().uuid(),
-    timePunchId: z.string().uuid(),
+    id: uuidSchema,
+    timePunchId: uuidSchema,
     employeeName: z.string(),
     adminName: z.string(),
     previousOccurredAt: z.string().datetime({ offset: true }),
@@ -313,7 +314,7 @@ export const attendanceOverviewSchema = z
 
 export const incompleteAttendanceDayItemSchema = z
   .object({
-    employeeId: z.string().uuid(),
+    employeeId: uuidSchema,
     employeeName: z.string(),
     employeeLogin: z.string(),
     hasAvatar: z.boolean(),
@@ -355,11 +356,11 @@ export const scheduleDaySchema = z
 
 export const scheduleVersionSchema = z
   .object({
-    id: z.string().uuid(),
+    id: uuidSchema,
     effectiveDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
     note: z.string().nullable(),
     createdAt: z.string().datetime({ offset: true }),
-    createdBy: z.object({ id: z.string().uuid(), name: z.string(), login: z.string() }).strict(),
+    createdBy: z.object({ id: uuidSchema, name: z.string(), login: z.string() }).strict(),
     days: z.array(scheduleDaySchema),
   })
   .strict();
@@ -374,7 +375,7 @@ export const scheduleListSchema = z
 // Calendar exceptions schemas
 export const exceptionRevisionSchema = z
   .object({
-    id: z.string().uuid(),
+    id: uuidSchema,
     sequence: z.number().int().positive(),
     operation: z.enum(['UPSERT', 'RETRACT']),
     kind: z.enum(['HOLIDAY', 'CLOSED', 'SPECIAL_HOURS']).nullable(),
@@ -386,13 +387,13 @@ export const exceptionRevisionSchema = z
     lunchEndMinute: z.number().int().nullable(),
     expectedMinutes: z.number().int().nullable().optional(),
     createdAt: z.string().datetime({ offset: true }),
-    createdBy: z.object({ id: z.string().uuid(), name: z.string(), login: z.string() }).strict(),
+    createdBy: z.object({ id: uuidSchema, name: z.string(), login: z.string() }).strict(),
   })
   .strict();
 
 export const calendarExceptionSchema = z
   .object({
-    id: z.string().uuid(),
+    id: uuidSchema,
     businessDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
     isActive: z.boolean().optional(),
     latestRevision: exceptionRevisionSchema.optional(),
@@ -413,7 +414,7 @@ export const calendarExceptionListSchema = z
 // Audit log schemas
 export const auditLogItemSchema = z
   .object({
-    id: z.string().uuid(),
+    id: uuidSchema,
     action: z.string(),
     outcome: z.enum(['SUCCESS', 'FAILURE']),
     targetType: z.string(),
@@ -425,7 +426,7 @@ export const auditLogItemSchema = z
     createdAt: z.string().datetime({ offset: true }),
     actor: z
       .object({
-        id: z.string().uuid(),
+        id: uuidSchema,
         name: z.string(),
         login: z.string(),
       })
@@ -445,7 +446,7 @@ export const adjustmentRequestStatusSchema = z.enum(['PENDING', 'APPROVED', 'REJ
 
 export const adjustmentRequestAuthorSchema = z
   .object({
-    id: z.string().uuid(),
+    id: uuidSchema,
     name: z.string(),
     login: z.string(),
   })
@@ -453,9 +454,9 @@ export const adjustmentRequestAuthorSchema = z
 
 export const adjustmentRequestSchema = z
   .object({
-    id: z.string().uuid(),
-    timePunchId: z.string().uuid(),
-    employeeId: z.string().uuid(),
+    id: uuidSchema,
+    timePunchId: uuidSchema,
+    employeeId: uuidSchema,
     employee: adjustmentRequestAuthorSchema,
     status: adjustmentRequestStatusSchema,
     punchKind: punchKindSchema,
@@ -463,11 +464,11 @@ export const adjustmentRequestSchema = z
     requestedOccurredAt: z.string().datetime({ offset: true }),
     currentSequence: z.number().int().nonnegative(),
     reason: z.string(),
-    reviewedById: z.string().uuid().nullable(),
+    reviewedById: uuidSchema.nullable(),
     reviewedBy: adjustmentRequestAuthorSchema.nullable(),
     reviewComment: z.string().nullable(),
     reviewedAt: z.string().datetime({ offset: true }).nullable(),
-    timeAdjustmentId: z.string().uuid().nullable(),
+    timeAdjustmentId: uuidSchema.nullable(),
     createdAt: z.string().datetime({ offset: true }),
     updatedAt: z.string().datetime({ offset: true }),
   })
@@ -495,7 +496,7 @@ export const reviewAdjustmentResponseSchema = z
 
 export const vacationAuthorSchema = z
   .object({
-    id: z.string().uuid(),
+    id: uuidSchema,
     name: z.string(),
     login: z.string(),
   })
@@ -503,14 +504,14 @@ export const vacationAuthorSchema = z
 
 export const vacationSchema = z
   .object({
-    id: z.string().uuid(),
-    employeeId: z.string().uuid(),
+    id: uuidSchema,
+    employeeId: uuidSchema,
     employee: vacationAuthorSchema,
     startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
     endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
     daysCount: z.number().int().positive(),
     note: z.string().nullable(),
-    createdById: z.string().uuid(),
+    createdById: uuidSchema,
     createdBy: vacationAuthorSchema,
     createdAt: z.string().datetime({ offset: true }),
     updatedAt: z.string().datetime({ offset: true }),
@@ -526,7 +527,7 @@ export const vacationListSchema = z
 
 export const createVacationInputSchema = z
   .object({
-    employeeId: z.string().uuid(),
+    employeeId: uuidSchema,
     startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
     endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
     note: z.string().max(255).optional(),

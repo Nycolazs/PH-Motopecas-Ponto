@@ -1,4 +1,4 @@
-import { apiProblemSchema, type ApiProblem } from '@ph-ponto/shared';
+import { apiProblemSchema, uuidSchema, type ApiProblem } from '@ph-ponto/shared';
 import { z, type ZodType } from 'zod';
 
 import {
@@ -330,7 +330,7 @@ export class ApiClient {
   ): Promise<{ id: string }> {
     return this.request(
       `/users/${encodeURIComponent(userId)}/avatar`,
-      z.object({ id: z.string().uuid() }).passthrough(),
+      z.object({ id: uuidSchema }).passthrough(),
       {
         method: 'POST',
         body: JSON.stringify({ dataBase64, mimeType }),

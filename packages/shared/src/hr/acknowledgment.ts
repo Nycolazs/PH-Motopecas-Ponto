@@ -1,13 +1,15 @@
 import { z } from 'zod';
 
+import { uuidSchema } from '../contracts.js';
+
 export const acknowledgmentTypeSchema = z.enum(['REGULATION', 'ROLE']);
 export type AcknowledgmentTypeDto = z.infer<typeof acknowledgmentTypeSchema>;
 
 export const acknowledgmentRegulationPayloadSchema = z.object({
-  employeeId: z.string().uuid(),
+  employeeId: uuidSchema,
   employeeName: z.string().min(2),
   employeeCpf: z.string().nullable().optional(),
-  regulationVersionId: z.string().uuid(),
+  regulationVersionId: uuidSchema,
   regulationVersionNumber: z.number().int().min(1),
   regulationTitle: z.string().min(2),
   effectiveDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
@@ -17,10 +19,10 @@ export type AcknowledgmentRegulationPayloadDto = z.infer<
 >;
 
 export const acknowledgmentRolePayloadSchema = z.object({
-  employeeId: z.string().uuid(),
+  employeeId: uuidSchema,
   employeeName: z.string().min(2),
   employeeCpf: z.string().nullable().optional(),
-  jobRoleVersionId: z.string().uuid(),
+  jobRoleVersionId: uuidSchema,
   roleTitle: z.string().min(2),
   roleVersionNumber: z.number().int().min(1),
   department: z.string().nullable().optional(),
@@ -29,15 +31,15 @@ export const acknowledgmentRolePayloadSchema = z.object({
 export type AcknowledgmentRolePayloadDto = z.infer<typeof acknowledgmentRolePayloadSchema>;
 
 export const employeeDocumentAcknowledgmentSchema = z.object({
-  id: z.string().uuid(),
-  employeeId: z.string().uuid(),
+  id: uuidSchema,
+  employeeId: uuidSchema,
   employeeName: z.string().nullable().optional(),
   acknowledgmentType: acknowledgmentTypeSchema,
-  regulationVersionId: z.string().uuid().nullable().optional(),
-  jobRoleVersionId: z.string().uuid().nullable().optional(),
-  generatedDocumentId: z.string().uuid(),
+  regulationVersionId: uuidSchema.nullable().optional(),
+  jobRoleVersionId: uuidSchema.nullable().optional(),
+  generatedDocumentId: uuidSchema,
   acknowledgedAt: z.string(),
-  createdById: z.string().uuid(),
+  createdById: uuidSchema,
   createdAt: z.string(),
 });
 export type EmployeeDocumentAcknowledgmentDto = z.infer<

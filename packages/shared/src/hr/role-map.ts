@@ -1,7 +1,9 @@
 import { z } from 'zod';
 
+import { uuidSchema } from '../contracts.js';
+
 export const roleMapPayloadSchema = z.object({
-  jobRoleId: z.string().uuid(),
+  jobRoleId: uuidSchema,
   roleTitle: z.string().min(2, 'Título do cargo é obrigatório.'),
   department: z.string().nullable().optional(),
   cbo: z.string().nullable().optional(),

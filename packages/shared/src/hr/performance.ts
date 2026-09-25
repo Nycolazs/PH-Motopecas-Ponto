@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { uuidSchema } from '../contracts.js';
+
 export const performanceClassificationSchema = z.enum([
   'EXCELLENT',
   'GOOD',
@@ -138,7 +140,7 @@ export type PerformanceCriterionScoreDto = z.infer<typeof performanceCriterionSc
 
 export const performanceReviewPayloadSchema = z
   .object({
-    employeeId: z.string().uuid('ID do colaborador deve ser um UUID válido.'),
+    employeeId: uuidSchema,
     employeeName: z.string().trim().min(2, 'Nome do colaborador obrigatório.'),
     employeeCpf: z.string().trim().optional().nullable(),
     employeeRole: z.string().trim().optional().nullable(),
@@ -150,7 +152,7 @@ export const performanceReviewPayloadSchema = z
     evaluationDate: z
       .string()
       .regex(/^\d{4}-\d{2}-\d{2}$/, 'Data da avaliação deve estar no formato AAAA-MM-DD.'),
-    evaluatorId: z.string().uuid('ID do avaliador deve ser um UUID válido.'),
+    evaluatorId: uuidSchema,
     evaluatorName: z.string().trim().min(2, 'Nome do avaliador obrigatório.'),
     evaluatorRole: z.string().trim().optional().nullable(),
     criteriaScores: z
@@ -161,7 +163,7 @@ export const performanceReviewPayloadSchema = z
     actionPlan: z.string().trim().optional().nullable(),
     evaluatorComments: z.string().trim().optional().nullable(),
     employeeComments: z.string().trim().optional().nullable(),
-    supersedesReviewId: z.string().uuid().optional().nullable(),
+    supersedesReviewId: uuidSchema.optional().nullable(),
     supersessionReason: z.string().trim().optional().nullable(),
   })
   .strict();
@@ -170,11 +172,11 @@ export type PerformanceReviewPayloadDto = z.infer<typeof performanceReviewPayloa
 
 export const performanceReviewSchema = z
   .object({
-    id: z.string().uuid(),
-    companyId: z.string().uuid(),
-    employeeId: z.string().uuid(),
+    id: uuidSchema,
+    companyId: uuidSchema,
+    employeeId: uuidSchema,
     employeeName: z.string().nullable().optional(),
-    evaluatorId: z.string().uuid(),
+    evaluatorId: uuidSchema,
     evaluatorName: z.string().nullable().optional(),
     evaluationPeriod: z.string(),
     evaluationDate: z.string(),
@@ -186,9 +188,9 @@ export const performanceReviewSchema = z
     actionPlan: z.string().nullable().optional(),
     evaluatorComments: z.string().nullable().optional(),
     employeeComments: z.string().nullable().optional(),
-    generatedDocumentId: z.string().uuid().nullable().optional(),
+    generatedDocumentId: uuidSchema.nullable().optional(),
     isSuperseded: z.boolean(),
-    supersededById: z.string().uuid().nullable().optional(),
+    supersededById: uuidSchema.nullable().optional(),
     supersededAt: z.string().nullable().optional(),
     supersessionReason: z.string().nullable().optional(),
     createdAt: z.string(),
@@ -223,8 +225,8 @@ export type PerformanceCriteriaItemDto = z.infer<typeof performanceCriteriaItemS
 
 export const performanceCriteriaResponseSchema = z
   .object({
-    id: z.string().uuid(),
-    companyId: z.string().uuid(),
+    id: uuidSchema,
+    companyId: uuidSchema,
     versionNumber: z.number().int(),
     isActive: z.boolean(),
     criteria: z.array(performanceCriteriaItemSchema),
@@ -236,7 +238,7 @@ export type PerformanceCriteriaResponseDto = z.infer<typeof performanceCriteriaR
 
 export const listPerformanceReviewsQuerySchema = z
   .object({
-    employeeId: z.string().uuid().optional(),
+    employeeId: uuidSchema.optional(),
     period: z.string().optional(),
     includeSuperseded: z.boolean().optional(),
   })

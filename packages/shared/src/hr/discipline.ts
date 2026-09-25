@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { uuidSchema } from '../contracts.js';
 import { documentTypeSchema } from './documents.js';
 
 export const disciplinaryActionTypeSchema = z.enum([
@@ -30,7 +31,7 @@ export type DisciplinaryWitnessDto = z.infer<typeof disciplinaryWitnessSchema>;
 
 export const disciplineVerbalPayloadSchema = z
   .object({
-    employeeId: z.string().uuid(),
+    employeeId: uuidSchema,
     employeeName: z.string().trim().min(2, 'Nome do colaborador obrigatório.'),
     employeeCpf: z.string().trim().optional().nullable(),
     employeeRole: z.string().trim().optional().nullable(),
@@ -49,7 +50,7 @@ export const disciplineVerbalPayloadSchema = z
       .min(10, 'A descrição dos fatos e orientações deve ter pelo menos 10 caracteres.')
       .max(5000),
     internalClauseRef: z.string().trim().max(200).optional().nullable(),
-    priorActionId: z.string().uuid().optional().nullable(),
+    priorActionId: uuidSchema.optional().nullable(),
     commitment: z.string().trim().max(2000).optional().nullable(),
     witnesses: z.array(disciplinaryWitnessSchema).optional().default([]),
   })
@@ -59,7 +60,7 @@ export type DisciplineVerbalPayloadDto = z.infer<typeof disciplineVerbalPayloadS
 
 export const disciplineWrittenPayloadSchema = z
   .object({
-    employeeId: z.string().uuid(),
+    employeeId: uuidSchema,
     employeeName: z.string().trim().min(2, 'Nome do colaborador obrigatório.'),
     employeeCpf: z.string().trim().optional().nullable(),
     employeeRole: z.string().trim().optional().nullable(),
@@ -79,7 +80,7 @@ export const disciplineWrittenPayloadSchema = z
       .max(5000),
     internalClauseRef: z.string().trim().max(200).optional().nullable(),
     legalBasisRef: z.string().trim().max(200).optional().nullable(),
-    priorActionId: z.string().uuid().optional().nullable(),
+    priorActionId: uuidSchema.optional().nullable(),
     consequencesNote: z.string().trim().max(2000).optional().nullable(),
     witnesses: z.array(disciplinaryWitnessSchema).optional().default([]),
   })
@@ -89,7 +90,7 @@ export type DisciplineWrittenPayloadDto = z.infer<typeof disciplineWrittenPayloa
 
 export const disciplineSuspensionPayloadSchema = z
   .object({
-    employeeId: z.string().uuid(),
+    employeeId: uuidSchema,
     employeeName: z.string().trim().min(2, 'Nome do colaborador obrigatório.'),
     employeeCpf: z.string().trim().optional().nullable(),
     employeeRole: z.string().trim().optional().nullable(),
@@ -123,7 +124,7 @@ export const disciplineSuspensionPayloadSchema = z
       .max(5000),
     internalClauseRef: z.string().trim().max(200).optional().nullable(),
     legalBasisRef: z.string().trim().max(200).optional().nullable(),
-    priorActionId: z.string().uuid().optional().nullable(),
+    priorActionId: uuidSchema.optional().nullable(),
     consequencesNote: z.string().trim().max(2000).optional().nullable(),
     witnesses: z.array(disciplinaryWitnessSchema).optional().default([]),
   })
@@ -133,11 +134,11 @@ export type DisciplineSuspensionPayloadDto = z.infer<typeof disciplineSuspension
 
 export const disciplinaryActionSchema = z
   .object({
-    id: z.string().uuid(),
-    companyId: z.string().uuid(),
-    employeeId: z.string().uuid(),
+    id: uuidSchema,
+    companyId: uuidSchema,
+    employeeId: uuidSchema,
     employeeName: z.string().nullable().optional(),
-    issuerId: z.string().uuid(),
+    issuerId: uuidSchema,
     issuerName: z.string().nullable().optional(),
     actionType: disciplinaryActionTypeSchema,
     documentType: documentTypeSchema,
@@ -148,12 +149,12 @@ export const disciplinaryActionSchema = z
     suspensionDays: z.number().int().nullable().optional(),
     suspensionStartDate: z.string().nullable().optional(),
     suspensionEndDate: z.string().nullable().optional(),
-    priorActionId: z.string().uuid().nullable().optional(),
+    priorActionId: uuidSchema.nullable().optional(),
     priorActionSummary: z.string().nullable().optional(),
-    generatedDocumentId: z.string().uuid().nullable().optional(),
+    generatedDocumentId: uuidSchema.nullable().optional(),
     isVoid: z.boolean(),
     voidReason: z.string().nullable().optional(),
-    voidedById: z.string().uuid().nullable().optional(),
+    voidedById: uuidSchema.nullable().optional(),
     voidedAt: z.string().nullable().optional(),
     createdAt: z.string(),
     updatedAt: z.string(),
@@ -164,7 +165,7 @@ export type DisciplinaryActionDto = z.infer<typeof disciplinaryActionSchema>;
 
 export const disciplinaryProgressionSummarySchema = z
   .object({
-    employeeId: z.string().uuid(),
+    employeeId: uuidSchema,
     employeeName: z.string().nullable().optional(),
     verbalCount: z.number().int().nonnegative(),
     writtenCount: z.number().int().nonnegative(),

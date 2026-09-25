@@ -126,7 +126,8 @@ describe('Electron security policy', () => {
   it('treats localhost and 127.0.0.1 on the same port as equivalent development origins', () => {
     expect(isAllowedApplicationUrl('http://127.0.0.1:5173/#/', 'http://localhost:5173')).toBe(true);
     expect(isAllowedApplicationUrl('http://localhost:5173/#/', 'http://127.0.0.1:5173')).toBe(true);
-    expect(isAllowedApplicationUrl('http://127.0.0.1:5174/#/', 'http://localhost:5173')).toBe(false);
+    expect(isAllowedApplicationUrl('http://127.0.0.1:5174/#/', 'http://localhost:5173')).toBe(
+      false,
+    );
   });
 });
-

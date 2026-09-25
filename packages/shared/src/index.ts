@@ -7,6 +7,8 @@ export {
   HEALTH_STATUSES,
   userRoleSchema,
   USER_ROLES,
+  UUID_REGEX,
+  uuidSchema,
 } from './contracts.js';
 export type {
   ApiProblem,

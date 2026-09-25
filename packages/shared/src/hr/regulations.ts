@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { uuidSchema } from '../contracts.js';
+
 export const regulationCompanyInfoSchema = z.object({
   tradeName: z.string().min(1, 'Nome fantasia é obrigatório.'),
   legalName: z.string().min(1, 'Razão social é obrigatória.'),
@@ -72,22 +74,22 @@ export const regulationPayloadSchema = z.object({
 export type RegulationPayloadDto = z.infer<typeof regulationPayloadSchema>;
 
 export const companyRegulationVersionSchema = z.object({
-  id: z.string().uuid(),
-  companyRegulationId: z.string().uuid(),
+  id: uuidSchema,
+  companyRegulationId: uuidSchema,
   versionNumber: z.number().int().min(1),
   title: z.string(),
   effectiveDate: z.string(),
-  content: regulationPayloadSchema,
-  generatedDocumentId: z.string().uuid().nullable().optional(),
+  content: z.union([regulationPayloadSchema, z.record(z.string(), z.unknown())]),
+  generatedDocumentId: uuidSchema.nullable().optional(),
   publishedAt: z.string(),
-  createdById: z.string().uuid(),
+  createdById: uuidSchema,
   createdAt: z.string(),
 });
 export type CompanyRegulationVersionDto = z.infer<typeof companyRegulationVersionSchema>;
 
 export const companyRegulationSchema = z.object({
-  id: z.string().uuid(),
-  companyId: z.string().uuid(),
+  id: uuidSchema,
+  companyId: uuidSchema,
   currentVersion: companyRegulationVersionSchema.nullable().optional(),
   versions: z.array(companyRegulationVersionSchema),
   createdAt: z.string(),

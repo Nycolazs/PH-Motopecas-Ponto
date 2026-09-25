@@ -1,9 +1,10 @@
 import { z } from 'zod';
+import { uuidSchema } from '../contracts.js';
 import { employeeRoleAssignmentSchema } from './job-role.js';
 
 export const employeeProfileSchema = z
   .object({
-    userId: z.string().uuid(),
+    userId: uuidSchema,
     cpf: z.string().nullable().optional(),
     rg: z.string().nullable().optional(),
     birthDate: z

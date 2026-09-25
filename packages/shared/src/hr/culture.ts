@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { uuidSchema } from '../contracts.js';
+
 export const cultureValueSchema = z
   .object({
     title: z.string().trim().min(2, 'O título do valor deve ter pelo menos 2 caracteres.').max(80),
@@ -29,16 +31,16 @@ export type CulturePayloadDto = z.infer<typeof culturePayloadSchema>;
 
 export const cultureProfileVersionSchema = z
   .object({
-    id: z.string().uuid(),
-    cultureProfileId: z.string().uuid(),
+    id: uuidSchema,
+    cultureProfileId: uuidSchema.optional(),
     versionNumber: z.number().int().positive(),
     mission: z.string(),
     vision: z.string(),
     values: z.array(cultureValueSchema),
     motto: z.string().nullable().optional(),
-    generatedDocumentId: z.string().uuid().nullable().optional(),
+    generatedDocumentId: uuidSchema.nullable().optional(),
     publishedAt: z.string().datetime({ offset: true }),
-    createdById: z.string().uuid(),
+    createdById: uuidSchema,
     createdAt: z.string().datetime({ offset: true }),
   })
   .strict();
@@ -47,8 +49,8 @@ export type CultureProfileVersionDto = z.infer<typeof cultureProfileVersionSchem
 
 export const cultureProfileSchema = z
   .object({
-    id: z.string().uuid(),
-    companyId: z.string().uuid(),
+    id: uuidSchema,
+    companyId: uuidSchema,
     currentVersion: cultureProfileVersionSchema.nullable().optional(),
     versions: z.array(cultureProfileVersionSchema).default([]),
     createdAt: z.string().datetime({ offset: true }),

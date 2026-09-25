@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { uuidSchema } from '../contracts.js';
 import { documentTypeSchema } from './documents.js';
 
 export const timelineCategorySchema = z.enum([
@@ -29,7 +30,7 @@ export const employeeTimelineItemSchema = z.object({
   occurredAt: z.string(),
   businessDate: z.string().nullable().optional(),
   actorName: z.string().nullable().optional(),
-  documentId: z.string().uuid().nullable().optional(),
+  documentId: uuidSchema.nullable().optional(),
   documentType: documentTypeSchema.nullable().optional(),
   metadata: z.record(z.string(), z.unknown()).nullable().optional(),
 });
