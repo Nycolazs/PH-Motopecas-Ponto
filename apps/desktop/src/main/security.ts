@@ -49,7 +49,26 @@ export function isAllowedApplicationUrl(value: string, developmentOrigin?: strin
     return true;
   }
 
-  return developmentOrigin !== undefined && url.origin === developmentOrigin;
+  if (developmentOrigin === undefined) {
+    return false;
+  }
+
+  if (url.origin === developmentOrigin) {
+    return true;
+  }
+
+  const devUrl = parseUrl(developmentOrigin);
+  if (
+    devUrl !== undefined &&
+    url.protocol === devUrl.protocol &&
+    url.port === devUrl.port &&
+    ['localhost', '127.0.0.1'].includes(url.hostname) &&
+    ['localhost', '127.0.0.1'].includes(devUrl.hostname)
+  ) {
+    return true;
+  }
+
+  return false;
 }
 
 export function isTrustedIpcSender(
@@ -135,22 +154,46 @@ export function validateApiBaseUrl(value: string): string {
   return url.origin;
 }
 
+function getLoopbackVariants(originUrl: string): string[] {
+  const parsed = parseUrl(originUrl);
+  if (parsed !== undefined && ['localhost', '127.0.0.1', '[::1]'].includes(parsed.hostname)) {
+    const portPart = parsed.port ? `:${parsed.port}` : '';
+    return ['localhost', '127.0.0.1', '[::1]'].map((h) => `${parsed.protocol}//${h}${portPart}`);
+  }
+  return [originUrl];
+}
+
 export function createContentSecurityPolicy(
   apiBaseUrl: string,
   developmentOrigin?: string,
 ): string {
   const apiOrigin = validateApiBaseUrl(apiBaseUrl);
-  const developmentConnections =
-    developmentOrigin === undefined
-      ? ''
-      : ` ${developmentOrigin} ${developmentOrigin.replace('http:', 'ws:')}`;
+
+  let imageOrigins = apiOrigin;
+  let connectOrigins = apiOrigin;
+
+  if (developmentOrigin !== undefined) {
+    const apiVariants = getLoopbackVariants(apiOrigin);
+    const devVariants = getLoopbackVariants(developmentOrigin);
+    imageOrigins = Array.from(new Set([apiOrigin, ...apiVariants])).join(' ');
+    const allConnect = Array.from(
+      new Set([
+        apiOrigin,
+        ...apiVariants,
+        ...devVariants,
+        ...devVariants.map((origin) => origin.replace(/^http:/, 'ws:')),
+        ...apiVariants.map((origin) => origin.replace(/^http:/, 'ws:')),
+      ]),
+    );
+    connectOrigins = allConnect.join(' ');
+  }
 
   return [
     "default-src 'self'",
     developmentOrigin === undefined ? "script-src 'self'" : "script-src 'self' 'unsafe-inline'",
     developmentOrigin === undefined ? "style-src 'self'" : "style-src 'self' 'unsafe-inline'",
-    `img-src 'self' data: blob: ${apiOrigin}`,
-    `connect-src 'self' ${apiOrigin}${developmentConnections}`,
+    `img-src 'self' data: blob: ${imageOrigins}`,
+    `connect-src 'self' ${connectOrigins}`,
     "font-src 'self'",
     "object-src 'none'",
     "frame-src 'none'",

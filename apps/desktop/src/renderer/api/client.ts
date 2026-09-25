@@ -120,9 +120,6 @@ function getDefaultApiBaseUrl(): string {
   ) {
     return import.meta.env.VITE_API_BASE_URL.replace(/\/+$/, '');
   }
-  if (typeof import.meta !== 'undefined' && import.meta.env?.DEV) {
-    return 'http://localhost:3000';
-  }
   if (typeof window !== 'undefined' && window.location?.hostname) {
     const hostname = window.location.hostname;
     const protocol = window.location.protocol === 'https:' ? 'https:' : 'http:';
@@ -134,6 +131,9 @@ function getDefaultApiBaseUrl(): string {
     ) {
       return `${protocol}//${hostname}:3000`;
     }
+  }
+  if (typeof import.meta !== 'undefined' && import.meta.env?.DEV) {
+    return 'http://127.0.0.1:3000';
   }
   return 'https://ponto-api.phmotopecas.com';
 }

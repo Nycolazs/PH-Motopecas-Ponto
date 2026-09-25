@@ -54,7 +54,7 @@ const developmentOrigin = app.isPackaged
   : validateDevelopmentOrigin(process.env.VITE_DEV_SERVER_URL ?? DEFAULT_DEVELOPMENT_ORIGIN);
 const apiBaseUrl = validateApiBaseUrl(
   process.env.API_BASE_URL ??
-    (app.isPackaged ? 'https://ponto-api.phmotopecas.com' : 'http://localhost:3000'),
+    (app.isPackaged ? 'https://ponto-api.phmotopecas.com' : 'http://127.0.0.1:3000'),
 );
 const trustedWebContentsIds = new Set<number>();
 

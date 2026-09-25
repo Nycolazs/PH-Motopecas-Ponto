@@ -14,9 +14,6 @@ function getApiBaseUrl(): string {
   ) {
     return import.meta.env.VITE_API_BASE_URL.replace(/\/+$/, '');
   }
-  if (import.meta.env.DEV) {
-    return 'http://localhost:3000';
-  }
   if (typeof window !== 'undefined' && window.location?.hostname) {
     const hostname = window.location.hostname;
     const protocol = window.location.protocol === 'https:' ? 'https:' : 'http:';
@@ -28,6 +25,9 @@ function getApiBaseUrl(): string {
     ) {
       return `${protocol}//${hostname}:3000`;
     }
+  }
+  if (import.meta.env.DEV) {
+    return 'http://127.0.0.1:3000';
   }
   return 'https://ponto-api.phmotopecas.com';
 }
