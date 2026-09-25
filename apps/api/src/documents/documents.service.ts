@@ -218,6 +218,18 @@ export class DocumentsService {
         },
       });
 
+      if (tx.disciplinaryAction) {
+        await tx.disciplinaryAction.updateMany({
+          where: { generatedDocumentId: id, isVoid: false },
+          data: {
+            isVoid: true,
+            voidReason: input.reason.trim(),
+            voidedById: actorId,
+            voidedAt: voided.voidedAt,
+          },
+        });
+      }
+
       await this.audit.record(
         {
           actorId,

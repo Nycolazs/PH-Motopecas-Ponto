@@ -13,6 +13,9 @@ interface DocumentsPrismaMock {
     findUnique: ReturnType<typeof vi.fn>;
     update: ReturnType<typeof vi.fn>;
   };
+  disciplinaryAction?: {
+    updateMany: ReturnType<typeof vi.fn>;
+  };
   $transaction: ReturnType<typeof vi.fn>;
 }
 
@@ -67,6 +70,9 @@ describe('DocumentsService', () => {
         findMany: vi.fn().mockResolvedValue([mockDoc]),
         findUnique: vi.fn(),
         update: vi.fn(),
+      },
+      disciplinaryAction: {
+        updateMany: vi.fn().mockResolvedValue({ count: 0 }),
       },
       $transaction: vi.fn(async (cb: (tx: unknown) => Promise<unknown>) => cb(prismaMock)),
     };

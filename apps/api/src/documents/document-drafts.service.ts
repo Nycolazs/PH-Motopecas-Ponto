@@ -13,10 +13,16 @@ import {
   interviewPayloadSchema,
   acknowledgmentRegulationPayloadSchema,
   acknowledgmentRolePayloadSchema,
+  disciplineVerbalPayloadSchema,
+  disciplineWrittenPayloadSchema,
+  disciplineSuspensionPayloadSchema,
   type RegulationPayloadDto,
   type InterviewPayloadDto,
   type AcknowledgmentRegulationPayloadDto,
   type AcknowledgmentRolePayloadDto,
+  type DisciplineVerbalPayloadDto,
+  type DisciplineWrittenPayloadDto,
+  type DisciplineSuspensionPayloadDto,
 } from '@ph-ponto/shared';
 import { AuditService } from '../audit/audit.service.js';
 import type { ClientContext } from '../auth/auth.types.js';
@@ -27,7 +33,9 @@ import {
   AuditAction,
   AuditOutcome,
   AuditTargetType,
+  DisciplinaryActionType,
   DocumentType,
+  EmploymentEventType,
   type DocumentDraft,
 } from '../generated/prisma/client.js';
 import type {
@@ -559,6 +567,134 @@ export class DocumentDraftsService {
           },
           tx,
         );
+      } else if (
+        draft.documentType === DocumentType.DISCIPLINE_VERBAL ||
+        draft.documentType === DocumentType.DISCIPLINE_WRITTEN ||
+        draft.documentType === DocumentType.DISCIPLINE_SUSPENSION
+      ) {
+        const targetEmployeeId = draft.employeeId;
+        if (!targetEmployeeId) {
+          throw new BadRequestException({
+            code: 'EMPLOYEE_REQUIRED',
+            message: 'O documento disciplinar deve ser vinculado a um colaborador.',
+          });
+        }
+
+        let actionType: DisciplinaryActionType;
+        let incidentDate: Date;
+        let reason: string;
+        let details: string;
+        let internalClauseRef: string | null;
+        let priorActionId: string | null;
+        let suspensionDays: number | null = null;
+        let suspensionStartDate: Date | null = null;
+        let suspensionEndDate: Date | null = null;
+
+        if (draft.documentType === DocumentType.DISCIPLINE_VERBAL) {
+          actionType = DisciplinaryActionType.VERBAL_WARNING;
+          const payload = draft.payload as unknown as DisciplineVerbalPayloadDto;
+          incidentDate = new Date(`${payload.incidentDate}T12:00:00Z`);
+          reason = payload.reason;
+          details = payload.details;
+          internalClauseRef = payload.internalClauseRef ?? null;
+          priorActionId = payload.priorActionId ?? null;
+        } else if (draft.documentType === DocumentType.DISCIPLINE_WRITTEN) {
+          actionType = DisciplinaryActionType.WRITTEN_WARNING;
+          const payload = draft.payload as unknown as DisciplineWrittenPayloadDto;
+          incidentDate = new Date(`${payload.incidentDate}T12:00:00Z`);
+          reason = payload.reason;
+          details = payload.details;
+          internalClauseRef = payload.internalClauseRef ?? null;
+          priorActionId = payload.priorActionId ?? null;
+        } else {
+          actionType = DisciplinaryActionType.SUSPENSION;
+          const payload = draft.payload as unknown as DisciplineSuspensionPayloadDto;
+          incidentDate = new Date(`${payload.incidentDate}T12:00:00Z`);
+          reason = payload.reason;
+          details = payload.details;
+          internalClauseRef = payload.internalClauseRef ?? null;
+          priorActionId = payload.priorActionId ?? null;
+          suspensionDays = payload.suspensionDays;
+          suspensionStartDate = new Date(`${payload.suspensionStartDate}T12:00:00Z`);
+          suspensionEndDate = new Date(`${payload.suspensionEndDate}T12:00:00Z`);
+        }
+
+        if (priorActionId) {
+          const prior = await tx.disciplinaryAction.findUnique({
+            where: { id: priorActionId },
+          });
+          if (!prior || prior.employeeId !== targetEmployeeId) {
+            throw new BadRequestException({
+              code: 'INVALID_PRIOR_ACTION',
+              message:
+                'A medida disciplinar anterior de referência não foi encontrada para este colaborador.',
+            });
+          }
+        }
+
+        const disciplinaryAction = await tx.disciplinaryAction.create({
+          data: {
+            companyId: companyDto.id,
+            employeeId: targetEmployeeId,
+            issuerId: authorId,
+            actionType,
+            documentType: draft.documentType,
+            incidentDate,
+            reason,
+            details,
+            internalClauseRef,
+            suspensionDays,
+            suspensionStartDate,
+            suspensionEndDate,
+            priorActionId,
+            generatedDocumentId: doc.id,
+          },
+        });
+
+        if (
+          actionType === DisciplinaryActionType.SUSPENSION &&
+          suspensionDays &&
+          suspensionStartDate
+        ) {
+          const payload = draft.payload as unknown as DisciplineSuspensionPayloadDto;
+          await tx.employmentEvent.create({
+            data: {
+              employeeId: targetEmployeeId,
+              eventType: EmploymentEventType.SUSPENSION,
+              effectiveDate: suspensionStartDate,
+              title: `Suspensão Disciplinar (${suspensionDays} ${suspensionDays === 1 ? 'dia' : 'dias'})`,
+              description: `Suspensão disciplinar de ${suspensionDays} ${suspensionDays === 1 ? 'dia' : 'dias'} aplicada de ${payload.suspensionStartDate} a ${payload.suspensionEndDate}. Retorno previsto em ${payload.returnDate}. Motivo: ${reason}`,
+              metadata: {
+                disciplinaryActionId: disciplinaryAction.id,
+                generatedDocumentId: doc.id,
+                suspensionDays,
+                suspensionStartDate: payload.suspensionStartDate,
+                suspensionEndDate: payload.suspensionEndDate,
+                returnDate: payload.returnDate,
+              },
+              createdById: authorId,
+            },
+          });
+        }
+
+        await this.audit.record(
+          {
+            actorId: authorId,
+            action: AuditAction.DISCIPLINARY_ACTION_CREATED,
+            outcome: AuditOutcome.SUCCESS,
+            targetType: AuditTargetType.DISCIPLINARY_ACTION,
+            targetId: disciplinaryAction.id,
+            ...context,
+            afterState: {
+              actionType,
+              employeeId: targetEmployeeId,
+              reason,
+              incidentDate: incidentDate.toISOString(),
+              generatedDocumentId: doc.id,
+            },
+          },
+          tx,
+        );
       }
 
       // 3. Delete draft
@@ -663,6 +799,36 @@ export class DocumentDraftsService {
         throw new BadRequestException({
           code: 'INVALID_DOCUMENT_PAYLOAD',
           message: 'Os dados do termo de ciência de cargo são inválidos.',
+          errors: parsed.error.issues,
+        });
+      }
+    } else if (type === DocumentType.DISCIPLINE_VERBAL) {
+      const parsed = disciplineVerbalPayloadSchema.safeParse(payload);
+      if (!parsed.success) {
+        throw new BadRequestException({
+          code: 'INVALID_DOCUMENT_PAYLOAD',
+          message:
+            'Os campos obrigatórios da conversa disciplinar não foram preenchidos corretamente.',
+          errors: parsed.error.issues,
+        });
+      }
+    } else if (type === DocumentType.DISCIPLINE_WRITTEN) {
+      const parsed = disciplineWrittenPayloadSchema.safeParse(payload);
+      if (!parsed.success) {
+        throw new BadRequestException({
+          code: 'INVALID_DOCUMENT_PAYLOAD',
+          message:
+            'Os campos obrigatórios da advertência escrita não foram preenchidos corretamente.',
+          errors: parsed.error.issues,
+        });
+      }
+    } else if (type === DocumentType.DISCIPLINE_SUSPENSION) {
+      const parsed = disciplineSuspensionPayloadSchema.safeParse(payload);
+      if (!parsed.success) {
+        throw new BadRequestException({
+          code: 'INVALID_DOCUMENT_PAYLOAD',
+          message:
+            'Os campos obrigatórios da suspensão disciplinar não foram preenchidos corretamente.',
           errors: parsed.error.issues,
         });
       }

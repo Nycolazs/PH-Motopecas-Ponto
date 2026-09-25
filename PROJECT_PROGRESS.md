@@ -2,11 +2,11 @@
 
 ## Current Phase
 
-HR-6 — Disciplinary actions, progressive record history, suspensions, and progression summary
+HR-7 — Performance evaluations, versioned criteria, deterministic scoring, and review documents
 
 ## Overall Status
 
-IN_PROGRESS — HR evolution in active local development. HR-0, HR-1, HR-2, HR-3, HR-4, and HR-5 completed and verified.
+IN_PROGRESS — HR evolution in active local development. HR-0, HR-1, HR-2, HR-3, HR-4, HR-5, and HR-6 completed and verified.
 
 ## Last Updated
 
@@ -54,11 +54,16 @@ IN_PROGRESS — HR evolution in active local development. HR-0, HR-1, HR-2, HR-3
   - Database Migration: `20260925040000_hr_employment_events`.
   - Unified Employee Profile Tabs: `AdminEmployeeDetailPage` updated with 6 responsive tabs (`Resumo`, `Histórico`, `Documentos`, `Avaliações`, `Ponto & Frequência`, `Acesso ao app`). Implemented modals for profile editing, termination, reactivation, role assignment, event registration, access enabling with password setup, password reset, and document PDF preview/download, while fully preserving the monthly attendance calendar, day selector, punch adjustments, and manual punch modals.
   - Quality verification: 326 unit/tooling tests passed (API 165, desktop 85, shared 64, node tooling 12), 25 PostgreSQL integration tests passed applying all 10 migrations, 100% clean typecheck and lint (0 errors, 0 warnings), Prettier formatted, and production builds passing.
-- **Next Phase — HR-6**:
-  - Task HR6-001: Disciplinary conversation / verbal warning structured record, PDF template, draft confirmation, and idempotency.
-  - Task HR6-002: Written warning document, prior disciplinary references linked to the same employee.
-  - Task HR6-003: Disciplinary suspension document, date range validation, and documentary isolation (no automatic attendance changes).
-  - Task HR6-004: Disciplinary progression summary service, void handling (voids preserved in history, ignored in active summary), and progression unit tests.
+- **HR-6 Completed**:
+  - Disciplinary Actions Domain & Contracts: implemented pure domain logic `calculateDisciplinaryProgression` in `packages/shared/src/hr/discipline.ts` excluding voided actions from active stages and counts, enforcing suspension limits under CLT Art. 474 (1 to 30 days max), and tracking disciplinary progression stages (`NONE`, `VERBAL_WARNING`, `WRITTEN_WARNING`, `SUSPENSION`, `DISMISSAL_REVIEW`). Added unit test suite with 10 passing tests.
+  - Database Schema & Migration `20260925050000_hr_disciplinary_actions`: created `DisciplinaryAction` table with relations to `Company`, `User` (employee, issuer, voidedBy), `GeneratedDocument`, and self-relation for progressive lineage (`priorActionId`), with audit actions (`DISCIPLINARY_ACTION_CREATED`, `DISCIPLINARY_ACTION_VOIDED`).
+  - Backend Services & Controllers: HTML/CSS PDF templates in `DocumentTemplatesService` for `DISCIPLINE_VERBAL`, `DISCIPLINE_WRITTEN`, and `DISCIPLINE_SUSPENSION` with official PH Motopeças branding and signature lines; background render queue support; atomic creation on draft confirmation with automatic `EmploymentEvent` logging for suspensions; cascade voiding in `DocumentsService`; progression summary endpoint `GET /discipline/employees/:employeeId/summary` and audit-logged void endpoint `POST /discipline/actions/:id/void`.
+  - Frontend Pages: built `DisciplineDocumentPage` (`/admin/documentos/disciplina`) with mode selector, live progression summary banner, prior action linker, PDF preview modal, confirmation, and general history table with void modal. Added quick action "Medida Disciplinar" on `AdminEmployeeDetailPage` timeline tab and navigation item in `AdminLayout`.
+  - Quality verification: 356 unit/tooling tests passed (API 172, desktop 88, shared 84, node tooling 12), 25 PostgreSQL integration tests passed applying all 11 migrations, 100% clean typecheck and lint (0 errors, 0 warnings), Prettier formatted, and production builds passing.
+- **Next Phase — HR-7**:
+  - Task HR7-001: Performance evaluation criteria catalog with 8 canonical criteria, versioning, and company association.
+  - Task HR7-002: Performance reviews with bounded scores (1-5) and deterministic rounded mean calculation in pure domain.
+  - Task HR7-003: Performance review document drafts, HTML/CSS PDF templates, atomic confirmation, and history supersession.
 
 ## Local Interactive Test Environment — 2026-09-19
 

@@ -25,7 +25,7 @@ import {
   UserX,
   X,
 } from 'lucide-react';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import type {
   DailyAttendance,
@@ -705,14 +705,23 @@ export function AdminEmployeeDetailPage(): React.JSX.Element {
               ))}
             </div>
 
-            <button
-              type="button"
-              onClick={() => setCreateEventOpen(true)}
-              className="inline-flex items-center text-xs font-semibold py-2 px-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white transition-colors self-start md:self-auto"
-            >
-              <Plus className="w-3.5 h-3.5 mr-1.5" />
-              Novo Registro / Anotação
-            </button>
+            <div className="flex items-center gap-2 self-start md:self-auto">
+              <Link
+                to={`/admin/documentos/disciplina?employeeId=${id}`}
+                className="inline-flex items-center text-xs font-semibold py-2 px-3.5 rounded-xl border border-rose-300 dark:border-rose-800 text-rose-700 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
+              >
+                <ShieldAlert className="w-3.5 h-3.5 mr-1.5" />
+                Medida Disciplinar
+              </Link>
+              <button
+                type="button"
+                onClick={() => setCreateEventOpen(true)}
+                className="inline-flex items-center text-xs font-semibold py-2 px-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white transition-colors"
+              >
+                <Plus className="w-3.5 h-3.5 mr-1.5" />
+                Novo Registro / Anotação
+              </button>
+            </div>
           </div>
 
           {/* Timeline Stream */}

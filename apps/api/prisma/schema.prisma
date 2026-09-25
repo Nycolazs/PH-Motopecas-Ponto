@@ -165,6 +165,8 @@ enum AuditAction {
   EMPLOYMENT_EVENT_CREATED
   EMPLOYEE_TERMINATED
   EMPLOYEE_REACTIVATED
+  DISCIPLINARY_ACTION_CREATED
+  DISCIPLINARY_ACTION_VOIDED
 }
 
 enum AuditOutcome {
@@ -195,6 +197,7 @@ enum AuditTargetType {
   INTERVIEW
   ACKNOWLEDGMENT
   EMPLOYMENT_EVENT
+  DISCIPLINARY_ACTION
 }
 
 enum InterviewRecommendation {
@@ -224,6 +227,12 @@ enum TerminationReason {
   MUTUAL_AGREEMENT
   CONTRACT_EXPIRATION
   OTHER
+}
+
+enum DisciplinaryActionType {
+  VERBAL_WARNING
+  WRITTEN_WARNING
+  SUSPENSION
 }
 
 model User {
@@ -269,6 +278,9 @@ model User {
   employeeAcknowledgments    EmployeeDocumentAcknowledgment[] @relation("EmployeeAcknowledgments")
   employmentEvents           EmploymentEvent[]                @relation("EmployeeEmploymentEvents")
   createdEmploymentEvents    EmploymentEvent[]                @relation("EmploymentEventsCreatedBy")
+  disciplinaryActionsReceived DisciplinaryAction[]            @relation("DisciplinaryEmployee")
+  disciplinaryActionsIssued   DisciplinaryAction[]            @relation("DisciplinaryIssuer")
+  disciplinaryActionsVoided   DisciplinaryAction[]            @relation("DisciplinaryVoidedBy")
 
   @@index([role, isActive])
   @@index([role, accessEnabled])
@@ -587,6 +599,7 @@ model Company {
   generatedDocuments  GeneratedDocument[]
   cultureProfile      CultureProfile?
   companyRegulation   CompanyRegulation?
+  disciplinaryActions DisciplinaryAction[]
 
   @@map("companies")
 }
@@ -762,6 +775,7 @@ model GeneratedDocument {
   regulationVersions     CompanyRegulationVersion[]
   hiringInterviews       HiringInterview[]
   acknowledgment         EmployeeDocumentAcknowledgment?
+  disciplinaryAction     DisciplinaryAction?
 
   @@index([companyId, documentType])
   @@index([employeeId])
@@ -901,4 +915,41 @@ model EmploymentEvent {
   @@index([employeeId, effectiveDate(sort: Desc)])
   @@index([employeeId, eventType])
   @@map("employment_events")
+}
+
+model DisciplinaryAction {
+  id                  String                 @id @default(uuid()) @db.Uuid
+  companyId           String                 @map("company_id") @db.Uuid
+  employeeId          String                 @map("employee_id") @db.Uuid
+  issuerId            String                 @map("issuer_id") @db.Uuid
+  actionType          DisciplinaryActionType @map("action_type")
+  documentType        DocumentType           @map("document_type")
+  incidentDate        DateTime               @map("incident_date") @db.Date
+  reason              String                 @db.VarChar(200)
+  details             String                 @db.Text
+  internalClauseRef   String?                @map("internal_clause_ref") @db.VarChar(200)
+  suspensionDays      Int?                   @map("suspension_days")
+  suspensionStartDate DateTime?              @map("suspension_start_date") @db.Date
+  suspensionEndDate   DateTime?              @map("suspension_end_date") @db.Date
+  priorActionId       String?                @map("prior_action_id") @db.Uuid
+  generatedDocumentId String?                @unique @map("generated_document_id") @db.Uuid
+  isVoid              Boolean                @default(false) @map("is_void")
+  voidReason          String?                @map("void_reason") @db.VarChar(255)
+  voidedById          String?                @map("voided_by_id") @db.Uuid
+  voidedAt            DateTime?              @map("voided_at") @db.Timestamptz(6)
+  createdAt           DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime               @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  company           Company             @relation(fields: [companyId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  employee          User                @relation("DisciplinaryEmployee", fields: [employeeId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  issuer            User                @relation("DisciplinaryIssuer", fields: [issuerId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  priorAction       DisciplinaryAction? @relation("DisciplinaryProgression", fields: [priorActionId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  subsequentActions DisciplinaryAction[] @relation("DisciplinaryProgression")
+  generatedDocument GeneratedDocument?  @relation(fields: [generatedDocumentId], references: [id], onDelete: SetNull, onUpdate: Restrict)
+  voidedBy          User?               @relation("DisciplinaryVoidedBy", fields: [voidedById], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@index([employeeId, incidentDate(sort: Desc)])
+  @@index([employeeId, actionType])
+  @@index([companyId, actionType])
+  @@map("disciplinary_actions")
 }

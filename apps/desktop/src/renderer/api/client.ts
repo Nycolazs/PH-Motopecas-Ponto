@@ -99,6 +99,11 @@ import {
   type TerminateEmployeeDto,
   type PaginatedTimelineDto,
   type TimelineCategoryDto,
+  disciplinaryActionSchema,
+  disciplinaryProgressionSummarySchema,
+  type DisciplinaryActionDto,
+  type DisciplinaryProgressionSummaryDto,
+  type VoidDisciplinaryActionDto,
 } from './contracts.js';
 
 function getDefaultApiBaseUrl(): string {
@@ -1043,6 +1048,58 @@ export class ApiClient {
       paginatedTimelineSchema,
       {
         ...(signal === undefined ? {} : { signal }),
+      },
+    );
+  }
+
+  // Disciplinary Actions & Progression
+  public getDisciplinarySummary(
+    employeeId: string,
+    signal?: AbortSignal,
+  ): Promise<DisciplinaryProgressionSummaryDto> {
+    return this.request(
+      `/discipline/employees/${encodeURIComponent(employeeId)}/summary`,
+      disciplinaryProgressionSummarySchema,
+      {
+        ...(signal === undefined ? {} : { signal }),
+      },
+    );
+  }
+
+  public listDisciplinaryActions(
+    params?: { employeeId?: string; isVoid?: boolean },
+    signal?: AbortSignal,
+  ): Promise<DisciplinaryActionDto[]> {
+    const q = new URLSearchParams();
+    if (params?.employeeId) q.set('employeeId', params.employeeId);
+    if (params?.isVoid !== undefined) q.set('isVoid', String(params.isVoid));
+    const qs = q.toString();
+    return this.request(
+      `/discipline/actions${qs ? `?${qs}` : ''}`,
+      z.array(disciplinaryActionSchema),
+      {
+        ...(signal === undefined ? {} : { signal }),
+      },
+    );
+  }
+
+  public getDisciplinaryAction(id: string, signal?: AbortSignal): Promise<DisciplinaryActionDto> {
+    return this.request(`/discipline/actions/${encodeURIComponent(id)}`, disciplinaryActionSchema, {
+      ...(signal === undefined ? {} : { signal }),
+    });
+  }
+
+  public voidDisciplinaryAction(
+    id: string,
+    data: VoidDisciplinaryActionDto,
+  ): Promise<DisciplinaryActionDto> {
+    return this.request(
+      `/discipline/actions/${encodeURIComponent(id)}/void`,
+      disciplinaryActionSchema,
+      {
+        method: 'POST',
+        body: JSON.stringify(data),
+        headers: { 'Content-Type': 'application/json' },
       },
     );
   }

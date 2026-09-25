@@ -3,6 +3,9 @@ import type {
   AcknowledgmentRegulationPayloadDto,
   AcknowledgmentRolePayloadDto,
   CulturePayloadDto,
+  DisciplineSuspensionPayloadDto,
+  DisciplineVerbalPayloadDto,
+  DisciplineWrittenPayloadDto,
   InterviewPayloadDto,
   RegulationPayloadDto,
   RoleMapPayloadDto,
@@ -111,6 +114,21 @@ export class RenderJobsService {
         case DocumentType.ACKNOWLEDGMENT_ROLE: {
           const payload = job.payload as unknown as AcknowledgmentRolePayloadDto;
           html = this.templates.renderAcknowledgmentRoleDocument(company, payload);
+          break;
+        }
+        case DocumentType.DISCIPLINE_VERBAL: {
+          const payload = job.payload as unknown as DisciplineVerbalPayloadDto;
+          html = this.templates.renderDisciplineVerbalDocument(company, payload);
+          break;
+        }
+        case DocumentType.DISCIPLINE_WRITTEN: {
+          const payload = job.payload as unknown as DisciplineWrittenPayloadDto;
+          html = this.templates.renderDisciplineWrittenDocument(company, payload);
+          break;
+        }
+        case DocumentType.DISCIPLINE_SUSPENSION: {
+          const payload = job.payload as unknown as DisciplineSuspensionPayloadDto;
+          html = this.templates.renderDisciplineSuspensionDocument(company, payload);
           break;
         }
         default:

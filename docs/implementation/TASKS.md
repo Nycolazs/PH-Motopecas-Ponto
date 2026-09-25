@@ -29,10 +29,10 @@ Statuses: pending, active, review, done, blocked. A planned task is never eviden
 | HR5-002 | done    | backend           | employee-history                      | HR-4       | Stable paginated projection, no duplicates                         |
 | HR5-003 | done    | backend           | access                                | HR-4       | Revocation and preserved employment                                |
 | HR5-004 | done    | backend           | employment events                     | HR-4       | Manual termination and archive history                             |
-| HR6-001 | pending | discipline        | conversation/verbal                   | HR-5       | Structured record, PDF, idempotency                                |
-| HR6-002 | pending | discipline        | written warnings                      | HR-5       | Same-employee prior references                                     |
-| HR6-003 | pending | discipline        | suspension                            | HR-5       | Valid period, no attendance effects                                |
-| HR6-004 | pending | discipline        | summary/voids                         | HR-5       | Pure progression tests                                             |
+| HR6-001 | done    | discipline        | conversation/verbal                   | HR-5       | Structured record, PDF, idempotency                                |
+| HR6-002 | done    | discipline        | written warnings                      | HR-5       | Same-employee prior references                                     |
+| HR6-003 | done    | discipline        | suspension                            | HR-5       | Valid period, no attendance effects                                |
+| HR6-004 | done    | discipline        | summary/voids                         | HR-5       | Pure progression tests                                             |
 | HR7-001 | pending | performance       | criteria                              | HR-6       | Versioned criteria                                                 |
 | HR7-002 | pending | performance       | reviews/scores                        | HR-6       | Bounded scores and deterministic mean                              |
 | HR7-003 | pending | documents         | review document/history               | HR-6       | Supersession preserves history                                     |

@@ -5,6 +5,9 @@ import type {
   AcknowledgmentRegulationPayloadDto,
   AcknowledgmentRolePayloadDto,
   CulturePayloadDto,
+  DisciplineSuspensionPayloadDto,
+  DisciplineVerbalPayloadDto,
+  DisciplineWrittenPayloadDto,
   InterviewPayloadDto,
   RegulationPayloadDto,
   RoleMapPayloadDto,
@@ -793,6 +796,465 @@ export class DocumentTemplatesService {
       <div class="signature-role">${escapeHtml(company.tradeName)}</div>
     </div>
   </div>
+</body>
+</html>`;
+  }
+
+  public renderDisciplineVerbalDocument(
+    company: Company,
+    payload: DisciplineVerbalPayloadDto,
+    publishedAt: Date = new Date(),
+  ): string {
+    const formattedPubDate = formatDateBR(publishedAt);
+    const formattedIncidentDate = formatDateBR(payload.incidentDate);
+    const city = company.addressCity ?? 'São Paulo';
+    const state = company.addressState ?? 'SP';
+
+    const witnessesHtml =
+      payload.witnesses && payload.witnesses.length > 0
+        ? `
+  <div class="section" style="margin-top: 20px;">
+    <h3 class="section-title">Testemunhas Presentes</h3>
+    <table class="meta-table">
+      ${payload.witnesses
+        .map(
+          (w, idx) => `
+        <tr>
+          <th>Testemunha ${idx + 1}:</th>
+          <td>${escapeHtml(w.name)}</td>
+          <th>CPF:</th>
+          <td>${escapeHtml(w.cpf ?? 'Não informado')}</td>
+        </tr>`,
+        )
+        .join('')}
+    </table>
+  </div>`
+        : '';
+
+    const witnessSignaturesHtml =
+      payload.witnesses && payload.witnesses.length > 0
+        ? `
+  <div class="footer-signatures" style="margin-top: 30px;">
+    ${payload.witnesses
+      .map(
+        (w) => `
+      <div class="signature-block" style="width: 220px;">
+        <div class="signature-line"></div>
+        <div class="signature-name">${escapeHtml(w.name)}</div>
+        <div class="signature-role">Testemunha</div>
+      </div>`,
+      )
+      .join('')}
+  </div>`
+        : '';
+
+    return `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Registro de Conversa Disciplinar - ${escapeHtml(payload.employeeName)}</title>
+  <style>
+    ${this.getBaseStyles()}
+  </style>
+</head>
+<body>
+  ${this.buildHeaderHtml(company)}
+
+  <div class="document-title-block">
+    <h1 class="document-title">Registro Formal de Conversa Disciplinar e Orientação Funcional</h1>
+    <div class="document-meta">Procedimento Disciplinar Orientativo • Advertência Verbal Formalizada</div>
+  </div>
+
+  <table class="meta-table">
+    <tr>
+      <th>Colaborador(a):</th>
+      <td><strong>${escapeHtml(payload.employeeName)}</strong></td>
+      <th>CPF:</th>
+      <td>${escapeHtml(payload.employeeCpf ?? 'Registrado no Prontuário')}</td>
+    </tr>
+    <tr>
+      <th>Função / Cargo:</th>
+      <td>${escapeHtml(payload.employeeRole ?? 'Colaborador Operacional')}</td>
+      <th>Data do Ocorrido:</th>
+      <td>${formattedIncidentDate}</td>
+    </tr>
+    <tr>
+      <th>Local da Ocorrência:</th>
+      <td colspan="3">${escapeHtml(payload.location ?? 'Sede da PH Motopeças')}</td>
+    </tr>
+  </table>
+
+  <div class="section">
+    <h3 class="section-title">1. Motivo e Relato dos Fatos Observados</h3>
+    <div class="section-box">
+      <p style="font-weight: 600; margin-bottom: 8px; color: #1e3a8a;">Motivo: ${escapeHtml(payload.reason)}</p>
+      <p style="white-space: pre-wrap; line-height: 1.6;">${escapeHtml(payload.details)}</p>
+    </div>
+  </div>
+
+  ${
+    payload.internalClauseRef
+      ? `
+  <div class="section">
+    <h3 class="section-title">2. Dispositivo Regulamentar Pertinente</h3>
+    <div class="section-box">
+      <p>Constatou-se inobservância às diretrizes fixadas no Regimento Interno da empresa: <strong>${escapeHtml(payload.internalClauseRef)}</strong>.</p>
+    </div>
+  </div>`
+      : ''
+  }
+
+  <div class="section">
+    <h3 class="section-title">3. Orientações e Medidas Pedagógicas</h3>
+    <div class="section-box">
+      <p style="margin-bottom: 8px;">
+        Nesta data, o(a) colaborador(a) acima qualificado(a) foi orientado(a) verbalmente quanto à conduta profissional e técnica esperada, reforçando a importância do cumprimento rigoroso dos procedimentos operacionais, horários e normas da empresa.
+      </p>
+      ${
+        payload.commitment
+          ? `<p style="margin-top: 8px; font-weight: 500;"><strong>Compromisso do Colaborador:</strong> ${escapeHtml(payload.commitment)}</p>`
+          : ''
+      }
+    </div>
+  </div>
+
+  <div class="section">
+    <h3 class="section-title">4. Notificação de Reincidência e Progressão Disciplinar</h3>
+    <div class="section-box" style="background-color: #f8fafc; border-left: 4px solid #3b82f6;">
+      <p style="font-size: 9pt; color: #334155;">
+        O(A) colaborador(a) fica expressamente ciente de que esta medida possui caráter pedagógico e orientativo. A reiteração na mesma conduta ou cometimento de nova infração sujeitará o(a) empregado(a) a penalidades mais severas, tais como Advertência Escrita, Suspensão Disciplinar e eventual Rescisão Contratual por Justa Causa, nos termos da CLT.
+      </p>
+    </div>
+  </div>
+
+  ${witnessesHtml}
+
+  <p style="text-align: right; margin-top: 24px; font-weight: 500; font-size: 9pt;">
+    ${escapeHtml(city)} - ${escapeHtml(state)}, ${formattedPubDate}.
+  </p>
+
+  <div class="footer-signatures" style="margin-top: 50px;">
+    <div class="signature-block" style="width: 250px;">
+      <div class="signature-line"></div>
+      <div class="signature-name">${escapeHtml(payload.employeeName)}</div>
+      <div class="signature-role">Colaborador(a) Orientado(a)</div>
+    </div>
+    <div class="signature-block" style="width: 250px;">
+      <div class="signature-line"></div>
+      <div class="signature-name">Gestor Imediato / Liderança</div>
+      <div class="signature-role">${escapeHtml(company.tradeName)}</div>
+    </div>
+  </div>
+
+  ${witnessSignaturesHtml}
+</body>
+</html>`;
+  }
+
+  public renderDisciplineWrittenDocument(
+    company: Company,
+    payload: DisciplineWrittenPayloadDto,
+    publishedAt: Date = new Date(),
+  ): string {
+    const formattedPubDate = formatDateBR(publishedAt);
+    const formattedIncidentDate = formatDateBR(payload.incidentDate);
+    const city = company.addressCity ?? 'São Paulo';
+    const state = company.addressState ?? 'SP';
+
+    const witnessesHtml =
+      payload.witnesses && payload.witnesses.length > 0
+        ? `
+  <div class="section" style="margin-top: 20px;">
+    <h3 class="section-title">Testemunhas</h3>
+    <table class="meta-table">
+      ${payload.witnesses
+        .map(
+          (w, idx) => `
+        <tr>
+          <th>Testemunha ${idx + 1}:</th>
+          <td>${escapeHtml(w.name)}</td>
+          <th>CPF:</th>
+          <td>${escapeHtml(w.cpf ?? 'Não informado')}</td>
+        </tr>`,
+        )
+        .join('')}
+    </table>
+  </div>`
+        : '';
+
+    const witnessSignaturesHtml =
+      payload.witnesses && payload.witnesses.length > 0
+        ? `
+  <div class="footer-signatures" style="margin-top: 30px;">
+    ${payload.witnesses
+      .map(
+        (w) => `
+      <div class="signature-block" style="width: 220px;">
+        <div class="signature-line"></div>
+        <div class="signature-name">${escapeHtml(w.name)}</div>
+        <div class="signature-role">Testemunha</div>
+      </div>`,
+      )
+      .join('')}
+  </div>`
+        : '';
+
+    return `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Termo de Advertência Disciplinar Escrita - ${escapeHtml(payload.employeeName)}</title>
+  <style>
+    ${this.getBaseStyles()}
+  </style>
+</head>
+<body>
+  ${this.buildHeaderHtml(company)}
+
+  <div class="document-title-block">
+    <h1 class="document-title">Termo de Advertência Disciplinar Escrita</h1>
+    <div class="document-meta">Aplicação de Penalidade Disciplinar nos Termos da Legislação Trabalhista (CLT)</div>
+  </div>
+
+  <table class="meta-table">
+    <tr>
+      <th>Colaborador(a):</th>
+      <td><strong>${escapeHtml(payload.employeeName)}</strong></td>
+      <th>CPF:</th>
+      <td>${escapeHtml(payload.employeeCpf ?? 'Registrado no Prontuário')}</td>
+    </tr>
+    <tr>
+      <th>Função / Cargo:</th>
+      <td>${escapeHtml(payload.employeeRole ?? 'Colaborador')}</td>
+      <th>Data do Ocorrido:</th>
+      <td>${formattedIncidentDate}</td>
+    </tr>
+    <tr>
+      <th>Local da Ocorrência:</th>
+      <td colspan="3">${escapeHtml(payload.location ?? 'Instalações da Empresa')}</td>
+    </tr>
+  </table>
+
+  <div class="section">
+    <h3 class="section-title">1. Motivo e Descrição dos Fatos</h3>
+    <div class="section-box">
+      <p style="font-weight: 600; margin-bottom: 8px; color: #b91c1c;">Infração: ${escapeHtml(payload.reason)}</p>
+      <p style="white-space: pre-wrap; line-height: 1.6;">${escapeHtml(payload.details)}</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3 class="section-title">2. Enquadramento Legal e Normativo</h3>
+    <div class="section-box">
+      ${
+        payload.legalBasisRef
+          ? `<p style="margin-bottom: 6px;"><strong>Dispositivo Legal:</strong> ${escapeHtml(payload.legalBasisRef)}.</p>`
+          : '<p style="margin-bottom: 6px;"><strong>Dispositivo Legal:</strong> Artigo 482 e prerrogativas do poder disciplinar empregatício (Artigo 2º da CLT).</p>'
+      }
+      ${
+        payload.internalClauseRef
+          ? `<p><strong>Norma Interna:</strong> ${escapeHtml(payload.internalClauseRef)}.</p>`
+          : ''
+      }
+    </div>
+  </div>
+
+  <div class="section">
+    <h3 class="section-title">3. Advertência Formal e Notificação de Reincidência</h3>
+    <div class="section-box" style="background-color: #fff1f2; border-left: 4px solid #e11d48;">
+      <p style="margin-bottom: 8px;">
+        Servimo-nos do presente para aplicar-lhe <strong>ADVERTÊNCIA DISCIPLINAR ESCRITA</strong> pela falta cometida, solicitando que doravante adote comportamento e conduta condizentes com os padrões exigidos.
+      </p>
+      <p style="font-size: 9pt; color: #881337;">
+        ${
+          payload.consequencesNote
+            ? escapeHtml(payload.consequencesNote)
+            : 'Fica expressamente advertido(a) de que a reincidência na mesma conduta ou a prática de qualquer outra falta funcional sujeitará V. Sa. a sanções mais severas, inclusive Suspensão Disciplinar ou Rescisão do Contrato de Trabalho por Justa Causa, consoante os termos do art. 482 da CLT.'
+        }
+      </p>
+    </div>
+  </div>
+
+  ${witnessesHtml}
+
+  <p style="text-align: right; margin-top: 24px; font-weight: 500; font-size: 9pt;">
+    ${escapeHtml(city)} - ${escapeHtml(state)}, ${formattedPubDate}.
+  </p>
+
+  <div class="footer-signatures" style="margin-top: 50px;">
+    <div class="signature-block" style="width: 250px;">
+      <div class="signature-line"></div>
+      <div class="signature-name">${escapeHtml(payload.employeeName)}</div>
+      <div class="signature-role">Ciente do Colaborador</div>
+    </div>
+    <div class="signature-block" style="width: 250px;">
+      <div class="signature-line"></div>
+      <div class="signature-name">Diretoria / RH</div>
+      <div class="signature-role">${escapeHtml(company.tradeName)}</div>
+    </div>
+  </div>
+
+  ${witnessSignaturesHtml}
+</body>
+</html>`;
+  }
+
+  public renderDisciplineSuspensionDocument(
+    company: Company,
+    payload: DisciplineSuspensionPayloadDto,
+    publishedAt: Date = new Date(),
+  ): string {
+    const formattedPubDate = formatDateBR(publishedAt);
+    const formattedIncidentDate = formatDateBR(payload.incidentDate);
+    const formattedStartDate = formatDateBR(payload.suspensionStartDate);
+    const formattedEndDate = formatDateBR(payload.suspensionEndDate);
+    const formattedReturnDate = formatDateBR(payload.returnDate);
+    const city = company.addressCity ?? 'São Paulo';
+    const state = company.addressState ?? 'SP';
+
+    const witnessesHtml =
+      payload.witnesses && payload.witnesses.length > 0
+        ? `
+  <div class="section" style="margin-top: 20px;">
+    <h3 class="section-title">Testemunhas</h3>
+    <table class="meta-table">
+      ${payload.witnesses
+        .map(
+          (w, idx) => `
+        <tr>
+          <th>Testemunha ${idx + 1}:</th>
+          <td>${escapeHtml(w.name)}</td>
+          <th>CPF:</th>
+          <td>${escapeHtml(w.cpf ?? 'Não informado')}</td>
+        </tr>`,
+        )
+        .join('')}
+    </table>
+  </div>`
+        : '';
+
+    const witnessSignaturesHtml =
+      payload.witnesses && payload.witnesses.length > 0
+        ? `
+  <div class="footer-signatures" style="margin-top: 30px;">
+    ${payload.witnesses
+      .map(
+        (w) => `
+      <div class="signature-block" style="width: 220px;">
+        <div class="signature-line"></div>
+        <div class="signature-name">${escapeHtml(w.name)}</div>
+        <div class="signature-role">Testemunha</div>
+      </div>`,
+      )
+      .join('')}
+  </div>`
+        : '';
+
+    return `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Termo de Suspensão Disciplinar - ${escapeHtml(payload.employeeName)}</title>
+  <style>
+    ${this.getBaseStyles()}
+  </style>
+</head>
+<body>
+  ${this.buildHeaderHtml(company)}
+
+  <div class="document-title-block">
+    <h1 class="document-title">Termo de Suspensão Disciplinar</h1>
+    <div class="document-meta">Aplicação de Penalidade de Suspensão com Base no Artigo 474 da CLT</div>
+  </div>
+
+  <table class="meta-table">
+    <tr>
+      <th>Colaborador(a):</th>
+      <td><strong>${escapeHtml(payload.employeeName)}</strong></td>
+      <th>CPF:</th>
+      <td>${escapeHtml(payload.employeeCpf ?? 'Registrado no Prontuário')}</td>
+    </tr>
+    <tr>
+      <th>Função / Cargo:</th>
+      <td>${escapeHtml(payload.employeeRole ?? 'Colaborador')}</td>
+      <th>Data do Ocorrido:</th>
+      <td>${formattedIncidentDate}</td>
+    </tr>
+    <tr>
+      <th>Prazo da Suspensão:</th>
+      <td><strong>${payload.suspensionDays} ${payload.suspensionDays === 1 ? 'dia' : 'dias'}</strong></td>
+      <th>Período de Afastamento:</th>
+      <td>De ${formattedStartDate} até ${formattedEndDate}</td>
+    </tr>
+    <tr>
+      <th>Retorno ao Trabalho:</th>
+      <td colspan="3"><strong style="color: #1e3a8a;">${formattedReturnDate}</strong> (no horário normal de início de expediente)</td>
+    </tr>
+  </table>
+
+  <div class="section">
+    <h3 class="section-title">1. Motivo e Fundamentação dos Fatos</h3>
+    <div class="section-box">
+      <p style="font-weight: 600; margin-bottom: 8px; color: #b91c1c;">Falta Cometida: ${escapeHtml(payload.reason)}</p>
+      <p style="white-space: pre-wrap; line-height: 1.6;">${escapeHtml(payload.details)}</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3 class="section-title">2. Penalidade Disciplinar Aplicada</h3>
+    <div class="section-box">
+      <p style="margin-bottom: 8px;">
+        Em virtude da gravidade do fato acima narrado e da inobservância das normas da empresa, comunicamos que V. Sa. fica <strong>SUSPENSO(A) DISCIPLINARMENTE DE SUAS FUNÇÕES</strong> pelo período de <strong>${payload.suspensionDays} (${payload.suspensionDays === 1 ? 'dia' : 'dias'})</strong>, com início em <strong>${formattedStartDate}</strong> e término em <strong>${formattedEndDate}</strong>.
+      </p>
+      <p style="margin-bottom: 8px;">
+        Deverá retornar impreterivelmente às suas atividades profissionais no dia <strong>${formattedReturnDate}</strong>, em seu horário contratual habitual.
+      </p>
+      ${
+        payload.legalBasisRef
+          ? `<p style="margin-top: 6px;"><strong>Dispositivo Legal:</strong> ${escapeHtml(payload.legalBasisRef)} e Art. 474 da CLT.</p>`
+          : '<p style="margin-top: 6px;"><strong>Dispositivo Legal:</strong> Artigo 474 e Artigo 482 da CLT.</p>'
+      }
+      ${
+        payload.internalClauseRef
+          ? `<p><strong>Regimento Interno:</strong> ${escapeHtml(payload.internalClauseRef)}.</p>`
+          : ''
+      }
+    </div>
+  </div>
+
+  <div class="section">
+    <h3 class="section-title">3. Notificação Final sobre Reincidência e Rescisão por Justa Causa</h3>
+    <div class="section-box" style="background-color: #fef2f2; border-left: 4px solid #dc2626;">
+      <p style="font-size: 9.5pt; color: #991b1b; line-height: 1.6;">
+        ${
+          payload.consequencesNote
+            ? escapeHtml(payload.consequencesNote)
+            : 'Fica expressamente cientificado(a) de que a reincidência na mesma conduta, ou a prática de qualquer outra falta violadora das obrigações contratuais e do Regimento Interno, acarretará a imediata RESCISÃO DO CONTRATO DE TRABALHO POR JUSTA CAUSA, com fundamento no artigo 482 da Consolidação das Leis do Trabalho (CLT).'
+        }
+      </p>
+    </div>
+  </div>
+
+  ${witnessesHtml}
+
+  <p style="text-align: right; margin-top: 24px; font-weight: 500; font-size: 9pt;">
+    ${escapeHtml(city)} - ${escapeHtml(state)}, ${formattedPubDate}.
+  </p>
+
+  <div class="footer-signatures" style="margin-top: 50px;">
+    <div class="signature-block" style="width: 250px;">
+      <div class="signature-line"></div>
+      <div class="signature-name">${escapeHtml(payload.employeeName)}</div>
+      <div class="signature-role">Ciente do Colaborador</div>
+    </div>
+    <div class="signature-block" style="width: 250px;">
+      <div class="signature-line"></div>
+      <div class="signature-name">Diretoria Executiva / RH</div>
+      <div class="signature-role">${escapeHtml(company.tradeName)}</div>
+    </div>
+  </div>
+
+  ${witnessSignaturesHtml}
 </body>
 </html>`;
   }
