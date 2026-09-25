@@ -2,11 +2,11 @@
 
 ## Current Phase
 
-HR-3 — Document drafts, storage, jobs, templates, PDF preview, archive, and Culture document
+HR-4 — Company Internal Regulations 6-step wizard, versioning, acknowledgment terms, and role map documents
 
 ## Overall Status
 
-IN_PROGRESS — HR evolution in active local development. HR-0, HR-1, and HR-2 completed and verified.
+IN_PROGRESS — HR evolution in active local development. HR-0, HR-1, HR-2, and HR-3 completed and verified.
 
 ## Last Updated
 
@@ -30,14 +30,21 @@ IN_PROGRESS — HR evolution in active local development. HR-0, HR-1, and HR-2 c
   - Company Singleton: backend `Company` model and singleton endpoints (`GET /company`, `PUT /company`, `GET /company/setup-status`) with DTO validation and audit logging.
   - Identity & Access Separation: decoupled application access (`accessEnabled`) from employment (`isActive`) while preserving existing users, IDs, and attendance streams. Added `EmployeeProfile` model for HR metadata (CPF, RG, birthDate, hireDate, phone, email, notes). Added `PATCH /employees/:id/access`, `GET /employees/:id/profile`, and `PUT /employees/:id/profile`.
   - Job Roles & Versioning: backend `JobRole`, `JobRoleVersion`, and `EmployeeRoleAssignment` models with migration `20260925010000_hr_company_roles_access`. Full endpoints for role listing, creation, version publication, and assignment with non-overlapping principal role validation.
-  - Responsive Navigation Shell & Admin Pages: redesigned admin sidebar into grouped sections (*Início & Empresa*, *Gestão de Frequência*, *Sistema & Segurança*). Built `SetupDashboardPage` (`/admin`) with 6 onboarding milestones, `CompanyPage` (`/admin/empresa`) for company metadata, and `JobRolesPage` (`/admin/cargos`) for role catalog and version history. Preserved existing operational dashboard on `/admin/gestao`.
+  - Responsive Navigation Shell & Admin Pages: redesigned admin sidebar into grouped sections (_Início & Empresa_, _Gestão de Frequência_, _Sistema & Segurança_). Built `SetupDashboardPage` (`/admin`) with 6 onboarding milestones, `CompanyPage` (`/admin/empresa`) for company metadata, and `JobRolesPage` (`/admin/cargos`) for role catalog and version history. Preserved existing operational dashboard on `/admin/gestao`.
   - Quality verification: 275 unit/tooling tests passed (API 127, desktop 72, shared 64, node tooling 12), 25 PostgreSQL integration tests passed applying all 7 migrations, 100% clean typecheck and lint (0 errors, 0 warnings), Prettier formatted, and production builds passing.
-- **Next Phase — HR-3**:
-  - Task HR3-001: Backend `DocumentDraft` model with optimistic revisioning, autosave schema, and draft conflict detection.
-  - Task HR3-002: Private artifact storage, render jobs queue with leasing/retries, and safe Playwright HTML/CSS-to-PDF rendering.
-  - Task HR3-003: Document preparation, PDF preview generation with PDF.js, and atomic confirmation promoting reviewed bytes to `GeneratedDocument`.
-  - Task HR3-004: Frontend Document Archive with search, pagination, and download.
-  - Task HR3-005: Culture document wizard (mission, vision, values, motto), preview, confirmation, and integration with Setup Dashboard requirement.
+- **HR-3 Completed**:
+  - Document Drafts & Concurrency: backend `DocumentDraft` model with optimistic revisioning, autosave support, server-side validation on preparation/confirmation, and conflict detection. Endpoints: `GET /documents/drafts`, `GET /documents/drafts/:id`, `POST /documents/drafts`, `DELETE /documents/drafts/:id`, `POST /documents/drafts/:id/prepare`, `POST /documents/drafts/:id/confirm`.
+  - Storage & Background Render Jobs: `DocumentArtifact`, `RenderJob` models with leases, retry limits, and status tracking (`PENDING`, `PROCESSING`, `COMPLETED`, `FAILED`). Private artifact storage with SHA-256 deduplication and safe Playwright Chromium HTML-to-PDF rendering without remote network access.
+  - Document Archive & Voiding: `GeneratedDocument` immutable records with explicit voiding (`POST /documents/:id/void` with mandatory justification), PDF download (`GET /documents/:id/download`), PDF preview (`GET /documents/artifacts/:id/preview`), and paginated search/filter list (`GET /documents`).
+  - Culture Profile: `CultureProfile` and `CultureProfileVersion` singleton models for company mission, vision, values, and motto with version increments upon draft confirmation. Endpoints: `GET /culture`, `GET /culture/versions`.
+  - Frontend Pages: `CultureDocumentPage` (`/admin/documentos/cultura`) with dynamic values, autosave, PDF preview modal, confirmation, and version history. `DocumentsArchivePage` (`/admin/documentos`) with filter tabs (All, Active, Voided), type filter, search, PDF preview, and void modal. Added navigation links in `AdminLayout` and routes in `App.tsx`.
+  - Database Migration: `20260925020000_hr_document_drafts_artifacts_culture`.
+  - Quality verification: 297 unit/tooling tests passed (API 145, desktop 76, shared 64, node tooling 12), 25 PostgreSQL integration tests passed applying all 8 migrations, 100% clean typecheck and lint (0 errors, 0 warnings), Prettier formatted, and production builds passing.
+- **Next Phase — HR-4**:
+  - Task HR4-001: Company Internal Regulations 6-step persisted wizard (Empresa, Jornada, Conduta, Tecnologia, Disciplina, Revisão), versioning, and document publication.
+  - Task HR4-002: Role Map (Descrição de Cargo) document generator and version snapshot publishing.
+  - Task HR4-003: Hiring Interview (Entrevista de Contratação) guide document generation without silently creating an employee.
+  - Task HR4-004: Acknowledgment terms (Termo de Ciência de Regimento e Termo de Ciência de Cargo) with exact references to published regulation and role versions.
 
 ## Local Interactive Test Environment — 2026-09-19
 

@@ -1,0 +1,4 @@
+export const DOCUMENTS_STORAGE_SUBDIR = 'documents';
+export const MAXIMUM_DOCUMENT_BYTES = 25 * 1024 * 1024; // 25 MB
+export const MAXIMUM_RENDER_JOB_ATTEMPTS = 3;
+export const RENDER_JOB_LEASE_SECONDS = 120;

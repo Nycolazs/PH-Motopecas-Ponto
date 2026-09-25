@@ -22,6 +22,9 @@ interface CompanyPrismaMock {
   employeeRoleAssignment: {
     groupBy: ReturnType<typeof vi.fn>;
   };
+  cultureProfileVersion: {
+    count: ReturnType<typeof vi.fn>;
+  };
   $transaction: ReturnType<typeof vi.fn>;
 }
 
@@ -52,6 +55,9 @@ describe('CompanyService', () => {
       },
       employeeRoleAssignment: {
         groupBy: vi.fn().mockResolvedValue([{ employeeId: 'emp-1' }]),
+      },
+      cultureProfileVersion: {
+        count: vi.fn().mockResolvedValue(1),
       },
       $transaction: vi.fn(async (cb: (tx: unknown) => Promise<unknown>) => cb(prismaMock)),
     };

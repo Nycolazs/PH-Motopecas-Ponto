@@ -62,6 +62,20 @@ import {
   type AssignEmployeeRoleDto,
   type EmployeeProfileDto,
   type UpdateEmployeeProfileDto,
+  documentDraftSchema,
+  generatedDocumentSchema,
+  documentListSchema,
+  cultureProfileSchema,
+  type DocumentDraftDto,
+  type SaveDocumentDraftDto,
+  type PrepareDocumentDraftDto,
+  type ConfirmDocumentDraftDto,
+  type GeneratedDocumentDto,
+  type ListDocumentsQueryDto,
+  type VoidDocumentDto,
+  type DocumentListDto,
+  type CultureProfileDto,
+  type DocumentTypeDto,
 } from './contracts.js';
 
 function getDefaultApiBaseUrl(): string {
@@ -701,6 +715,129 @@ export class ApiClient {
     );
   }
 
+  // Documents & Drafts
+  public getDraft(
+    documentType: DocumentTypeDto,
+    employeeId?: string,
+    signal?: AbortSignal,
+  ): Promise<DocumentDraftDto | null> {
+    const q = new URLSearchParams();
+    q.set('documentType', documentType);
+    if (employeeId) q.set('employeeId', employeeId);
+    return this.request(`/documents/drafts?${q.toString()}`, documentDraftSchema.nullable(), {
+      ...(signal === undefined ? {} : { signal }),
+    });
+  }
+
+  public getDraftById(id: string, signal?: AbortSignal): Promise<DocumentDraftDto> {
+    return this.request(`/documents/drafts/${encodeURIComponent(id)}`, documentDraftSchema, {
+      ...(signal === undefined ? {} : { signal }),
+    });
+  }
+
+  public saveDraft(data: SaveDocumentDraftDto): Promise<DocumentDraftDto> {
+    return this.request('/documents/drafts', documentDraftSchema, {
+      method: 'POST',
+      body: JSON.stringify(data),
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  public discardDraft(id: string): Promise<{ success: boolean }> {
+    return this.request(
+      `/documents/drafts/${encodeURIComponent(id)}`,
+      z.object({ success: z.boolean() }),
+      {
+        method: 'DELETE',
+      },
+    );
+  }
+
+  public prepareDraft(id: string, data: PrepareDocumentDraftDto): Promise<DocumentDraftDto> {
+    return this.request(
+      `/documents/drafts/${encodeURIComponent(id)}/prepare`,
+      documentDraftSchema,
+      {
+        method: 'POST',
+        body: JSON.stringify(data),
+        headers: { 'Content-Type': 'application/json' },
+      },
+    );
+  }
+
+  public confirmDraft(id: string, data: ConfirmDocumentDraftDto): Promise<GeneratedDocumentDto> {
+    return this.request(
+      `/documents/drafts/${encodeURIComponent(id)}/confirm`,
+      generatedDocumentSchema,
+      {
+        method: 'POST',
+        body: JSON.stringify(data),
+        headers: { 'Content-Type': 'application/json' },
+      },
+    );
+  }
+
+  public getDocuments(
+    params?: ListDocumentsQueryDto,
+    signal?: AbortSignal,
+  ): Promise<DocumentListDto> {
+    const q = new URLSearchParams();
+    if (params?.page) q.set('page', String(params.page));
+    if (params?.limit) q.set('limit', String(params.limit));
+    if (params?.documentType) q.set('documentType', params.documentType);
+    if (params?.employeeId) q.set('employeeId', params.employeeId);
+    if (params?.search) q.set('search', params.search);
+    if (params?.isVoid !== undefined) q.set('isVoid', String(params.isVoid));
+    const qs = q.toString();
+    return this.request(`/documents${qs ? `?${qs}` : ''}`, documentListSchema, {
+      ...(signal === undefined ? {} : { signal }),
+    });
+  }
+
+  public getDocumentById(id: string, signal?: AbortSignal): Promise<GeneratedDocumentDto> {
+    return this.request(`/documents/${encodeURIComponent(id)}`, generatedDocumentSchema, {
+      ...(signal === undefined ? {} : { signal }),
+    });
+  }
+
+  public voidDocument(id: string, data: VoidDocumentDto): Promise<GeneratedDocumentDto> {
+    return this.request(`/documents/${encodeURIComponent(id)}/void`, generatedDocumentSchema, {
+      method: 'POST',
+      body: JSON.stringify(data),
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  public async getArtifactPreviewBlob(artifactId: string, signal?: AbortSignal): Promise<Blob> {
+    const res = await this.requestBlob(
+      `/documents/artifacts/${encodeURIComponent(artifactId)}/preview`,
+      {
+        ...(signal === undefined ? {} : { signal }),
+      },
+    );
+    return res.blob;
+  }
+
+  public async downloadDocumentBlob(
+    id: string,
+    signal?: AbortSignal,
+  ): Promise<{ blob: Blob; filename: string }> {
+    const res = await this.requestBlob(`/documents/${encodeURIComponent(id)}/download`, {
+      ...(signal === undefined ? {} : { signal }),
+    });
+    return {
+      blob: res.blob,
+      filename: res.filename ?? `documento_${id}.pdf`,
+    };
+  }
+
+  // Culture
+  public getCulture(signal?: AbortSignal): Promise<CultureProfileDto> {
+    return this.request('/culture', cultureProfileSchema, {
+      ...(signal === undefined ? {} : { signal }),
+    });
+  }
+
   // Time Punch Adjustment Requests
   public createAdjustmentRequest(data: {
     timePunchId: string;
@@ -911,6 +1048,77 @@ export class ApiClient {
         problem?.details,
       );
     }
+  }
+
+  private async requestBlob(
+    path: string,
+    init: RequestInit = {},
+    didRefresh = false,
+  ): Promise<{ blob: Blob; filename?: string }> {
+    const session = this.dependencies.getSession();
+    if (session === null) {
+      this.dependencies.onSessionExpired();
+      throw new ApiClientError(
+        'HTTP',
+        'Sua sessão expirou. Entre novamente para continuar.',
+        401,
+        'AUTHENTICATION_REQUIRED',
+      );
+    }
+
+    let response: Response;
+    try {
+      response = await fetch(new URL(path, apiBaseUrl), {
+        ...init,
+        headers: {
+          Authorization: `Bearer ${session.accessToken}`,
+          ...init.headers,
+        },
+      });
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') throw error;
+      throw createNetworkError();
+    }
+
+    if (response.status === 401 && !didRefresh) {
+      try {
+        await this.dependencies.refreshSession();
+      } catch {
+        this.dependencies.onSessionExpired();
+        throw new ApiClientError(
+          'HTTP',
+          'Sua sessão expirou. Entre novamente para continuar.',
+          401,
+          'AUTHENTICATION_REQUIRED',
+        );
+      }
+      return this.requestBlob(path, init, true);
+    }
+
+    if (!response.ok) {
+      const problem = await parseProblem(response);
+      throw new ApiClientError(
+        'HTTP',
+        formatProblemMessage(problem),
+        response.status,
+        problem?.code,
+        problem?.details,
+      );
+    }
+
+    const disposition = response.headers.get('content-disposition');
+    let filename: string | undefined;
+    if (disposition) {
+      const match = disposition.match(/filename=["']?([^"';]+)["']?/);
+      if (match?.[1]) filename = match[1];
+    }
+
+    const blob = await response.blob();
+    const result: { blob: Blob; filename?: string } = { blob };
+    if (filename !== undefined) {
+      result.filename = filename;
+    }
+    return result;
   }
 
   private async request<T>(

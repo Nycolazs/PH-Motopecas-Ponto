@@ -10,7 +10,9 @@ import { AvatarsModule } from './avatars/avatars.module.js';
 import { CalendarExceptionsModule } from './calendar-exceptions/calendar-exceptions.module.js';
 import { CompanyModule } from './company/company.module.js';
 import { validateEnvironment } from './config/environment.js';
+import { CultureModule } from './culture/culture.module.js';
 import { DatabaseModule } from './database/database.module.js';
+import { DocumentsModule } from './documents/documents.module.js';
 import { EmployeesModule } from './employees/employees.module.js';
 import { HealthModule } from './health/health.module.js';
 import { RequestIdMiddleware } from './http/request-id.js';
@@ -40,6 +42,8 @@ import { VacationsModule } from './vacations/vacations.module.js';
     AdminsModule,
     CompanyModule,
     JobRolesModule,
+    DocumentsModule,
+    CultureModule,
     SchedulesModule,
     CalendarExceptionsModule,
     AttendanceModule,

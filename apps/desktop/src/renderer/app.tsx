@@ -23,6 +23,8 @@ import { IncompletePunchesPage } from './pages/admin/incomplete-punches-page.js'
 import { SetupDashboardPage } from './pages/admin/setup-dashboard-page.js';
 import { CompanyPage } from './pages/admin/company-page.js';
 import { JobRolesPage } from './pages/admin/job-roles-page.js';
+import { CultureDocumentPage } from './pages/admin/culture-document-page.js';
+import { DocumentsArchivePage } from './pages/admin/documents-archive-page.js';
 import { EmployeeHomePage } from './pages/employee-home-page.js';
 import { HistoryPage } from './pages/history-page.js';
 import { LoginPage } from './pages/login-page.js';
@@ -48,6 +50,8 @@ function AppRoutes(): React.JSX.Element {
           <Route index element={<SetupDashboardPage />} />
           <Route path="empresa" element={<CompanyPage />} />
           <Route path="cargos" element={<JobRolesPage />} />
+          <Route path="documentos" element={<DocumentsArchivePage />} />
+          <Route path="documentos/cultura" element={<CultureDocumentPage />} />
           <Route path="gestao" element={<AdminDashboardPage />} />
           <Route path="solicitacoes" element={<AdjustmentRequestsPage />} />
           <Route path="incompletos" element={<IncompletePunchesPage />} />

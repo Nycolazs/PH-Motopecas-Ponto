@@ -94,6 +94,26 @@ enum IdempotencyStatus {
   COMPLETED
 }
 
+enum DocumentType {
+  CULTURE
+  REGULATION
+  ROLE_MAP
+  INTERVIEW
+  ACKNOWLEDGMENT_REGULATION
+  ACKNOWLEDGMENT_ROLE
+  DISCIPLINE_VERBAL
+  DISCIPLINE_WRITTEN
+  DISCIPLINE_SUSPENSION
+  PERFORMANCE_REVIEW
+}
+
+enum RenderJobStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
 enum AuditAction {
   LOGIN_SUCCEEDED
   LOGIN_FAILED
@@ -133,6 +153,12 @@ enum AuditAction {
   EMPLOYEE_ROLE_ASSIGNED
   EMPLOYEE_ACCESS_UPDATED
   EMPLOYEE_PROFILE_UPDATED
+  DOCUMENT_DRAFT_SAVED
+  DOCUMENT_DRAFT_DISCARDED
+  DOCUMENT_PREPARED
+  DOCUMENT_CONFIRMED
+  DOCUMENT_VOIDED
+  CULTURE_PROFILE_PUBLISHED
 }
 
 enum AuditOutcome {
@@ -156,6 +182,9 @@ enum AuditTargetType {
   JOB_ROLE_VERSION
   EMPLOYEE_ROLE_ASSIGNMENT
   EMPLOYEE_PROFILE
+  DOCUMENT_DRAFT
+  GENERATED_DOCUMENT
+  CULTURE_PROFILE
 }
 
 model User {
@@ -189,6 +218,12 @@ model User {
   roleAssignments            EmployeeRoleAssignment[]     @relation("EmployeeRoleAssignments")
   createdRoleAssignments     EmployeeRoleAssignment[]     @relation("RoleAssignmentsCreatedBy")
   createdRoleVersions        JobRoleVersion[]             @relation("RoleVersionsCreatedBy")
+  draftsCreated              DocumentDraft[]              @relation("DraftAuthor")
+  employeeDrafts             DocumentDraft[]              @relation("DraftEmployee")
+  documentsAuthored          GeneratedDocument[]          @relation("DocumentAuthor")
+  employeeDocuments          GeneratedDocument[]          @relation("EmployeeDocuments")
+  voidedDocuments            GeneratedDocument[]          @relation("DocumentVoidedBy")
+  createdCultureVersions     CultureProfileVersion[]      @relation("CultureVersionsCreatedBy")
 
   @@index([role, isActive])
   @@index([role, accessEnabled])
@@ -504,6 +539,9 @@ model Company {
   createdAt           DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt           DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
+  generatedDocuments  GeneratedDocument[]
+  cultureProfile      CultureProfile?
+
   @@map("companies")
 }
 
@@ -589,4 +627,127 @@ model EmployeeRoleAssignment {
   @@index([employeeId, isPrincipal, startDate])
   @@index([jobRoleId])
   @@map("employee_role_assignments")
+}
+
+model DocumentArtifact {
+  id             String   @id @default(uuid()) @db.Uuid
+  storagePath    String   @map("storage_path") @db.VarChar(500)
+  fileSize       Int      @map("file_size")
+  mimeType       String   @default("application/pdf") @map("mime_type") @db.VarChar(50)
+  checksumSha256 String   @map("checksum_sha256") @db.Char(64)
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  drafts             DocumentDraft[]
+  renderJobs         RenderJob[]
+  generatedDocuments GeneratedDocument[]
+
+  @@map("document_artifacts")
+}
+
+model DocumentDraft {
+  id                 String       @id @default(uuid()) @db.Uuid
+  documentType       DocumentType @map("document_type")
+  authorId           String       @map("author_id") @db.Uuid
+  employeeId         String?      @map("employee_id") @db.Uuid
+  revision           Int          @default(1)
+  title              String       @db.VarChar(200)
+  payload            Json         @default("{}")
+  preparedArtifactId String?      @map("prepared_artifact_id") @db.Uuid
+  createdAt          DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  author           User              @relation("DraftAuthor", fields: [authorId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  employee         User?             @relation("DraftEmployee", fields: [employeeId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  preparedArtifact DocumentArtifact? @relation(fields: [preparedArtifactId], references: [id], onDelete: SetNull, onUpdate: Restrict)
+  renderJobs       RenderJob[]
+
+  @@index([authorId, documentType])
+  @@index([employeeId])
+  @@map("document_drafts")
+}
+
+model RenderJob {
+  id           String          @id @default(uuid()) @db.Uuid
+  draftId      String?         @map("draft_id") @db.Uuid
+  documentType DocumentType    @map("document_type")
+  status       RenderJobStatus @default(PENDING)
+  payload      Json            @default("{}")
+  artifactId   String?         @map("artifact_id") @db.Uuid
+  error        String?         @db.Text
+  attempts     Int             @default(0)
+  leasedAt     DateTime?       @map("leased_at") @db.Timestamptz(6)
+  leasedUntil  DateTime?       @map("leased_until") @db.Timestamptz(6)
+  createdAt    DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime        @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  draft    DocumentDraft?    @relation(fields: [draftId], references: [id], onDelete: Cascade, onUpdate: Restrict)
+  artifact DocumentArtifact? @relation(fields: [artifactId], references: [id], onDelete: SetNull, onUpdate: Restrict)
+
+  @@index([status, leasedUntil])
+  @@index([draftId])
+  @@map("render_jobs")
+}
+
+model GeneratedDocument {
+  id             String       @id @default(uuid()) @db.Uuid
+  documentType   DocumentType @map("document_type")
+  title          String       @db.VarChar(200)
+  companyId      String       @map("company_id") @db.Uuid
+  employeeId     String?      @map("employee_id") @db.Uuid
+  authorId       String       @map("author_id") @db.Uuid
+  artifactId     String       @map("artifact_id") @db.Uuid
+  documentData   Json         @map("document_data")
+  version        Int          @default(1)
+  supersededById String?      @map("superseded_by_id") @db.Uuid
+  isVoid         Boolean      @default(false) @map("is_void")
+  voidReason     String?      @map("void_reason") @db.VarChar(255)
+  voidedById     String?      @map("voided_by_id") @db.Uuid
+  voidedAt       DateTime?    @map("voided_at") @db.Timestamptz(6)
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  company                Company                 @relation(fields: [companyId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  employee               User?                   @relation("EmployeeDocuments", fields: [employeeId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  author                 User                    @relation("DocumentAuthor", fields: [authorId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  artifact               DocumentArtifact        @relation(fields: [artifactId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  voidedBy               User?                   @relation("DocumentVoidedBy", fields: [voidedById], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  cultureProfileVersions CultureProfileVersion[]
+
+  @@index([companyId, documentType])
+  @@index([employeeId])
+  @@index([createdAt])
+  @@map("generated_documents")
+}
+
+model CultureProfile {
+  id        String   @id @default(uuid()) @db.Uuid
+  companyId String   @unique @map("company_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  company  Company                 @relation(fields: [companyId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  versions CultureProfileVersion[]
+
+  @@map("culture_profiles")
+}
+
+model CultureProfileVersion {
+  id                  String   @id @default(uuid()) @db.Uuid
+  cultureProfileId    String   @map("culture_profile_id") @db.Uuid
+  versionNumber       Int      @map("version_number")
+  mission             String   @db.Text
+  vision              String   @db.Text
+  values              Json     @default("[]")
+  motto               String?  @db.VarChar(200)
+  generatedDocumentId String?  @map("generated_document_id") @db.Uuid
+  publishedAt         DateTime @default(now()) @map("published_at") @db.Timestamptz(6)
+  createdById         String   @map("created_by_id") @db.Uuid
+  createdAt           DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  cultureProfile    CultureProfile     @relation(fields: [cultureProfileId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  generatedDocument GeneratedDocument? @relation(fields: [generatedDocumentId], references: [id], onDelete: SetNull, onUpdate: Restrict)
+  createdBy         User               @relation("CultureVersionsCreatedBy", fields: [createdById], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@unique([cultureProfileId, versionNumber])
+  @@index([cultureProfileId, publishedAt])
+  @@map("culture_profile_versions")
 }

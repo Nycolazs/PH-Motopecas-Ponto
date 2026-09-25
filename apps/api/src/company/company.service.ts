@@ -138,8 +138,8 @@ export class CompanyService {
     const allAssignedRoles =
       hasActiveEmployee && employeesWithRoleCount.length >= activeEmployeesCount;
 
-    // Culture and Regulation will be hooked in Phases HR-3 and HR-4
-    const isCulturePublished = false;
+    const cultureVersionsCount = await this.prisma.cultureProfileVersion.count();
+    const isCulturePublished = cultureVersionsCount > 0;
     const isRegulationPublished = false;
 
     const items = [

@@ -16,11 +16,11 @@ Statuses: pending, active, review, done, blocked. A planned task is never eviden
 | HR2-002 | done    | backend           | users/employees                       | HR-1       | App access independent, migration preserves users                  |
 | HR2-003 | done    | backend           | job-roles                             | HR-1       | Versions and assignment constraints                                |
 | HR2-004 | done    | frontend          | layout/routes                         | HR-1       | Responsive coherent navigation                                     |
-| HR3-001 | pending | documents         | drafts/shared schemas                 | HR-2       | Autosave/conflict/refresh                                          |
-| HR3-002 | pending | documents         | builders/storage/worker               | HR-2       | Durable jobs, recovery, safe PDF                                   |
-| HR3-003 | pending | documents         | prepare/finalize/preview              | HR3-002    | Same reviewed bytes, atomic confirmation                           |
-| HR3-004 | pending | frontend          | archive                               | HR3-003    | Authorized retrieval after login                                   |
-| HR3-005 | pending | product           | culture                               | HR3-003    | First complete document flow                                       |
+| HR3-001 | done    | documents         | drafts/shared schemas                 | HR-2       | Autosave/conflict/refresh                                          |
+| HR3-002 | done    | documents         | builders/storage/worker               | HR-2       | Durable jobs, recovery, safe PDF                                   |
+| HR3-003 | done    | documents         | prepare/finalize/preview              | HR3-002    | Same reviewed bytes, atomic confirmation                           |
+| HR3-004 | done    | frontend          | archive                               | HR3-003    | Authorized retrieval after login                                   |
+| HR3-005 | done    | product           | culture                               | HR3-003    | First complete document flow                                       |
 | HR4-001 | pending | product           | regulations                           | HR-3       | Six-step persisted wizard and versions                             |
 | HR4-002 | pending | documents         | role map                              | HR-3       | Published role version snapshots                                   |
 | HR4-003 | pending | product           | interviews                            | HR-3       | Candidate not silently made employee                               |
