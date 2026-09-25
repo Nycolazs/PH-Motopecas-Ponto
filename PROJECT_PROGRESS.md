@@ -2,11 +2,11 @@
 
 ## Current Phase
 
-HR-4 — Company Internal Regulations 6-step wizard, versioning, acknowledgment terms, and role map documents
+HR-5 — Unified employee profile tabs, employment events, and timeline projection
 
 ## Overall Status
 
-IN_PROGRESS — HR evolution in active local development. HR-0, HR-1, HR-2, and HR-3 completed and verified.
+IN_PROGRESS — HR evolution in active local development. HR-0, HR-1, HR-2, HR-3, and HR-4 completed and verified.
 
 ## Last Updated
 
@@ -40,11 +40,19 @@ IN_PROGRESS — HR evolution in active local development. HR-0, HR-1, HR-2, and 
   - Frontend Pages: `CultureDocumentPage` (`/admin/documentos/cultura`) with dynamic values, autosave, PDF preview modal, confirmation, and version history. `DocumentsArchivePage` (`/admin/documentos`) with filter tabs (All, Active, Voided), type filter, search, PDF preview, and void modal. Added navigation links in `AdminLayout` and routes in `App.tsx`.
   - Database Migration: `20260925020000_hr_document_drafts_artifacts_culture`.
   - Quality verification: 297 unit/tooling tests passed (API 145, desktop 76, shared 64, node tooling 12), 25 PostgreSQL integration tests passed applying all 8 migrations, 100% clean typecheck and lint (0 errors, 0 warnings), Prettier formatted, and production builds passing.
-- **Next Phase — HR-4**:
-  - Task HR4-001: Company Internal Regulations 6-step persisted wizard (Empresa, Jornada, Conduta, Tecnologia, Disciplina, Revisão), versioning, and document publication.
-  - Task HR4-002: Role Map (Descrição de Cargo) document generator and version snapshot publishing.
-  - Task HR4-003: Hiring Interview (Entrevista de Contratação) guide document generation without silently creating an employee.
-  - Task HR4-004: Acknowledgment terms (Termo de Ciência de Regimento e Termo de Ciência de Cargo) with exact references to published regulation and role versions.
+- **HR-4 Completed**:
+  - Company Internal Regulations: 6-step persisted wizard (1. Informações da Empresa e Princípios, 2. Jornada de Trabalho e Ponto, 3. Conduta, Ética e Vestimenta, 4. Uso de Tecnologia e Ferramentas, 5. Regime Disciplinar e Penalidades, 6. Revisão Geral e Publicação), optimistic autosave, discard, PDF preview modal, version publication increments, historical version modal.
+  - Job Role Maps: document generator for role descriptions (`ROLE_MAP`), snapshot publishing upon draft confirmation, responsibilities, requirements, technical skills, behavioral skills, and physical demands.
+  - Hiring Interview Guide: `INTERVIEW` guide document generator with candidate details, job role selection, criteria scoring (1-5 rating), recommendation categorization (`RECOMMENDED`, `TALENT_POOL`, `NOT_RECOMMENDED`), and interview notes. Crucially preserves isolation: candidates are never silently converted into employee accounts.
+  - Acknowledgment Terms: `ACKNOWLEDGMENT_REGULATION` and `ACKNOWLEDGMENT_ROLE` terms of acknowledgment linked directly to the immutable published version of the regulation or role assignment. Compliance metrics overview banner showing total active employees vs acknowledged count.
+  - Backend models & migration `20260925030000_hr_regulations_role_maps_interviews_acknowledgments`: `CompanyRegulation`, `CompanyRegulationVersion`, `HiringInterview`, `EmployeeDocumentAcknowledgment`. Complete HTML/CSS PDF templates in `DocumentTemplatesService`, endpoints in `RegulationsModule`, `InterviewsModule`, `AcknowledgmentsModule`.
+  - Frontend pages: `RegulationsWizardPage` (`/admin/documentos/regimento`), `InterviewDocumentPage` (`/admin/documentos/entrevista`), `AcknowledgmentDocumentPage` (`/admin/documentos/ciencia`), updated navigation in `AdminLayout` and routes in `App.tsx`.
+  - Quality verification: 313 unit/tooling tests passed (API 155, desktop 82, shared 64, node tooling 12), 25 PostgreSQL integration tests passed applying all 9 migrations, 100% clean typecheck and lint (0 errors, 0 warnings), Prettier formatted, and production builds passing.
+- **Next Phase — HR-5**:
+  - Task HR5-001: Unified Employee Profile tabs (Resumo, Histórico, Documentos, Avaliações, Ponto, Acesso ao app) and quick actions.
+  - Task HR5-002: Stable paginated timeline projection combining employment events, role changes, disciplinary records, documents, and attendance.
+  - Task HR5-003: App access revocation preserving active employment, and inactive employee checks.
+  - Task HR5-004: Employment events schema & service: admission, manual termination (without severance calculations), suspension history, archive/reactivate.
 
 ## Local Interactive Test Environment — 2026-09-19
 

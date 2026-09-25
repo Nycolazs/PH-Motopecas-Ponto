@@ -6,12 +6,24 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { culturePayloadSchema } from '@ph-ponto/shared';
+import {
+  culturePayloadSchema,
+  regulationPayloadSchema,
+  roleMapPayloadSchema,
+  interviewPayloadSchema,
+  acknowledgmentRegulationPayloadSchema,
+  acknowledgmentRolePayloadSchema,
+  type RegulationPayloadDto,
+  type InterviewPayloadDto,
+  type AcknowledgmentRegulationPayloadDto,
+  type AcknowledgmentRolePayloadDto,
+} from '@ph-ponto/shared';
 import { AuditService } from '../audit/audit.service.js';
 import type { ClientContext } from '../auth/auth.types.js';
 import { CompanyService } from '../company/company.service.js';
 import { PrismaService } from '../database/prisma.service.js';
 import {
+  AcknowledgmentType,
   AuditAction,
   AuditOutcome,
   AuditTargetType,
@@ -410,6 +422,143 @@ export class DocumentDraftsService {
           },
           tx,
         );
+      } else if (draft.documentType === DocumentType.REGULATION) {
+        let regulation = await tx.companyRegulation.findUnique({
+          where: { companyId: companyDto.id },
+        });
+
+        if (!regulation) {
+          regulation = await tx.companyRegulation.create({
+            data: { companyId: companyDto.id },
+          });
+        }
+
+        const latestVersion = await tx.companyRegulationVersion.findFirst({
+          where: { companyRegulationId: regulation.id },
+          orderBy: { versionNumber: 'desc' },
+        });
+
+        const nextVersionNumber = (latestVersion?.versionNumber ?? 0) + 1;
+        const payload = draft.payload as RegulationPayloadDto;
+
+        await tx.companyRegulationVersion.create({
+          data: {
+            companyRegulationId: regulation.id,
+            versionNumber: nextVersionNumber,
+            title: payload.title,
+            effectiveDate: new Date(`${payload.effectiveDate}T12:00:00Z`),
+            content: payload as object,
+            generatedDocumentId: doc.id,
+            createdById: authorId,
+          },
+        });
+
+        await this.audit.record(
+          {
+            actorId: authorId,
+            action: AuditAction.REGULATION_PUBLISHED,
+            outcome: AuditOutcome.SUCCESS,
+            targetType: AuditTargetType.REGULATION,
+            targetId: regulation.id,
+            ...context,
+            afterState: {
+              versionNumber: nextVersionNumber,
+              generatedDocumentId: doc.id,
+            },
+          },
+          tx,
+        );
+      } else if (draft.documentType === DocumentType.INTERVIEW) {
+        const payload = draft.payload as InterviewPayloadDto;
+        const interview = await tx.hiringInterview.create({
+          data: {
+            candidateName: payload.candidateName,
+            candidateEmail: payload.candidateEmail ?? null,
+            candidatePhone: payload.candidatePhone ?? null,
+            jobRoleId: payload.jobRoleId ?? null,
+            roleTitle: payload.roleTitle,
+            interviewDate: new Date(`${payload.interviewDate}T12:00:00Z`),
+            interviewerName: payload.interviewerName,
+            evaluatorId: authorId,
+            recommendation: payload.recommendation,
+            notes: payload.generalNotes ?? null,
+            scores: payload.criteriaScores as object,
+            generatedDocumentId: doc.id,
+          },
+        });
+
+        await this.audit.record(
+          {
+            actorId: authorId,
+            action: AuditAction.INTERVIEW_RECORDED,
+            outcome: AuditOutcome.SUCCESS,
+            targetType: AuditTargetType.INTERVIEW,
+            targetId: interview.id,
+            ...context,
+            afterState: {
+              candidateName: payload.candidateName,
+              recommendation: payload.recommendation,
+              generatedDocumentId: doc.id,
+            },
+          },
+          tx,
+        );
+      } else if (draft.documentType === DocumentType.ACKNOWLEDGMENT_REGULATION) {
+        const payload = draft.payload as AcknowledgmentRegulationPayloadDto;
+        const ack = await tx.employeeDocumentAcknowledgment.create({
+          data: {
+            employeeId: payload.employeeId,
+            acknowledgmentType: AcknowledgmentType.REGULATION,
+            regulationVersionId: payload.regulationVersionId,
+            generatedDocumentId: doc.id,
+            createdById: authorId,
+          },
+        });
+
+        await this.audit.record(
+          {
+            actorId: authorId,
+            action: AuditAction.ACKNOWLEDGMENT_GENERATED,
+            outcome: AuditOutcome.SUCCESS,
+            targetType: AuditTargetType.ACKNOWLEDGMENT,
+            targetId: ack.id,
+            ...context,
+            afterState: {
+              employeeId: payload.employeeId,
+              acknowledgmentType: 'REGULATION',
+              generatedDocumentId: doc.id,
+            },
+          },
+          tx,
+        );
+      } else if (draft.documentType === DocumentType.ACKNOWLEDGMENT_ROLE) {
+        const payload = draft.payload as AcknowledgmentRolePayloadDto;
+        const ack = await tx.employeeDocumentAcknowledgment.create({
+          data: {
+            employeeId: payload.employeeId,
+            acknowledgmentType: AcknowledgmentType.ROLE,
+            jobRoleVersionId: payload.jobRoleVersionId,
+            generatedDocumentId: doc.id,
+            createdById: authorId,
+          },
+        });
+
+        await this.audit.record(
+          {
+            actorId: authorId,
+            action: AuditAction.ACKNOWLEDGMENT_GENERATED,
+            outcome: AuditOutcome.SUCCESS,
+            targetType: AuditTargetType.ACKNOWLEDGMENT,
+            targetId: ack.id,
+            ...context,
+            afterState: {
+              employeeId: payload.employeeId,
+              acknowledgmentType: 'ROLE',
+              generatedDocumentId: doc.id,
+            },
+          },
+          tx,
+        );
       }
 
       // 3. Delete draft
@@ -466,6 +615,54 @@ export class DocumentDraftsService {
           code: 'INVALID_DOCUMENT_PAYLOAD',
           message:
             'Os campos obrigatórios da cultura da empresa não foram preenchidos corretamente.',
+          errors: parsed.error.issues,
+        });
+      }
+    } else if (type === DocumentType.REGULATION) {
+      const parsed = regulationPayloadSchema.safeParse(payload);
+      if (!parsed.success) {
+        throw new BadRequestException({
+          code: 'INVALID_DOCUMENT_PAYLOAD',
+          message:
+            'Os campos obrigatórios do regimento interno não foram preenchidos corretamente.',
+          errors: parsed.error.issues,
+        });
+      }
+    } else if (type === DocumentType.ROLE_MAP) {
+      const parsed = roleMapPayloadSchema.safeParse(payload);
+      if (!parsed.success) {
+        throw new BadRequestException({
+          code: 'INVALID_DOCUMENT_PAYLOAD',
+          message:
+            'Os campos obrigatórios da descrição de cargo não foram preenchidos corretamente.',
+          errors: parsed.error.issues,
+        });
+      }
+    } else if (type === DocumentType.INTERVIEW) {
+      const parsed = interviewPayloadSchema.safeParse(payload);
+      if (!parsed.success) {
+        throw new BadRequestException({
+          code: 'INVALID_DOCUMENT_PAYLOAD',
+          message:
+            'Os campos obrigatórios da entrevista de contratação não foram preenchidos corretamente.',
+          errors: parsed.error.issues,
+        });
+      }
+    } else if (type === DocumentType.ACKNOWLEDGMENT_REGULATION) {
+      const parsed = acknowledgmentRegulationPayloadSchema.safeParse(payload);
+      if (!parsed.success) {
+        throw new BadRequestException({
+          code: 'INVALID_DOCUMENT_PAYLOAD',
+          message: 'Os dados do termo de ciência do regimento são inválidos.',
+          errors: parsed.error.issues,
+        });
+      }
+    } else if (type === DocumentType.ACKNOWLEDGMENT_ROLE) {
+      const parsed = acknowledgmentRolePayloadSchema.safeParse(payload);
+      if (!parsed.success) {
+        throw new BadRequestException({
+          code: 'INVALID_DOCUMENT_PAYLOAD',
+          message: 'Os dados do termo de ciência de cargo são inválidos.',
           errors: parsed.error.issues,
         });
       }

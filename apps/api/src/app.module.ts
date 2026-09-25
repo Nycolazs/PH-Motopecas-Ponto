@@ -1,6 +1,7 @@
 import { Module, RequestMethod, type MiddlewareConsumer, type NestModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 
+import { AcknowledgmentsModule } from './acknowledgments/acknowledgments.module.js';
 import { AdjustmentRequestsModule } from './adjustment-requests/adjustment-requests.module.js';
 import { AdminsModule } from './admins/admins.module.js';
 import { AttendanceModule } from './attendance/attendance.module.js';
@@ -16,7 +17,9 @@ import { DocumentsModule } from './documents/documents.module.js';
 import { EmployeesModule } from './employees/employees.module.js';
 import { HealthModule } from './health/health.module.js';
 import { RequestIdMiddleware } from './http/request-id.js';
+import { InterviewsModule } from './interviews/interviews.module.js';
 import { JobRolesModule } from './job-roles/job-roles.module.js';
+import { RegulationsModule } from './regulations/regulations.module.js';
 import { SchedulesModule } from './schedules/schedules.module.js';
 import { StorageModule } from './storage/storage.module.js';
 import { TimeAdjustmentsModule } from './time-adjustments/time-adjustments.module.js';
@@ -44,6 +47,9 @@ import { VacationsModule } from './vacations/vacations.module.js';
     JobRolesModule,
     DocumentsModule,
     CultureModule,
+    RegulationsModule,
+    InterviewsModule,
+    AcknowledgmentsModule,
     SchedulesModule,
     CalendarExceptionsModule,
     AttendanceModule,

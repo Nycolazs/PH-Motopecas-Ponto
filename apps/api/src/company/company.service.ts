@@ -140,7 +140,8 @@ export class CompanyService {
 
     const cultureVersionsCount = await this.prisma.cultureProfileVersion.count();
     const isCulturePublished = cultureVersionsCount > 0;
-    const isRegulationPublished = false;
+    const regulationVersionsCount = await this.prisma.companyRegulationVersion.count();
+    const isRegulationPublished = regulationVersionsCount > 0;
 
     const items = [
       {

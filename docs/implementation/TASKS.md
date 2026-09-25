@@ -21,10 +21,10 @@ Statuses: pending, active, review, done, blocked. A planned task is never eviden
 | HR3-003 | done    | documents         | prepare/finalize/preview              | HR3-002    | Same reviewed bytes, atomic confirmation                           |
 | HR3-004 | done    | frontend          | archive                               | HR3-003    | Authorized retrieval after login                                   |
 | HR3-005 | done    | product           | culture                               | HR3-003    | First complete document flow                                       |
-| HR4-001 | pending | product           | regulations                           | HR-3       | Six-step persisted wizard and versions                             |
-| HR4-002 | pending | documents         | role map                              | HR-3       | Published role version snapshots                                   |
-| HR4-003 | pending | product           | interviews                            | HR-3       | Candidate not silently made employee                               |
-| HR4-004 | pending | product           | acknowledgments                       | HR-3       | Exact role/regulation historical references                        |
+| HR4-001 | done    | product           | regulations                           | HR-3       | Six-step persisted wizard and versions                             |
+| HR4-002 | done    | documents         | role map                              | HR-3       | Published role version snapshots                                   |
+| HR4-003 | done    | product           | interviews                            | HR-3       | Candidate not silently made employee                               |
+| HR4-004 | done    | product           | acknowledgments                       | HR-3       | Exact role/regulation historical references                        |
 | HR5-001 | pending | frontend          | profile                               | HR-4       | Unified tabs/quick actions                                         |
 | HR5-002 | pending | backend           | employee-history                      | HR-4       | Stable paginated projection, no duplicates                         |
 | HR5-003 | pending | backend           | access                                | HR-4       | Revocation and preserved employment                                |

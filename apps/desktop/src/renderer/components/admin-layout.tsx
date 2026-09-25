@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import {
+  BookOpen,
   Briefcase,
   Building2,
   Clock,
+  FileCheck2,
   FileText,
   FolderArchive,
   LayoutDashboard,
@@ -12,6 +14,7 @@ import {
   Settings,
   ShieldCheck,
   Sparkles,
+  UserCheck,
   Users,
   WifiOff,
 } from 'lucide-react';
@@ -96,14 +99,37 @@ export function AdminLayout(): React.JSX.Element {
         { to: '/admin', label: 'Início', icon: LayoutDashboard, end: true },
         { to: '/admin/empresa', label: 'Minha Empresa', icon: Building2, end: false },
         { to: '/admin/cargos', label: 'Cargos & Funções', icon: Briefcase, end: false },
-        { to: '/admin/documentos/cultura', label: 'Manual de Cultura', icon: Sparkles, end: false },
+        { to: '/admin/gestao', label: 'Painel Operacional', icon: Clock, end: false },
+      ],
+    },
+    {
+      title: 'Documentos & RH',
+      items: [
         {
           to: '/admin/documentos',
           label: 'Arquivo de Documentos',
           icon: FolderArchive,
+          end: true,
+        },
+        { to: '/admin/documentos/cultura', label: 'Manual de Cultura', icon: Sparkles, end: false },
+        {
+          to: '/admin/documentos/regimento',
+          label: 'Regimento Interno',
+          icon: BookOpen,
           end: false,
         },
-        { to: '/admin/gestao', label: 'Painel Operacional', icon: Clock, end: false },
+        {
+          to: '/admin/documentos/entrevista',
+          label: 'Guia de Entrevista',
+          icon: UserCheck,
+          end: false,
+        },
+        {
+          to: '/admin/documentos/ciencia',
+          label: 'Termos de Ciência',
+          icon: FileCheck2,
+          end: false,
+        },
       ],
     },
     {

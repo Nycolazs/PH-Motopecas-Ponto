@@ -159,6 +159,9 @@ enum AuditAction {
   DOCUMENT_CONFIRMED
   DOCUMENT_VOIDED
   CULTURE_PROFILE_PUBLISHED
+  REGULATION_PUBLISHED
+  INTERVIEW_RECORDED
+  ACKNOWLEDGMENT_GENERATED
 }
 
 enum AuditOutcome {
@@ -185,6 +188,20 @@ enum AuditTargetType {
   DOCUMENT_DRAFT
   GENERATED_DOCUMENT
   CULTURE_PROFILE
+  REGULATION
+  INTERVIEW
+  ACKNOWLEDGMENT
+}
+
+enum InterviewRecommendation {
+  RECOMMENDED
+  NOT_RECOMMENDED
+  TALENT_POOL
+}
+
+enum AcknowledgmentType {
+  REGULATION
+  ROLE
 }
 
 model User {
@@ -224,6 +241,10 @@ model User {
   employeeDocuments          GeneratedDocument[]          @relation("EmployeeDocuments")
   voidedDocuments            GeneratedDocument[]          @relation("DocumentVoidedBy")
   createdCultureVersions     CultureProfileVersion[]      @relation("CultureVersionsCreatedBy")
+  createdRegulationVersions  CompanyRegulationVersion[]   @relation("RegulationVersionsCreatedBy")
+  interviewsEvaluated        HiringInterview[]            @relation("InterviewEvaluator")
+  createdAcknowledgments     EmployeeDocumentAcknowledgment[] @relation("AcknowledgmentsCreatedBy")
+  employeeAcknowledgments    EmployeeDocumentAcknowledgment[] @relation("EmployeeAcknowledgments")
 
   @@index([role, isActive])
   @@index([role, accessEnabled])
@@ -541,6 +562,7 @@ model Company {
 
   generatedDocuments  GeneratedDocument[]
   cultureProfile      CultureProfile?
+  companyRegulation   CompanyRegulation?
 
   @@map("companies")
 }
@@ -579,6 +601,7 @@ model JobRole {
 
   versions    JobRoleVersion[]
   assignments EmployeeRoleAssignment[]
+  interviews  HiringInterview[]
 
   @@index([isActive, title])
   @@map("job_roles")
@@ -600,6 +623,7 @@ model JobRoleVersion {
   jobRole          JobRole                  @relation(fields: [jobRoleId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   createdBy        User                     @relation("RoleVersionsCreatedBy", fields: [createdById], references: [id], onDelete: Restrict, onUpdate: Restrict)
   assignments      EmployeeRoleAssignment[]
+  acknowledgments  EmployeeDocumentAcknowledgment[]
 
   @@unique([jobRoleId, versionNumber])
   @@index([jobRoleId, publishedAt])
@@ -711,6 +735,9 @@ model GeneratedDocument {
   artifact               DocumentArtifact        @relation(fields: [artifactId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   voidedBy               User?                   @relation("DocumentVoidedBy", fields: [voidedById], references: [id], onDelete: Restrict, onUpdate: Restrict)
   cultureProfileVersions CultureProfileVersion[]
+  regulationVersions     CompanyRegulationVersion[]
+  hiringInterviews       HiringInterview[]
+  acknowledgment         EmployeeDocumentAcknowledgment?
 
   @@index([companyId, documentType])
   @@index([employeeId])
@@ -750,4 +777,85 @@ model CultureProfileVersion {
   @@unique([cultureProfileId, versionNumber])
   @@index([cultureProfileId, publishedAt])
   @@map("culture_profile_versions")
+}
+
+model CompanyRegulation {
+  id        String   @id @default(uuid()) @db.Uuid
+  companyId String   @unique @map("company_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  company  Company                    @relation(fields: [companyId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  versions CompanyRegulationVersion[]
+
+  @@map("company_regulations")
+}
+
+model CompanyRegulationVersion {
+  id                  String   @id @default(uuid()) @db.Uuid
+  companyRegulationId String   @map("company_regulation_id") @db.Uuid
+  versionNumber       Int      @map("version_number")
+  title               String   @db.VarChar(200)
+  effectiveDate       DateTime @map("effective_date") @db.Date
+  content             Json     @default("{}")
+  generatedDocumentId String?  @map("generated_document_id") @db.Uuid
+  publishedAt         DateTime @default(now()) @map("published_at") @db.Timestamptz(6)
+  createdById         String   @map("created_by_id") @db.Uuid
+  createdAt           DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  companyRegulation   CompanyRegulation               @relation(fields: [companyRegulationId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  generatedDocument   GeneratedDocument?              @relation(fields: [generatedDocumentId], references: [id], onDelete: SetNull, onUpdate: Restrict)
+  createdBy         User                            @relation("RegulationVersionsCreatedBy", fields: [createdById], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  acknowledgments   EmployeeDocumentAcknowledgment[]
+
+  @@unique([companyRegulationId, versionNumber])
+  @@index([companyRegulationId, publishedAt])
+  @@map("company_regulation_versions")
+}
+
+model HiringInterview {
+  id                  String                   @id @default(uuid()) @db.Uuid
+  candidateName       String                   @map("candidate_name") @db.VarChar(120)
+  candidateEmail      String?                  @map("candidate_email") @db.VarChar(120)
+  candidatePhone      String?                  @map("candidate_phone") @db.VarChar(30)
+  jobRoleId           String?                  @map("job_role_id") @db.Uuid
+  roleTitle           String                   @map("role_title") @db.VarChar(120)
+  interviewDate       DateTime                 @map("interview_date") @db.Date
+  interviewerName     String                   @map("interviewer_name") @db.VarChar(120)
+  evaluatorId         String                   @map("evaluator_id") @db.Uuid
+  recommendation      InterviewRecommendation
+  notes               String?                  @db.Text
+  scores              Json                     @default("{}")
+  generatedDocumentId String?                  @map("generated_document_id") @db.Uuid
+  createdAt           DateTime                 @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime                 @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  evaluator         User               @relation("InterviewEvaluator", fields: [evaluatorId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  jobRole           JobRole?           @relation(fields: [jobRoleId], references: [id], onDelete: SetNull, onUpdate: Restrict)
+  generatedDocument GeneratedDocument? @relation(fields: [generatedDocumentId], references: [id], onDelete: SetNull, onUpdate: Restrict)
+
+  @@index([interviewDate])
+  @@index([candidateName])
+  @@map("hiring_interviews")
+}
+
+model EmployeeDocumentAcknowledgment {
+  id                  String             @id @default(uuid()) @db.Uuid
+  employeeId          String             @map("employee_id") @db.Uuid
+  acknowledgmentType  AcknowledgmentType @map("acknowledgment_type")
+  regulationVersionId String?            @map("regulation_version_id") @db.Uuid
+  jobRoleVersionId    String?            @map("job_role_version_id") @db.Uuid
+  generatedDocumentId String             @unique @map("generated_document_id") @db.Uuid
+  acknowledgedAt      DateTime           @default(now()) @map("acknowledged_at") @db.Timestamptz(6)
+  createdById         String             @map("created_by_id") @db.Uuid
+  createdAt           DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  employee          User                      @relation("EmployeeAcknowledgments", fields: [employeeId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  regulationVersion CompanyRegulationVersion? @relation(fields: [regulationVersionId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  jobRoleVersion    JobRoleVersion?           @relation(fields: [jobRoleVersionId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  generatedDocument GeneratedDocument         @relation(fields: [generatedDocumentId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  createdBy         User                      @relation("AcknowledgmentsCreatedBy", fields: [createdById], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@index([employeeId, acknowledgmentType])
+  @@map("employee_document_acknowledgments")
 }

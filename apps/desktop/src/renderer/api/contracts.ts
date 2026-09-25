@@ -621,4 +621,60 @@ export {
   type CulturePayloadDto,
   type CultureProfileVersionDto,
   type CultureProfileDto,
+  regulationCompanyInfoSchema,
+  type RegulationCompanyInfoDto,
+  regulationWorkScheduleSchema,
+  type RegulationWorkScheduleDto,
+  regulationConductEthicsSchema,
+  type RegulationConductEthicsDto,
+  regulationTechnologyPolicySchema,
+  type RegulationTechnologyPolicyDto,
+  regulationDisciplineRulesSchema,
+  type RegulationDisciplineRulesDto,
+  regulationClauseSchema,
+  type RegulationClauseDto,
+  regulationPayloadSchema,
+  type RegulationPayloadDto,
+  companyRegulationVersionSchema,
+  type CompanyRegulationVersionDto,
+  companyRegulationSchema,
+  type CompanyRegulationDto,
+  roleMapPayloadSchema,
+  type RoleMapPayloadDto,
+  interviewRecommendationSchema,
+  type InterviewRecommendationDto,
+  interviewCriterionScoreSchema,
+  type InterviewCriterionScoreDto,
+  interviewPayloadSchema,
+  type InterviewPayloadDto,
+  hiringInterviewSchema,
+  type HiringInterviewDto,
+  acknowledgmentTypeSchema,
+  type AcknowledgmentTypeDto,
+  acknowledgmentRegulationPayloadSchema,
+  type AcknowledgmentRegulationPayloadDto,
+  acknowledgmentRolePayloadSchema,
+  type AcknowledgmentRolePayloadDto,
+  employeeDocumentAcknowledgmentSchema,
+  type EmployeeDocumentAcknowledgmentDto,
+  acknowledgmentStatusSummarySchema,
+  type AcknowledgmentStatusSummaryDto,
 } from '@ph-ponto/shared';
+
+import { hiringInterviewSchema, employeeDocumentAcknowledgmentSchema } from '@ph-ponto/shared';
+
+export const paginatedInterviewsSchema = z.object({
+  items: z.array(hiringInterviewSchema),
+  total: z.number().int(),
+  limit: z.number().int(),
+  offset: z.number().int(),
+});
+export type PaginatedInterviewsDto = z.infer<typeof paginatedInterviewsSchema>;
+
+export const paginatedAcknowledgmentsSchema = z.object({
+  items: z.array(employeeDocumentAcknowledgmentSchema),
+  total: z.number().int(),
+  limit: z.number().int(),
+  offset: z.number().int(),
+});
+export type PaginatedAcknowledgmentsDto = z.infer<typeof paginatedAcknowledgmentsSchema>;

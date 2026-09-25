@@ -76,6 +76,18 @@ import {
   type DocumentListDto,
   type CultureProfileDto,
   type DocumentTypeDto,
+  companyRegulationSchema,
+  companyRegulationVersionSchema,
+  type CompanyRegulationDto,
+  type CompanyRegulationVersionDto,
+  hiringInterviewSchema,
+  paginatedInterviewsSchema,
+  type HiringInterviewDto,
+  type PaginatedInterviewsDto,
+  acknowledgmentStatusSummarySchema,
+  paginatedAcknowledgmentsSchema,
+  type AcknowledgmentStatusSummaryDto,
+  type PaginatedAcknowledgmentsDto,
 } from './contracts.js';
 
 function getDefaultApiBaseUrl(): string {
@@ -834,6 +846,88 @@ export class ApiClient {
   // Culture
   public getCulture(signal?: AbortSignal): Promise<CultureProfileDto> {
     return this.request('/culture', cultureProfileSchema, {
+      ...(signal === undefined ? {} : { signal }),
+    });
+  }
+
+  // Regulations
+  public getRegulations(signal?: AbortSignal): Promise<CompanyRegulationDto> {
+    return this.request('/regulations', companyRegulationSchema, {
+      ...(signal === undefined ? {} : { signal }),
+    });
+  }
+
+  public getRegulationVersions(signal?: AbortSignal): Promise<CompanyRegulationVersionDto[]> {
+    return this.request('/regulations/versions', z.array(companyRegulationVersionSchema), {
+      ...(signal === undefined ? {} : { signal }),
+    });
+  }
+
+  public getRegulationVersionById(
+    id: string,
+    signal?: AbortSignal,
+  ): Promise<CompanyRegulationVersionDto> {
+    return this.request(
+      `/regulations/versions/${encodeURIComponent(id)}`,
+      companyRegulationVersionSchema,
+      {
+        ...(signal === undefined ? {} : { signal }),
+      },
+    );
+  }
+
+  // Interviews
+  public getInterviews(
+    params?: {
+      search?: string;
+      recommendation?: string;
+      jobRoleId?: string;
+      limit?: number;
+      offset?: number;
+    },
+    signal?: AbortSignal,
+  ): Promise<PaginatedInterviewsDto> {
+    const q = new URLSearchParams();
+    if (params?.search) q.set('search', params.search);
+    if (params?.recommendation) q.set('recommendation', params.recommendation);
+    if (params?.jobRoleId) q.set('jobRoleId', params.jobRoleId);
+    if (params?.limit) q.set('limit', String(params.limit));
+    if (params?.offset) q.set('offset', String(params.offset));
+    const qs = q.toString();
+    return this.request(`/interviews${qs ? `?${qs}` : ''}`, paginatedInterviewsSchema, {
+      ...(signal === undefined ? {} : { signal }),
+    });
+  }
+
+  public getInterviewById(id: string, signal?: AbortSignal): Promise<HiringInterviewDto> {
+    return this.request(`/interviews/${encodeURIComponent(id)}`, hiringInterviewSchema, {
+      ...(signal === undefined ? {} : { signal }),
+    });
+  }
+
+  // Acknowledgments
+  public getAcknowledgments(
+    params?: {
+      employeeId?: string;
+      type?: 'REGULATION' | 'ROLE';
+      limit?: number;
+      offset?: number;
+    },
+    signal?: AbortSignal,
+  ): Promise<PaginatedAcknowledgmentsDto> {
+    const q = new URLSearchParams();
+    if (params?.employeeId) q.set('employeeId', params.employeeId);
+    if (params?.type) q.set('type', params.type);
+    if (params?.limit) q.set('limit', String(params.limit));
+    if (params?.offset) q.set('offset', String(params.offset));
+    const qs = q.toString();
+    return this.request(`/acknowledgments${qs ? `?${qs}` : ''}`, paginatedAcknowledgmentsSchema, {
+      ...(signal === undefined ? {} : { signal }),
+    });
+  }
+
+  public getAcknowledgmentStatus(signal?: AbortSignal): Promise<AcknowledgmentStatusSummaryDto> {
+    return this.request('/acknowledgments/status', acknowledgmentStatusSummarySchema, {
       ...(signal === undefined ? {} : { signal }),
     });
   }

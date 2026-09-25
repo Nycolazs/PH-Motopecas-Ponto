@@ -24,6 +24,9 @@ import { SetupDashboardPage } from './pages/admin/setup-dashboard-page.js';
 import { CompanyPage } from './pages/admin/company-page.js';
 import { JobRolesPage } from './pages/admin/job-roles-page.js';
 import { CultureDocumentPage } from './pages/admin/culture-document-page.js';
+import { RegulationsWizardPage } from './pages/admin/regulations-wizard-page.js';
+import { InterviewDocumentPage } from './pages/admin/interview-document-page.js';
+import { AcknowledgmentDocumentPage } from './pages/admin/acknowledgment-document-page.js';
 import { DocumentsArchivePage } from './pages/admin/documents-archive-page.js';
 import { EmployeeHomePage } from './pages/employee-home-page.js';
 import { HistoryPage } from './pages/history-page.js';
@@ -52,6 +55,9 @@ function AppRoutes(): React.JSX.Element {
           <Route path="cargos" element={<JobRolesPage />} />
           <Route path="documentos" element={<DocumentsArchivePage />} />
           <Route path="documentos/cultura" element={<CultureDocumentPage />} />
+          <Route path="documentos/regimento" element={<RegulationsWizardPage />} />
+          <Route path="documentos/entrevista" element={<InterviewDocumentPage />} />
+          <Route path="documentos/ciencia" element={<AcknowledgmentDocumentPage />} />
           <Route path="gestao" element={<AdminDashboardPage />} />
           <Route path="solicitacoes" element={<AdjustmentRequestsPage />} />
           <Route path="incompletos" element={<IncompletePunchesPage />} />

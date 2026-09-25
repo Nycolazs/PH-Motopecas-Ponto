@@ -3,3 +3,7 @@ export * from './job-role.js';
 export * from './employee-profile.js';
 export * from './documents.js';
 export * from './culture.js';
+export * from './regulations.js';
+export * from './role-map.js';
+export * from './interview.js';
+export * from './acknowledgment.js';

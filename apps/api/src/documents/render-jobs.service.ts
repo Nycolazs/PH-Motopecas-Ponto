@@ -1,5 +1,12 @@
 import { BadRequestException, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
-import type { CulturePayloadDto } from '@ph-ponto/shared';
+import type {
+  AcknowledgmentRegulationPayloadDto,
+  AcknowledgmentRolePayloadDto,
+  CulturePayloadDto,
+  InterviewPayloadDto,
+  RegulationPayloadDto,
+  RoleMapPayloadDto,
+} from '@ph-ponto/shared';
 import { CompanyService } from '../company/company.service.js';
 import { PrismaService } from '../database/prisma.service.js';
 import {
@@ -77,6 +84,33 @@ export class RenderJobsService {
           const payload = job.payload as unknown as CulturePayloadDto;
           const versionNumber = job.draft?.revision ?? 1;
           html = this.templates.renderCultureDocument(company, payload, versionNumber);
+          break;
+        }
+        case DocumentType.REGULATION: {
+          const payload = job.payload as unknown as RegulationPayloadDto;
+          const versionNumber = job.draft?.revision ?? 1;
+          html = this.templates.renderRegulationDocument(company, payload, versionNumber);
+          break;
+        }
+        case DocumentType.ROLE_MAP: {
+          const payload = job.payload as unknown as RoleMapPayloadDto;
+          const versionNumber = job.draft?.revision ?? 1;
+          html = this.templates.renderRoleMapDocument(company, payload, versionNumber);
+          break;
+        }
+        case DocumentType.INTERVIEW: {
+          const payload = job.payload as unknown as InterviewPayloadDto;
+          html = this.templates.renderInterviewDocument(company, payload);
+          break;
+        }
+        case DocumentType.ACKNOWLEDGMENT_REGULATION: {
+          const payload = job.payload as unknown as AcknowledgmentRegulationPayloadDto;
+          html = this.templates.renderAcknowledgmentRegulationDocument(company, payload);
+          break;
+        }
+        case DocumentType.ACKNOWLEDGMENT_ROLE: {
+          const payload = job.payload as unknown as AcknowledgmentRolePayloadDto;
+          html = this.templates.renderAcknowledgmentRoleDocument(company, payload);
           break;
         }
         default:
