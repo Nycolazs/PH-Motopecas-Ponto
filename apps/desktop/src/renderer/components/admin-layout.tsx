@@ -108,8 +108,14 @@ export function AdminLayout(): React.JSX.Element {
       title: 'Documentos & RH',
       items: [
         {
+          to: '/admin/documentos/gerar',
+          label: 'Gerar Documento',
+          icon: Sparkles,
+          end: false,
+        },
+        {
           to: '/admin/documentos',
-          label: 'Arquivo de Documentos',
+          label: 'Meus Documentos',
           icon: FolderArchive,
           end: true,
         },

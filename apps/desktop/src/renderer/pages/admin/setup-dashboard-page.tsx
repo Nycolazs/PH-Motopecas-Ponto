@@ -14,7 +14,15 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../auth/use-auth.js';
 
 export function SetupDashboardPage(): React.JSX.Element {
-  const { api } = useAuth();
+  const { api, session } = useAuth();
+  const currentHour = new Date().getHours();
+  const greeting =
+    currentHour >= 5 && currentHour < 12
+      ? 'Bom dia'
+      : currentHour >= 12 && currentHour < 18
+        ? 'Boa tarde'
+        : 'Boa noite';
+  const adminFirstName = session?.user?.name ? session.user.name.split(' ')[0] : 'Gestor';
 
   const {
     data: setupStatus,
@@ -43,7 +51,8 @@ export function SetupDashboardPage(): React.JSX.Element {
             <span>Sistema Integrado de RH e Ponto Eletrônico</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-            Bem-vindo ao painel do {company?.tradeName ?? 'PH Motopeças'}
+            {greeting}, {adminFirstName}! Bem-vindo ao painel do{' '}
+            {company?.tradeName ?? 'PH Motopeças'}
           </h1>
           <p className="text-blue-100 text-sm sm:text-base leading-relaxed">
             Acompanhe a implantação das políticas de RH, dados da empresa, estrutura de cargos e
@@ -114,6 +123,26 @@ export function SetupDashboardPage(): React.JSX.Element {
             Acesso Rápido
           </h3>
           <div className="space-y-2">
+            <Link
+              to="/admin/documentos/gerar"
+              className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-amber-50 dark:hover:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 transition-colors group"
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400">
+                  <Sparkles className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="text-sm font-semibold text-slate-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400">
+                    Gerar Documento
+                  </div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400">
+                    Modelos rápidos de RH e disciplina
+                  </div>
+                </div>
+              </div>
+              <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-transform group-hover:translate-x-1" />
+            </Link>
+
             <Link
               to="/admin/empresa"
               className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-blue-50 dark:hover:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 transition-colors group"

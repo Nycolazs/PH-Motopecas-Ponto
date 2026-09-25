@@ -162,6 +162,20 @@ describe('AdminEmployeeDetailPage', () => {
     days: [],
   };
 
+  const mockDisciplineSummary = {
+    employeeId: mockEmployeeId,
+    employeeName: 'Carlos da Silva',
+    verbalCount: 0,
+    writtenCount: 0,
+    suspensionCount: 0,
+    totalSuspensionDays: 0,
+    voidedCount: 0,
+    currentStage: 'NONE',
+    lastActionDate: null,
+    lastActionType: null,
+    nextSuggestedStage: 'VERBAL_WARNING',
+  };
+
   beforeEach(() => {
     installBridge();
   });
@@ -171,6 +185,9 @@ describe('AdminEmployeeDetailPage', () => {
       const url = String(input);
       if (url.includes(`/employees/${mockEmployeeId}/profile`)) {
         return Promise.resolve(jsonResponse(mockProfile));
+      }
+      if (url.includes(`/discipline/employees/${mockEmployeeId}/summary`)) {
+        return Promise.resolve(jsonResponse(mockDisciplineSummary));
       }
       if (url.includes(`/employees/${mockEmployeeId}`)) {
         return Promise.resolve(jsonResponse(mockEmployee));
@@ -185,11 +202,30 @@ describe('AdminEmployeeDetailPage', () => {
     expect(screen.getByText('Login: carlos.silva')).toBeInTheDocument();
     expect(screen.getByText('Acesso Ativo')).toBeInTheDocument();
     expect(screen.getByText('Mecânico Chefe (v1)')).toBeInTheDocument();
-    expect(screen.getByText('123.456.789-00')).toBeInTheDocument();
+    expect(screen.getAllByText('123.456.789-00')).toHaveLength(2);
     expect(screen.getByText('carlos@exemplo.com')).toBeInTheDocument();
     expect(
       screen.getByText('Rua das Motos, 42 - Oficinas, São Paulo/SP (CEP: 01001-000)'),
     ).toBeInTheDocument();
+
+    // Verify "Gerar para Carlos da Silva" quick actions
+    expect(screen.getByText('Gerar para Carlos da Silva')).toBeInTheDocument();
+    expect(screen.getByText('Ciência do Regimento')).toBeInTheDocument();
+    expect(screen.getByText('Ciência de Função')).toBeInTheDocument();
+    expect(screen.getByText('Advertência Verbal')).toBeInTheDocument();
+    expect(screen.getByText('Advertência Escrita')).toBeInTheDocument();
+    expect(screen.getByText('Suspensão')).toBeInTheDocument();
+    expect(screen.getByText('Avaliação Mensal')).toBeInTheDocument();
+
+    // Verify "Acesso ao app" card
+    expect(screen.getByText('Acesso ao app')).toBeInTheDocument();
+    expect(screen.getByText('Gerar outra senha')).toBeInTheDocument();
+
+    // Verify "Escala disciplinar" card
+    expect(screen.getByText('Escala disciplinar')).toBeInTheDocument();
+    expect(screen.getByText('1. Conversa individual')).toBeInTheDocument();
+    expect(screen.getByText('2. Advertência verbal')).toBeInTheDocument();
+    expect(screen.getByText('Próxima')).toBeInTheDocument();
   });
 
   it('switches between tabs: Histórico, Documentos, Avaliações, Ponto and Acesso', async () => {
@@ -197,6 +233,9 @@ describe('AdminEmployeeDetailPage', () => {
       const url = String(input);
       if (url.includes(`/employees/${mockEmployeeId}/profile`)) {
         return Promise.resolve(jsonResponse(mockProfile));
+      }
+      if (url.includes(`/discipline/employees/${mockEmployeeId}/summary`)) {
+        return Promise.resolve(jsonResponse(mockDisciplineSummary));
       }
       if (url.includes(`/employees/${mockEmployeeId}/timeline`)) {
         return Promise.resolve(jsonResponse(mockTimeline));
@@ -256,6 +295,9 @@ describe('AdminEmployeeDetailPage', () => {
       const url = String(input);
       if (url.includes(`/employees/${mockEmployeeId}/profile`)) {
         return Promise.resolve(jsonResponse(mockProfile));
+      }
+      if (url.includes(`/discipline/employees/${mockEmployeeId}/summary`)) {
+        return Promise.resolve(jsonResponse(mockDisciplineSummary));
       }
       if (url.includes(`/employees/${mockEmployeeId}`)) {
         return Promise.resolve(jsonResponse(mockEmployee));

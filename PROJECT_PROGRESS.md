@@ -79,6 +79,15 @@ COMPLETED — HR evolution in active local development on `feat/hr-evolution`. P
   - Task HR9-003 (Security & Architecture Verification): verified RBAC guards, IDOR prevention, Argon2id passwords, rotating HMAC-hashed refresh sessions, token revocation, append-only immutable voids and audits, private document artifact storage, and local-only PDF rendering with zero network egress.
   - Task HR9-004 (UX, PDFs & Responsive Design): verified 1366x768 usability, dark/light themes, keyboard navigation, accessible labels, loading/empty/error/saving states, and Brazilian Portuguese copy throughout.
   - Task HR9-005 (Builds, Handoff & Release Readiness): all monorepo production builds passing (`pnpm build`). Updated `PROJECT_PROGRESS.md`, `STATUS.md`, `TASKS.md`, `TESTING.md`, and `HANDOFF.md`. Clean local working tree ready for review.
+- **Reference Video Alignment & HR UX Polish (`snapinsta-1790210494053.mp4`)**:
+  - Video Analysis: inspected `/Users/nycolazs/Downloads/snapinsta-1790210494053.mp4` frame by frame and verified that PH-Ponto implements every single feature shown (Regimento 6-step wizard, Mapa de Funções, Quadro de Cultura, Advertência Verbal, Advertência Escrita com 2 testemunhas, Suspensão com Art. 474 CLT, Avaliação de Desempenho com cálculo de média, e Prontuário do Colaborador).
+  - Documents Hub Page (`/admin/documentos/gerar`): built the central document generation hub organizing all 10 document templates into 4 categories (`01 Fundação`, `02 Contratação`, `03 Disciplina`, `04 Desempenho`) with estimated duration badges (`~ 5 min`, `~ 3 min`, `~ 1 min`, etc.), descriptions, and direct generator links. Added to navigation bar and documents archive.
+  - Employee Prontuário (`/admin/funcionarios/:id`):
+    - Added "Gerar para {Nome}" quick-action bar with 6 shortcuts: Ciência do Regimento (`~ 1 min`), Ciência de Função (`~ 3 min`), Advertência Verbal (`~ 3 min`), Advertência Escrita (`~ 3 min`), Suspensão (`~ 4 min`), and Avaliação Mensal (`~ 5 min`).
+    - Added "Escala disciplinar" widget card tracking 5 progression stages (Conversa individual, Advertência verbal, Advertência escrita, Suspensão disciplinar, Desligamento) with checkmarks on reached stages and high-visibility "PRÓXIMA" badge based on live progression.
+    - Added "Acesso ao app" widget card displaying status, CPF/login, "Gerar outra senha" button, and "Tirar o acesso" button.
+  - Setup Dashboard (`/admin`): added time-of-day greeting ("Bom dia", "Boa tarde", "Boa noite") personalized with admin first name and "Gerar Documento" shortcut in quick access.
+  - Quality verification: 409 tests passed 100% across the monorepo: 379 unit/tooling tests (shared 91, API 183, desktop 93, tooling 12), 25 PostgreSQL integration tests applying all 12 migrations, and 5 Playwright E2E browser suites. Clean TypeScript typecheck, 0 ESLint errors/warnings, Prettier formatted, and all production builds passing.
 - **Next Steps**:
   - Present final operational handoff to the user.
   - Retain local isolation on branch `feat/hr-evolution`. No remote pushes or deployments.

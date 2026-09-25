@@ -12,14 +12,17 @@ import {
   Download,
   Edit2,
   Eye,
+  FileCheck2,
   FileText,
   Filter,
   History,
   Key,
+  Lock,
   Plus,
   RefreshCw,
   ShieldAlert,
   ShieldCheck,
+  Sparkles,
   User,
   UserCheck,
   UserX,
@@ -228,6 +231,12 @@ export function AdminEmployeeDetailPage(): React.JSX.Element {
     queryKey: ['admin-job-roles'],
     queryFn: () => api.getJobRoles(false),
     enabled: assignRoleOpen,
+  });
+
+  const { data: disciplinarySummary } = useQuery({
+    queryKey: ['admin-employee-discipline-summary', employeeId],
+    queryFn: () => api.getDisciplinarySummary(employeeId),
+    enabled: Boolean(employeeId),
   });
 
   // Action Helpers
@@ -530,144 +539,456 @@ export function AdminEmployeeDetailPage(): React.JSX.Element {
       {/* TAB 1: RESUMO                                                             */}
       {/* ========================================================================= */}
       {activeTab === 'RESUMO' && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Card: Dados Pessoais & Contato */}
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-              <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center">
-                <User className="w-4 h-4 mr-2 text-blue-600" />
-                Dados Pessoais e Contato
-              </h2>
-              <button
-                type="button"
-                onClick={() => setEditProfileOpen(true)}
-                className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline flex items-center"
-              >
-                <Edit2 className="w-3.5 h-3.5 mr-1" />
-                Editar
-              </button>
+        <div className="space-y-6">
+          {/* Quick Actions: Gerar para [Nome] */}
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 mb-4">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-blue-600" />
+                <h2 className="text-sm font-bold text-slate-900 dark:text-white">
+                  Gerar para {employee?.name ?? 'o colaborador'}
+                </h2>
+              </div>
+              <span className="text-xs text-slate-400">
+                Atalhos rápidos para emissão de documentos oficiais
+              </span>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 text-xs">
-              <div>
-                <span className="text-slate-400 block font-medium">CPF</span>
-                <span className="font-semibold text-slate-800 dark:text-slate-200 font-mono">
-                  {profile?.cpf || 'Não informado'}
-                </span>
-              </div>
-              <div>
-                <span className="text-slate-400 block font-medium">RG</span>
-                <span className="font-semibold text-slate-800 dark:text-slate-200 font-mono">
-                  {profile?.rg || 'Não informado'}
-                </span>
-              </div>
-              <div>
-                <span className="text-slate-400 block font-medium">Data de Nascimento</span>
-                <span className="font-semibold text-slate-800 dark:text-slate-200">
-                  {profile?.birthDate ? formatDateBR(profile.birthDate) : 'Não informada'}
-                </span>
-              </div>
-              <div>
-                <span className="text-slate-400 block font-medium">Telefone</span>
-                <span className="font-semibold text-slate-800 dark:text-slate-200 font-mono">
-                  {profile?.phone || 'Não informado'}
-                </span>
-              </div>
-              <div className="col-span-2">
-                <span className="text-slate-400 block font-medium">E-mail Pessoal</span>
-                <span className="font-semibold text-slate-800 dark:text-slate-200">
-                  {profile?.personalEmail || 'Não informado'}
-                </span>
-              </div>
-              <div className="col-span-2">
-                <span className="text-slate-400 block font-medium">Endereço Residencial</span>
-                <span className="font-semibold text-slate-800 dark:text-slate-200">
-                  {profile?.addressStreet
-                    ? `${profile.addressStreet}, ${profile.addressNumber || 'S/N'}${profile.addressComplement ? ` - ${profile.addressComplement}` : ''} - ${profile.addressNeighborhood || ''}, ${profile.addressCity || ''}/${profile.addressState || ''} (CEP: ${profile.addressPostalCode || 'Não informado'})`
-                    : 'Não informado'}
-                </span>
-              </div>
-              <div className="col-span-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-                <span className="text-slate-400 block font-medium">Observações Internas</span>
-                <p className="text-slate-700 dark:text-slate-300 mt-1 italic leading-relaxed">
-                  {profile?.notes || 'Nenhuma observação cadastrada.'}
-                </p>
-              </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+              <Link
+                to={`/admin/documentos/ciencia?employeeId=${employeeId}&type=ACKNOWLEDGMENT_REGULATION`}
+                className="group flex flex-col justify-between p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 hover:bg-blue-50/50 dark:hover:bg-blue-950/30 hover:border-blue-300 dark:hover:border-blue-800 transition-all text-left"
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <FileText className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-blue-100/60 dark:bg-blue-950 text-blue-700 dark:text-blue-300">
+                      ~ 1 min
+                    </span>
+                  </div>
+                  <div className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                    Ciência do Regimento
+                  </div>
+                </div>
+                <span className="text-[11px] text-slate-500 mt-2 block">Termo de recebimento</span>
+              </Link>
+
+              <Link
+                to={`/admin/documentos/ciencia?employeeId=${employeeId}&type=ACKNOWLEDGMENT_ROLE`}
+                className="group flex flex-col justify-between p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 hover:bg-blue-50/50 dark:hover:bg-blue-950/30 hover:border-blue-300 dark:hover:border-blue-800 transition-all text-left"
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <FileCheck2 className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-indigo-100/60 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300">
+                      ~ 3 min
+                    </span>
+                  </div>
+                  <div className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                    Ciência de Função
+                  </div>
+                </div>
+                <span className="text-[11px] text-slate-500 mt-2 block">Descrição e mapa</span>
+              </Link>
+
+              <Link
+                to={`/admin/documentos/disciplina?employeeId=${employeeId}&type=DISCIPLINE_VERBAL`}
+                className="group flex flex-col justify-between p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 hover:bg-amber-50/50 dark:hover:bg-amber-950/30 hover:border-amber-300 dark:hover:border-amber-800 transition-all text-left"
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <ShieldAlert className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-100/60 dark:bg-amber-950 text-amber-700 dark:text-amber-300">
+                      ~ 3 min
+                    </span>
+                  </div>
+                  <div className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
+                    Advertência Verbal
+                  </div>
+                </div>
+                <span className="text-[11px] text-slate-500 mt-2 block">Registro formal</span>
+              </Link>
+
+              <Link
+                to={`/admin/documentos/disciplina?employeeId=${employeeId}&type=DISCIPLINE_WRITTEN`}
+                className="group flex flex-col justify-between p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 hover:bg-orange-50/50 dark:hover:bg-orange-950/30 hover:border-orange-300 dark:hover:border-orange-800 transition-all text-left"
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <AlertTriangle className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+                    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-orange-100/60 dark:bg-orange-950 text-orange-700 dark:text-orange-300">
+                      ~ 3 min
+                    </span>
+                  </div>
+                  <div className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
+                    Advertência Escrita
+                  </div>
+                </div>
+                <span className="text-[11px] text-slate-500 mt-2 block">Com 2 testemunhas</span>
+              </Link>
+
+              <Link
+                to={`/admin/documentos/disciplina?employeeId=${employeeId}&type=DISCIPLINE_SUSPENSION`}
+                className="group flex flex-col justify-between p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 hover:bg-rose-50/50 dark:hover:bg-rose-950/30 hover:border-rose-300 dark:hover:border-rose-800 transition-all text-left"
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <ShieldAlert className="w-4 h-4 text-rose-600 dark:text-rose-400" />
+                    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-rose-100/60 dark:bg-rose-950 text-rose-700 dark:text-rose-300">
+                      ~ 4 min
+                    </span>
+                  </div>
+                  <div className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors">
+                    Suspensão
+                  </div>
+                </div>
+                <span className="text-[11px] text-slate-500 mt-2 block">Art. 474 da CLT</span>
+              </Link>
+
+              <Link
+                to={`/admin/documentos/avaliacao?employeeId=${employeeId}`}
+                className="group flex flex-col justify-between p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 hover:bg-blue-50/50 dark:hover:bg-blue-950/30 hover:border-blue-300 dark:hover:border-blue-800 transition-all text-left"
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <Award className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-100/60 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300">
+                      ~ 5 min
+                    </span>
+                  </div>
+                  <div className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                    Avaliação Mensal
+                  </div>
+                </div>
+                <span className="text-[11px] text-slate-500 mt-2 block">8 critérios e média</span>
+              </Link>
             </div>
           </div>
 
-          {/* Card: Vínculo & Cargo */}
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-              <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center">
-                <Award className="w-4 h-4 mr-2 text-indigo-600" />
-                Vínculo Empregatício e Cargo
-              </h2>
-              <button
-                type="button"
-                onClick={() => setAssignRoleOpen(true)}
-                className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline flex items-center"
-              >
-                <Plus className="w-3.5 h-3.5 mr-1" />
-                Atribuir Cargo
-              </button>
-            </div>
-
-            <div className="space-y-4 text-xs">
-              <div className="flex items-center justify-between p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
-                <div>
-                  <span className="text-slate-500 dark:text-slate-400 block font-medium">
-                    Situação Trabalhista
-                  </span>
-                  <span className="text-sm font-bold text-slate-900 dark:text-white mt-0.5 block">
-                    {employee?.isActive ? 'Colaborador Ativo' : 'Colaborador Desligado'}
-                  </span>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Left 2 columns: Dados Pessoais & Vínculo */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Card: Dados Pessoais & Contato */}
+              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                  <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center">
+                    <User className="w-4 h-4 mr-2 text-blue-600" />
+                    Dados Pessoais e Contato
+                  </h2>
+                  <button
+                    type="button"
+                    onClick={() => setEditProfileOpen(true)}
+                    className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline flex items-center"
+                  >
+                    <Edit2 className="w-3.5 h-3.5 mr-1" />
+                    Editar
+                  </button>
                 </div>
-                <StatusBadge isActive={employee?.isActive ?? true} />
+
+                <div className="grid grid-cols-2 gap-4 text-xs">
+                  <div>
+                    <span className="text-slate-400 block font-medium">CPF</span>
+                    <span className="font-semibold text-slate-800 dark:text-slate-200 font-mono">
+                      {profile?.cpf || 'Não informado'}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block font-medium">RG</span>
+                    <span className="font-semibold text-slate-800 dark:text-slate-200 font-mono">
+                      {profile?.rg || 'Não informado'}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block font-medium">Data de Nascimento</span>
+                    <span className="font-semibold text-slate-800 dark:text-slate-200">
+                      {profile?.birthDate ? formatDateBR(profile.birthDate) : 'Não informada'}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block font-medium">Telefone</span>
+                    <span className="font-semibold text-slate-800 dark:text-slate-200 font-mono">
+                      {profile?.phone || 'Não informado'}
+                    </span>
+                  </div>
+                  <div className="col-span-2">
+                    <span className="text-slate-400 block font-medium">E-mail Pessoal</span>
+                    <span className="font-semibold text-slate-800 dark:text-slate-200">
+                      {profile?.personalEmail || 'Não informado'}
+                    </span>
+                  </div>
+                  <div className="col-span-2">
+                    <span className="text-slate-400 block font-medium">Endereço Residencial</span>
+                    <span className="font-semibold text-slate-800 dark:text-slate-200">
+                      {profile?.addressStreet
+                        ? `${profile.addressStreet}, ${profile.addressNumber || 'S/N'}${profile.addressComplement ? ` - ${profile.addressComplement}` : ''} - ${profile.addressNeighborhood || ''}, ${profile.addressCity || ''}/${profile.addressState || ''} (CEP: ${profile.addressPostalCode || 'Não informado'})`
+                        : 'Não informado'}
+                    </span>
+                  </div>
+                  <div className="col-span-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                    <span className="text-slate-400 block font-medium">Observações Internas</span>
+                    <p className="text-slate-700 dark:text-slate-300 mt-1 italic leading-relaxed">
+                      {profile?.notes || 'Nenhuma observação cadastrada.'}
+                    </p>
+                  </div>
+                </div>
               </div>
 
-              <div>
-                <span className="text-slate-400 block font-medium">Data de Admissão</span>
-                <span className="text-sm font-bold text-slate-800 dark:text-slate-200">
-                  {profile?.hireDate
-                    ? formatDateBR(profile.hireDate)
-                    : employee?.createdAt
-                      ? formatDateBR(employee.createdAt)
-                      : '--'}
-                </span>
-              </div>
+              {/* Card: Vínculo & Cargo */}
+              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                  <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center">
+                    <Award className="w-4 h-4 mr-2 text-indigo-600" />
+                    Vínculo Empregatício e Cargo
+                  </h2>
+                  <button
+                    type="button"
+                    onClick={() => setAssignRoleOpen(true)}
+                    className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline flex items-center"
+                  >
+                    <Plus className="w-3.5 h-3.5 mr-1" />
+                    Atribuir Cargo
+                  </button>
+                </div>
 
-              <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
-                <span className="text-slate-400 block font-medium mb-1.5">
-                  Cargo Principal Vigente
-                </span>
-                {profile?.roleAssignment ? (
-                  <div className="p-3.5 rounded-xl bg-blue-50/50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/60 space-y-1">
-                    <div className="text-sm font-bold text-blue-900 dark:text-blue-200">
-                      {profile.roleAssignment.roleTitle}
+                <div className="space-y-4 text-xs">
+                  <div className="flex items-center justify-between p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
+                    <div>
+                      <span className="text-slate-500 dark:text-slate-400 block font-medium">
+                        Situação Trabalhista
+                      </span>
+                      <span className="text-sm font-bold text-slate-900 dark:text-white mt-0.5 block">
+                        {employee?.isActive ? 'Colaborador Ativo' : 'Colaborador Desligado'}
+                      </span>
                     </div>
-                    <div className="text-slate-500 dark:text-slate-400 text-xs">
-                      Versão do Cargo: v{profile.roleAssignment.versionNumber} · Início em{' '}
-                      {formatDateBR(profile.roleAssignment.startDate)}
-                    </div>
-                    {profile.roleAssignment.notes && (
-                      <div className="text-slate-600 dark:text-slate-300 text-xs pt-1 italic">
-                        "{profile.roleAssignment.notes}"
+                    <StatusBadge isActive={employee?.isActive ?? true} />
+                  </div>
+
+                  <div>
+                    <span className="text-slate-400 block font-medium">Data de Admissão</span>
+                    <span className="text-sm font-bold text-slate-800 dark:text-slate-200">
+                      {profile?.hireDate
+                        ? formatDateBR(profile.hireDate)
+                        : employee?.createdAt
+                          ? formatDateBR(employee.createdAt)
+                          : '--'}
+                    </span>
+                  </div>
+
+                  <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
+                    <span className="text-slate-400 block font-medium mb-1.5">
+                      Cargo Principal Vigente
+                    </span>
+                    {profile?.roleAssignment ? (
+                      <div className="p-3.5 rounded-xl bg-blue-50/50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/60 space-y-1">
+                        <div className="text-sm font-bold text-blue-900 dark:text-blue-200">
+                          {profile.roleAssignment.roleTitle}
+                        </div>
+                        <div className="text-slate-500 dark:text-slate-400 text-xs">
+                          Versão do Cargo: v{profile.roleAssignment.versionNumber} · Início em{' '}
+                          {formatDateBR(profile.roleAssignment.startDate)}
+                        </div>
+                        {profile.roleAssignment.notes && (
+                          <div className="text-slate-600 dark:text-slate-300 text-xs pt-1 italic">
+                            "{profile.roleAssignment.notes}"
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="p-4 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 text-center text-slate-500">
+                        Nenhum cargo formal atribuído a este colaborador.
+                        <button
+                          type="button"
+                          onClick={() => setAssignRoleOpen(true)}
+                          className="block mx-auto mt-2 text-xs font-bold text-blue-600 hover:underline"
+                        >
+                          Atribuir Cargo Agora
+                        </button>
                       </div>
                     )}
                   </div>
-                ) : (
-                  <div className="p-4 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 text-center text-slate-500">
-                    Nenhum cargo formal atribuído a este colaborador.
-                    <button
-                      type="button"
-                      onClick={() => setAssignRoleOpen(true)}
-                      className="block mx-auto mt-2 text-xs font-bold text-blue-600 hover:underline"
-                    >
-                      Atribuir Cargo Agora
-                    </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Right 1 column: Acesso ao App & Escala Disciplinar */}
+            <div className="space-y-6">
+              {/* Card: Acesso ao Aplicativo */}
+              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                  <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center">
+                    <Key className="w-4 h-4 mr-2 text-blue-600" />
+                    Acesso ao app
+                  </h2>
+                  <span
+                    className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold ${
+                      employee?.accessEnabled
+                        ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
+                        : 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800'
+                    }`}
+                  >
+                    {employee?.accessEnabled ? 'Acesso liberado' : 'Acesso bloqueado'}
+                  </span>
+                </div>
+
+                <div className="space-y-3 text-xs">
+                  <div>
+                    <span className="text-slate-400 block font-medium">CPF / Login</span>
+                    <span className="font-semibold text-slate-800 dark:text-slate-200 font-mono">
+                      {profile?.cpf || employee?.login || 'Não cadastrado'}
+                    </span>
                   </div>
-                )}
+
+                  <div className="pt-2 flex flex-col gap-2">
+                    {employee?.accessEnabled ? (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => setResetPasswordOpen(true)}
+                          className="w-full inline-flex items-center justify-center py-2 px-3 rounded-xl border border-slate-300 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                        >
+                          <Lock className="w-3.5 h-3.5 mr-1.5 text-slate-500" />
+                          Gerar outra senha
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => disableAccessMutation.mutate()}
+                          disabled={disableAccessMutation.isPending}
+                          className="w-full inline-flex items-center justify-center py-2 px-3 rounded-xl border border-rose-200 dark:border-rose-900/60 bg-rose-50/60 dark:bg-rose-950/40 text-xs font-semibold text-rose-700 dark:text-rose-300 hover:bg-rose-100 transition-colors"
+                        >
+                          <UserX className="w-3.5 h-3.5 mr-1.5" />
+                          {disableAccessMutation.isPending ? 'Desativando...' : 'Tirar o acesso'}
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setEnableAccessOpen(true)}
+                        className="w-full inline-flex items-center justify-center py-2 px-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs transition-colors"
+                      >
+                        <Key className="w-3.5 h-3.5 mr-1.5" />
+                        Liberar Acesso ao App
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Card: Escala Disciplinar */}
+              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                  <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center">
+                    <ShieldAlert className="w-4 h-4 mr-2 text-amber-600" />
+                    Escala disciplinar
+                  </h2>
+                  <Link
+                    to={`/admin/documentos/disciplina?employeeId=${employeeId}`}
+                    className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline"
+                  >
+                    Gerenciar
+                  </Link>
+                </div>
+
+                <div className="space-y-3">
+                  {[
+                    {
+                      level: 1,
+                      name: '1. Conversa individual',
+                      desc: 'Alinhamento verbal e orientação',
+                      isCompleted:
+                        (disciplinarySummary?.verbalCount ?? 0) > 0 ||
+                        (disciplinarySummary?.writtenCount ?? 0) > 0 ||
+                        (disciplinarySummary?.suspensionCount ?? 0) > 0 ||
+                        !employee?.isActive,
+                      isNext: false,
+                    },
+                    {
+                      level: 2,
+                      name: '2. Advertência verbal',
+                      desc: 'Registro formal com orientações',
+                      isCompleted:
+                        (disciplinarySummary?.verbalCount ?? 0) > 0 ||
+                        (disciplinarySummary?.writtenCount ?? 0) > 0 ||
+                        (disciplinarySummary?.suspensionCount ?? 0) > 0 ||
+                        !employee?.isActive,
+                      isNext:
+                        disciplinarySummary?.nextSuggestedStage === 'VERBAL_WARNING' &&
+                        (disciplinarySummary?.verbalCount ?? 0) === 0 &&
+                        Boolean(employee?.isActive),
+                    },
+                    {
+                      level: 3,
+                      name: '3. Advertência escrita',
+                      desc: 'Ciência formal com 2 testemunhas',
+                      isCompleted:
+                        (disciplinarySummary?.writtenCount ?? 0) > 0 ||
+                        (disciplinarySummary?.suspensionCount ?? 0) > 0 ||
+                        !employee?.isActive,
+                      isNext:
+                        disciplinarySummary?.nextSuggestedStage === 'WRITTEN_WARNING' &&
+                        Boolean(employee?.isActive),
+                    },
+                    {
+                      level: 4,
+                      name: '4. Suspensão disciplinar',
+                      desc: 'Afastamento CLT (máx. 30 dias)',
+                      isCompleted:
+                        (disciplinarySummary?.suspensionCount ?? 0) > 0 || !employee?.isActive,
+                      isNext:
+                        disciplinarySummary?.nextSuggestedStage === 'SUSPENSION' &&
+                        Boolean(employee?.isActive),
+                    },
+                    {
+                      level: 5,
+                      name: '5. Desligamento',
+                      desc: 'Revisão jurídica e rescisão',
+                      isCompleted: !employee?.isActive,
+                      isNext:
+                        disciplinarySummary?.nextSuggestedStage === 'DISMISSAL_REVIEW' &&
+                        Boolean(employee?.isActive),
+                    },
+                  ].map((step) => (
+                    <div
+                      key={step.level}
+                      className={`flex items-start justify-between p-2.5 rounded-xl border transition-colors ${
+                        step.isNext
+                          ? 'bg-blue-50/70 dark:bg-blue-950/40 border-blue-200 dark:border-blue-900/60'
+                          : step.isCompleted
+                            ? 'bg-slate-50/60 dark:bg-slate-800/40 border-slate-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-300'
+                            : 'bg-transparent border-slate-100 dark:border-slate-800/60 text-slate-400'
+                      }`}
+                    >
+                      <div className="flex items-start gap-2.5">
+                        <div className="mt-0.5">
+                          {step.isCompleted ? (
+                            <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                          ) : (
+                            <div
+                              className={`w-4 h-4 rounded-full border flex items-center justify-center text-[10px] font-bold ${
+                                step.isNext
+                                  ? 'border-blue-600 text-blue-600 bg-blue-100 dark:bg-blue-900/50'
+                                  : 'border-slate-300 dark:border-slate-700 text-slate-400'
+                              }`}
+                            >
+                              {step.level}
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <div className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                            {step.name}
+                          </div>
+                          <div className="text-[11px] text-slate-500">{step.desc}</div>
+                        </div>
+                      </div>
+
+                      {step.isNext && (
+                        <span className="shrink-0 px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wide bg-blue-600 text-white shadow-xs">
+                          Próxima
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>

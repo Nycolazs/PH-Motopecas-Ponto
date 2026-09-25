@@ -206,11 +206,11 @@ export function DocumentsArchivePage(): React.JSX.Element {
 
         <div className="flex items-center gap-3">
           <Link
-            to="/admin/documentos/cultura"
+            to="/admin/documentos/gerar"
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white transition-colors shadow-xs"
           >
             <Sparkles className="w-4 h-4" />
-            Manual de Cultura
+            Gerar Documento
           </Link>
         </div>
       </div>
