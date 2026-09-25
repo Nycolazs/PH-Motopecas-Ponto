@@ -18,9 +18,14 @@ interface CompanyPrismaMock {
   };
   user: {
     count: ReturnType<typeof vi.fn>;
+    findMany: ReturnType<typeof vi.fn>;
   };
   employeeRoleAssignment: {
     groupBy: ReturnType<typeof vi.fn>;
+    findMany: ReturnType<typeof vi.fn>;
+  };
+  employeeDocumentAcknowledgment: {
+    findMany: ReturnType<typeof vi.fn>;
   };
   cultureProfileVersion: {
     count: ReturnType<typeof vi.fn>;
@@ -55,9 +60,14 @@ describe('CompanyService', () => {
       },
       user: {
         count: vi.fn().mockResolvedValue(1),
+        findMany: vi.fn().mockResolvedValue([{ id: 'emp-1' }]),
       },
       employeeRoleAssignment: {
         groupBy: vi.fn().mockResolvedValue([{ employeeId: 'emp-1' }]),
+        findMany: vi.fn().mockResolvedValue([{ employeeId: 'emp-1' }]),
+      },
+      employeeDocumentAcknowledgment: {
+        findMany: vi.fn().mockResolvedValue([{ employeeId: 'emp-1' }]),
       },
       cultureProfileVersion: {
         count: vi.fn().mockResolvedValue(1),

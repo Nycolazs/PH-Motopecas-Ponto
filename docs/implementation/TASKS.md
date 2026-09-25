@@ -36,11 +36,11 @@ Statuses: pending, active, review, done, blocked. A planned task is never eviden
 | HR7-001 | done    | performance       | criteria                              | HR-6       | Versioned criteria                                                 |
 | HR7-002 | done    | performance       | reviews/scores                        | HR-6       | Bounded scores and deterministic mean                              |
 | HR7-003 | done    | documents         | review document/history               | HR-6       | Supersession preserves history                                     |
-| HR8-001 | pending | product           | setup dashboard                       | HR-7       | Six real requirements                                              |
-| HR8-002 | pending | frontend          | archive filters                       | HR-7       | Search/page/state coverage                                         |
-| HR8-003 | pending | UX                | cross-feature UI                      | HR-7       | Keyboard/mobile/theme visual review                                |
-| HR8-004 | pending | QA                | local seed                            | HR-7       | Idempotent synthetic full workflow dataset                         |
-| HR9-001 | pending | QA                | regression/E2E                        | HR-8       | Real local API/database flows                                      |
+| HR8-001 | done    | product           | setup dashboard                       | HR-7       | Six real requirements                                              |
+| HR8-002 | done    | frontend          | archive filters                       | HR-7       | Search/page/state coverage                                         |
+| HR8-003 | done    | UX                | cross-feature UI                      | HR-7       | Keyboard/mobile/theme visual review                                |
+| HR8-004 | done    | QA                | local seed                            | HR-7       | Idempotent synthetic full workflow dataset                         |
+| HR9-001 | active  | QA                | regression/E2E                        | HR-8       | Real local API/database flows                                      |
 | HR9-002 | pending | QA                | recovery/migrations                   | HR-8       | Upgrade/restore/job restart                                        |
 | HR9-003 | pending | reviewer          | security/architecture                 | HR-8       | Independent findings resolved                                      |
 | HR9-004 | pending | UX                | PDFs/screens                          | HR-8       | Rendered page/layout evidence                                      |

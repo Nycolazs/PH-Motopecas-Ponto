@@ -4,6 +4,7 @@ import { argon2id, hash } from 'argon2';
 import { normalizeLogin } from '../auth/login-normalization.js';
 import { validateEnvironment } from '../config/environment.js';
 import { Prisma, PrismaClient, UserRole, Weekday } from '../generated/prisma/client.js';
+import { seedHrDemoData } from './seed-hr-demo.js';
 
 const BASELINE_EFFECTIVE_DATE = new Date('1970-01-01T00:00:00.000Z');
 
@@ -204,9 +205,10 @@ async function seedDatabase(): Promise<SeedResult> {
     const needsBootstrapAdmin = observedBootstrapUser === null && observedActiveAdmin === null;
     const passwordHash = needsBootstrapAdmin ? await hash(adminPassword, ARGON2ID_POLICY) : null;
 
+    let seedResult: SeedResult | null = null;
     for (let attempt = 0; attempt < 2; attempt += 1) {
       try {
-        return await prisma.$transaction(
+        seedResult = await prisma.$transaction(
           async (transaction) => {
             const configuredUser = await transaction.user.findUnique({
               where: { normalizedLogin },
@@ -246,6 +248,7 @@ async function seedDatabase(): Promise<SeedResult> {
           },
           { isolationLevel: 'Serializable' },
         );
+        break;
       } catch (error) {
         const retryableConflict =
           error instanceof Prisma.PrismaClientKnownRequestError &&
@@ -259,7 +262,19 @@ async function seedDatabase(): Promise<SeedResult> {
       }
     }
 
-    throw new Error('The database seed retry budget was exhausted.');
+    if (!seedResult) {
+      throw new Error('The database seed retry budget was exhausted.');
+    }
+
+    const activeAdmin = await prisma.user.findFirst({
+      where: { role: UserRole.ADMIN, isActive: true },
+      orderBy: { createdAt: 'asc' },
+    });
+    if (activeAdmin) {
+      await seedHrDemoData(prisma, activeAdmin);
+    }
+
+    return seedResult;
   } finally {
     await prisma.$disconnect();
   }
@@ -279,6 +294,7 @@ void seedDatabase()
     } else {
       console.error(
         'PH-Ponto seed failed. Review database connectivity and validated configuration.',
+        error,
       );
     }
 

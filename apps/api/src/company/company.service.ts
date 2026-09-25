@@ -121,22 +121,35 @@ export class CompanyService {
 
     const isRolePublished = activeRolesCount > 0 && publishedRolesCount > 0;
 
-    const activeEmployeesCount = await this.prisma.user.count({
+    const activeEmployees = await this.prisma.user.findMany({
       where: { role: UserRole.EMPLOYEE, isActive: true },
+      select: { id: true },
     });
-
+    const activeEmployeesCount = activeEmployees.length;
     const hasActiveEmployee = activeEmployeesCount > 0;
 
-    const employeesWithRoleCount = await this.prisma.employeeRoleAssignment.groupBy({
-      by: ['employeeId'],
+    const employeesWithRole = await this.prisma.employeeRoleAssignment.findMany({
       where: {
         isPrincipal: true,
         employee: { isActive: true },
       },
+      select: { employeeId: true },
     });
+    const employeesWithRoleSet = new Set(employeesWithRole.map((r) => r.employeeId));
 
-    const allAssignedRoles =
-      hasActiveEmployee && employeesWithRoleCount.length >= activeEmployeesCount;
+    const employeesWithAck = await this.prisma.employeeDocumentAcknowledgment.findMany({
+      where: {
+        employee: { isActive: true },
+      },
+      select: { employeeId: true },
+    });
+    const employeesWithAckSet = new Set(employeesWithAck.map((a) => a.employeeId));
+
+    const allAssignedRolesAndAcknowledged =
+      hasActiveEmployee &&
+      activeEmployees.every(
+        (emp) => employeesWithRoleSet.has(emp.id) && employeesWithAckSet.has(emp.id),
+      );
 
     const cultureVersionsCount = await this.prisma.cultureProfileVersion.count();
     const isCulturePublished = cultureVersionsCount > 0;
@@ -181,10 +194,10 @@ export class CompanyService {
       },
       {
         id: 'assignment',
-        label: 'Atribuição de Cargos',
-        description: 'Vincular todos os colaboradores aos seus respectivos cargos',
-        isCompleted: allAssignedRoles,
-        actionUrl: '/admin/funcionarios',
+        label: 'Cargos e Termos de Ciência',
+        description: 'Vincular colaboradores aos cargos e gerar termos de ciência',
+        isCompleted: allAssignedRolesAndAcknowledged,
+        actionUrl: '/admin/documentos/ciencia',
       },
     ];
 

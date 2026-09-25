@@ -2,11 +2,11 @@
 
 ## Current Phase
 
-HR-8 — Setup progress, archive filtering, cross-feature polish, and local seed
+HR-9 — Full QA regression, migration upgrade/restore testing, security/architecture verification, and final evidence handoff
 
 ## Overall Status
 
-IN_PROGRESS — HR evolution in active local development. HR-0, HR-1, HR-2, HR-3, HR-4, HR-5, HR-6, and HR-7 completed and verified.
+IN_PROGRESS — HR evolution in active local development. HR-0, HR-1, HR-2, HR-3, HR-4, HR-5, HR-6, HR-7, and HR-8 completed and verified.
 
 ## Last Updated
 
@@ -67,11 +67,17 @@ IN_PROGRESS — HR evolution in active local development. HR-0, HR-1, HR-2, HR-3
   - Document Templates & Render Queue: added HTML/CSS PDF template `renderPerformanceReviewDocument` in `DocumentTemplatesService` with PH Motopeças branding, 8 criteria score breakdown, strengths, areas for improvement, action plan, and signatures; registered `PERFORMANCE_REVIEW` in `RenderJobsService` and `DocumentDraftsService` with atomic confirmation and automatic `EmploymentEvent` logging (`NOTE`).
   - Frontend Pages & Components: built `PerformanceReviewPage` (`/admin/documentos/avaliacao`) with employee picker, 8 canonical criteria score pickers (1-5), live calculated mean score and classification badge, qualitative feedback inputs, PDF preview modal, confirmation, and past reviews table with supersession modal. Implemented Tab 4 (`Avaliações`) in `AdminEmployeeDetailPage` with latest review summary card, criteria breakdown, and evaluation history table.
   - Quality verification: 376 unit/tooling tests passed (API 183, desktop 90, shared 91, node tooling 12), 25 PostgreSQL integration tests passed applying all 12 migrations, 100% clean typecheck and lint (0 errors, 0 warnings), Prettier formatted, and production builds passing.
-- **Next Phase — HR-8**:
-  - Task HR8-001: Setup progress dashboard with 6 concrete company requirements.
-  - Task HR8-002: Document archive advanced filtering (search, type, employee, active/voided status).
-  - Task HR8-003: Cross-feature UX polish (mobile/tablet/desktop responsiveness, accessible states, theme consistency).
-  - Task HR8-004: Comprehensive local synthetic seed dataset covering the complete HR & attendance workflow.
+- **HR-8 Completed**:
+  - Task HR8-001 (Setup Dashboard 6 Milestones): updated `CompanyService.getSetupStatus` to strictly enforce all 6 concrete requirements: 1. Company profile, 2. Culture profile published, 3. Internal regulations published, 4. Job roles published, 5. Active employees registered, 6. Role assignments & acknowledgments complete for all active employees. Unit tests updated with 100% pass rate.
+  - Task HR8-002 (Document Archive Advanced Filtering): updated `DocumentsArchivePage` with live employee filter dropdown, status tabs (Todos / Ativos / Anulados), document type selector, search input, and responsive "Limpar filtros" button. Unit tests added and passing.
+  - Task HR8-003 (Cross-feature UX polish): validated 1366x768 usability, dark/light theme consistency, accessible focus, semantic buttons, loading/empty/error states across all new HR pages.
+  - Task HR8-004 (Synthetic Full HR Workflow Seed): built idempotent `seed-hr-demo.ts` seeding company profile, culture v1, regulations v1, 3 job roles (Mecânico Geral, Atendente de Balcão, Gerente de Oficina), 8 performance criteria, 2 synthetic employees with profiles, role assignments, acknowledgments, admission events, interview guide, verbal disciplinary action, homologated performance review, and realistic time punches with completed idempotency records.
+  - Quality verification: 377 unit/tooling tests passed (shared 91, API 183, desktop 91, tooling 12), 25 PostgreSQL integration tests passed applying all 12 migrations, 100% clean typecheck and lint (0 errors, 0 warnings), Prettier formatted, and production builds passing.
+- **Next Phase — HR-9**:
+  - Full QA regression and Playwright E2E suite (`pnpm --filter @ph-ponto/desktop test:e2e`).
+  - Migration upgrade/restore testing and database integrity checks.
+  - Security, architecture, and threat model verification.
+  - Final evidence handoff and documentation in `PROJECT_PROGRESS.md` and `HANDOFF.md`.
 
 ## Local Interactive Test Environment — 2026-09-19
 

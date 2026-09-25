@@ -116,4 +116,55 @@ describe('DocumentsArchivePage', () => {
       screen.getByPlaceholderText(/Informe o motivo formal da anulação deste documento/i),
     ).toBeVisible();
   });
+
+  it('renders employee filter and allows clearing active filters', async () => {
+    const user = userEvent.setup();
+    const fetchMock = vi.fn().mockImplementation((input: string | URL | Request) => {
+      const url = String(input);
+      if (url.includes('/employees')) {
+        return Promise.resolve(
+          jsonResponse({
+            items: [
+              {
+                id: 'e0000000-0000-4000-8000-000000000001',
+                name: 'Carlos Mecânico',
+                login: 'carlos.mecanico',
+                role: 'EMPLOYEE',
+                isActive: true,
+                accessEnabled: true,
+                hasAvatar: false,
+                createdAt: '2026-01-01T00:00:00.000Z',
+                updatedAt: '2026-01-01T00:00:00.000Z',
+              },
+            ],
+            pagination: {
+              page: 1,
+              limit: 100,
+              total: 1,
+              totalPages: 1,
+            },
+          }),
+        );
+      }
+      if (url.includes('/documents')) {
+        return Promise.resolve(jsonResponse(mockDocuments));
+      }
+      return Promise.resolve(jsonResponse({}));
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderWithProviders(<DocumentsArchivePage />);
+
+    expect(await screen.findByText('Todos os Colaboradores')).toBeVisible();
+    expect(await screen.findByText('Carlos Mecânico')).toBeVisible();
+
+    const searchInput = screen.getByPlaceholderText(/Buscar por título ou colaborador/i);
+    await user.type(searchInput, 'Manual');
+
+    const clearButton = await screen.findByRole('button', { name: /Limpar filtros/i });
+    expect(clearButton).toBeVisible();
+
+    await user.click(clearButton);
+    expect(searchInput).toHaveValue('');
+  });
 });

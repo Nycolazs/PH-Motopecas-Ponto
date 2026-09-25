@@ -182,8 +182,12 @@ export interface EnvironmentVariables extends z.infer<typeof rawEnvironmentSchem
 }
 
 export class EnvironmentValidationError extends Error {
-  public constructor() {
-    super('A configuração do ambiente da API é inválida.');
+  public constructor(public readonly issues?: unknown) {
+    super(
+      issues
+        ? `A configuração do ambiente da API é inválida: ${JSON.stringify(issues)}`
+        : 'A configuração do ambiente da API é inválida.',
+    );
     this.name = 'EnvironmentValidationError';
   }
 }
@@ -192,7 +196,7 @@ export function validateEnvironment(environment: Record<string, unknown>): Envir
   const result = rawEnvironmentSchema.safeParse(environment);
 
   if (!result.success) {
-    throw new EnvironmentValidationError();
+    throw new EnvironmentValidationError(result.error.issues);
   }
 
   return {

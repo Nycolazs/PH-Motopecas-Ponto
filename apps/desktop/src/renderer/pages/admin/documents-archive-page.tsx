@@ -14,8 +14,10 @@ import {
   Filter,
   FolderArchive,
   RefreshCw,
+  RotateCcw,
   Search,
   Sparkles,
+  User,
   X,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -47,6 +49,7 @@ export function DocumentsArchivePage(): React.JSX.Element {
   const [limit] = useState(10);
   const [search, setSearch] = useState('');
   const [selectedType, setSelectedType] = useState<DocumentTypeDto | ''>('');
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState('');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTIVE' | 'VOID'>('ALL');
 
   // Preview & Void Modal State
@@ -60,6 +63,13 @@ export function DocumentsArchivePage(): React.JSX.Element {
   // Download loading state by document ID
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
+  // Fetch Employees for Filter
+  const { data: employeesData } = useQuery({
+    queryKey: ['employees-archive-filter'],
+    queryFn: ({ signal }) => api.getEmployees({ limit: 100 }, signal),
+    enabled: Boolean(session),
+  });
+
   // Fetch Documents List
   const {
     data: documentsData,
@@ -67,7 +77,15 @@ export function DocumentsArchivePage(): React.JSX.Element {
     error: queryError,
     refetch,
   } = useQuery({
-    queryKey: ['documents-list', page, limit, search, selectedType, statusFilter],
+    queryKey: [
+      'documents-list',
+      page,
+      limit,
+      search,
+      selectedType,
+      selectedEmployeeId,
+      statusFilter,
+    ],
     queryFn: ({ signal }) =>
       api.getDocuments(
         {
@@ -75,6 +93,7 @@ export function DocumentsArchivePage(): React.JSX.Element {
           limit,
           ...(search.trim() ? { search: search.trim() } : {}),
           ...(selectedType ? { documentType: selectedType } : {}),
+          ...(selectedEmployeeId ? { employeeId: selectedEmployeeId } : {}),
           ...(statusFilter === 'ACTIVE'
             ? { isVoid: false }
             : statusFilter === 'VOID'
@@ -233,6 +252,26 @@ export function DocumentsArchivePage(): React.JSX.Element {
           </select>
         </div>
 
+        {/* Employee Filter */}
+        <div className="flex items-center gap-2">
+          <User className="w-4 h-4 text-slate-400" />
+          <select
+            value={selectedEmployeeId}
+            onChange={(e) => {
+              setSelectedEmployeeId(e.target.value);
+              setPage(1);
+            }}
+            className="text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white py-2 px-3 focus:outline-hidden focus:ring-2 focus:ring-blue-500 max-w-[200px] truncate"
+          >
+            <option value="">Todos os Colaboradores</option>
+            {employeesData?.items.map((emp) => (
+              <option key={emp.id} value={emp.id}>
+                {emp.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
         {/* Status Filter */}
         <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl text-xs font-semibold">
           <button
@@ -278,6 +317,28 @@ export function DocumentsArchivePage(): React.JSX.Element {
             Anulados
           </button>
         </div>
+
+        {/* Clear Filters (if active) */}
+        {(Boolean(search) ||
+          Boolean(selectedType) ||
+          Boolean(selectedEmployeeId) ||
+          statusFilter !== 'ALL') && (
+          <button
+            type="button"
+            onClick={() => {
+              setSearch('');
+              setSelectedType('');
+              setSelectedEmployeeId('');
+              setStatusFilter('ALL');
+              setPage(1);
+            }}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            title="Limpar todos os filtros"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            Limpar filtros
+          </button>
+        )}
 
         {/* Refresh */}
         <button
