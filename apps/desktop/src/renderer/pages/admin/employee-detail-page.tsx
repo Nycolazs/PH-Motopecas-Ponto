@@ -27,17 +27,19 @@ import {
 } from 'lucide-react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
-import type {
-  DailyAttendance,
-  EffectivePunch,
-  EmployeeProfileDto,
-  EmployeeTimelineItemDto,
-  EmploymentEventTypeDto,
-  GeneratedDocumentDto,
-  JobRoleDto,
-  TerminationReasonDto,
-  TimelineCategoryDto,
-  UpdateEmployeeProfileDto,
+import {
+  PERFORMANCE_CLASSIFICATION_BADGES,
+  PERFORMANCE_CLASSIFICATION_LABELS,
+  type DailyAttendance,
+  type EffectivePunch,
+  type EmployeeProfileDto,
+  type EmployeeTimelineItemDto,
+  type EmploymentEventTypeDto,
+  type GeneratedDocumentDto,
+  type JobRoleDto,
+  type TerminationReasonDto,
+  type TimelineCategoryDto,
+  type UpdateEmployeeProfileDto,
 } from '../../api/contracts.js';
 import { useApiClient } from '../../auth/use-auth.js';
 import { useToast } from '../../components/toast-context.js';
@@ -214,6 +216,12 @@ export function AdminEmployeeDetailPage(): React.JSX.Element {
     queryKey: ['admin-employee-documents', employeeId],
     queryFn: () => api.getDocuments({ employeeId, limit: 100 }),
     enabled: Boolean(employeeId) && activeTab === 'DOCUMENTOS',
+  });
+
+  const { data: performanceReviews, isLoading: reviewsLoading } = useQuery({
+    queryKey: ['admin-employee-reviews', employeeId],
+    queryFn: () => api.listPerformanceReviews({ employeeId, includeSuperseded: true }),
+    enabled: Boolean(employeeId) && activeTab === 'AVALIACOES',
   });
 
   const { data: jobRoles } = useQuery({
@@ -986,45 +994,292 @@ export function AdminEmployeeDetailPage(): React.JSX.Element {
       )}
 
       {/* ========================================================================= */}
-      {/* TAB 4: AVALIAÇÕES (FASE HR-7 PLACEHOLDER)                                 */}
+      {/* TAB 4: AVALIAÇÕES (FASE HR-7)                                             */}
       {/* ========================================================================= */}
       {activeTab === 'AVALIACOES' && (
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-8 shadow-xs text-center max-w-3xl mx-auto space-y-4">
-          <div className="w-14 h-14 rounded-2xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center mx-auto shadow-inner border border-blue-100 dark:border-blue-900">
-            <Award className="w-7 h-7" />
-          </div>
-          <h2 className="text-xl font-bold text-slate-900 dark:text-white">
-            Avaliações de Desempenho e Competências
-          </h2>
-          <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-            Este módulo integra o ciclo de evolução de RH da <strong>PH Motopeças</strong> (Fase
-            HR-7). Aqui serão consolidadas as avaliações periódicas com critérios técnicos e
-            comportamentais versionados, notas de 1 a 5 e cálculo ponderado da média de desempenho.
-          </p>
+        <div className="space-y-6">
+          {/* Header & Quick Action */}
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <Award className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                Avaliações de Desempenho e Competências
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Acompanhamento periódico do colaborador com base nos 8 critérios canônicos da{' '}
+                <strong>PH Motopeças</strong>.
+              </p>
+            </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-left pt-4">
-            {[
-              '1. Pontualidade e Assiduidade',
-              '2. Produtividade e Agilidade',
-              '3. Conhecimento Técnico',
-              '4. Trabalho em Equipe',
-              '5. Respeito e Conduta Ética',
-              '6. Proatividade e Iniciativa',
-              '7. Organização e Ferramentas',
-              '8. Segurança do Trabalho',
-            ].map((c) => (
-              <div
-                key={c}
-                className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300"
-              >
-                {c}
+            <Link
+              to={`/admin/documentos/avaliacao?employeeId=${employeeId}`}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md shadow-blue-500/20 transition-all"
+            >
+              <Plus className="w-4 h-4" />
+              Nova Avaliação de Desempenho
+            </Link>
+          </div>
+
+          {reviewsLoading ? (
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-12 text-center text-xs text-slate-400 flex items-center justify-center gap-2">
+              <RefreshCw className="w-4 h-4 animate-spin" /> Carregando avaliações de desempenho...
+            </div>
+          ) : performanceReviews && performanceReviews.length > 0 ? (
+            <div className="space-y-6">
+              {/* Highlight Latest Active Review */}
+              {(() => {
+                const latestReview =
+                  performanceReviews.find((r) => !r.isSuperseded) ?? performanceReviews[0]!;
+                return (
+                  <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs space-y-6">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                            Avaliação Mais Recente
+                          </span>
+                          {latestReview.isSuperseded && (
+                            <span className="text-[10px] bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 px-2 py-0.5 rounded font-bold border border-amber-200 dark:border-amber-800">
+                              Substituída
+                            </span>
+                          )}
+                        </div>
+                        <h3 className="text-base font-bold text-slate-900 dark:text-white mt-1">
+                          Período: {latestReview.evaluationPeriod}
+                        </h3>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                          Realizada em {formatDateBR(latestReview.evaluationDate)} por{' '}
+                          <strong>{latestReview.evaluatorName ?? 'Avaliador'}</strong>
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        <div className="text-right">
+                          <div className="text-2xl font-black text-slate-900 dark:text-white font-mono">
+                            {latestReview.meanScore.toFixed(2)}
+                            <span className="text-xs font-normal text-slate-400"> / 5.00</span>
+                          </div>
+                          <span
+                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                              PERFORMANCE_CLASSIFICATION_BADGES[latestReview.classification]
+                            }`}
+                          >
+                            {PERFORMANCE_CLASSIFICATION_LABELS[latestReview.classification].label}
+                          </span>
+                        </div>
+
+                        {latestReview.generatedDocumentId && (
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              try {
+                                const doc = await api.getDocument(
+                                  latestReview.generatedDocumentId!,
+                                );
+                                void handleOpenPdfPreview(doc);
+                              } catch {
+                                toastError('Não foi possível carregar o laudo PDF da avaliação.');
+                              }
+                            }}
+                            className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors"
+                            title="Visualizar laudo PDF"
+                          >
+                            <FileText className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* 8 Criteria Grid */}
+                    <div>
+                      <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3">
+                        Desempenho por Critério Canônico
+                      </h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                        {latestReview.scores.map((cs) => (
+                          <div
+                            key={cs.criterionKey}
+                            className="p-3 rounded-xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/60 space-y-1.5"
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">
+                                {cs.criterionTitle}
+                              </span>
+                              <span className="w-6 h-6 rounded-lg bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300 text-xs font-bold flex items-center justify-center font-mono">
+                                {cs.score}
+                              </span>
+                            </div>
+                            {cs.feedback && (
+                              <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 italic">
+                                "{cs.feedback}"
+                              </p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Qualitative Summary */}
+                    {(latestReview.strengths ||
+                      latestReview.improvements ||
+                      latestReview.actionPlan ||
+                      latestReview.evaluatorComments) && (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
+                        {latestReview.strengths && (
+                          <div className="space-y-1">
+                            <span className="font-bold text-slate-700 dark:text-slate-300">
+                              Pontos Fortes:
+                            </span>
+                            <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
+                              {latestReview.strengths}
+                            </p>
+                          </div>
+                        )}
+                        {latestReview.improvements && (
+                          <div className="space-y-1">
+                            <span className="font-bold text-slate-700 dark:text-slate-300">
+                              Oportunidades de Melhoria:
+                            </span>
+                            <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
+                              {latestReview.improvements}
+                            </p>
+                          </div>
+                        )}
+                        {latestReview.actionPlan && (
+                          <div className="space-y-1">
+                            <span className="font-bold text-slate-700 dark:text-slate-300">
+                              Plano de Ação:
+                            </span>
+                            <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
+                              {latestReview.actionPlan}
+                            </p>
+                          </div>
+                        )}
+                        {latestReview.evaluatorComments && (
+                          <div className="space-y-1">
+                            <span className="font-bold text-slate-700 dark:text-slate-300">
+                              Parecer do Avaliador:
+                            </span>
+                            <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
+                              {latestReview.evaluatorComments}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+
+              {/* History Table */}
+              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs space-y-4">
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                  Histórico de Todas as Avaliações
+                </h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-400 uppercase tracking-wider font-semibold">
+                        <th className="py-2.5 px-3">Data</th>
+                        <th className="py-2.5 px-3">Período</th>
+                        <th className="py-2.5 px-3 text-center">Nota Média</th>
+                        <th className="py-2.5 px-3">Classificação</th>
+                        <th className="py-2.5 px-3">Avaliador</th>
+                        <th className="py-2.5 px-3">Status</th>
+                        <th className="py-2.5 px-3 text-right">Laudo</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                      {performanceReviews.map((rev) => (
+                        <tr
+                          key={rev.id}
+                          className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors"
+                        >
+                          <td className="py-2.5 px-3 font-mono text-slate-600 dark:text-slate-300 whitespace-nowrap">
+                            {formatDateBR(rev.evaluationDate)}
+                          </td>
+                          <td className="py-2.5 px-3 font-medium text-slate-900 dark:text-white">
+                            {rev.evaluationPeriod}
+                          </td>
+                          <td className="py-2.5 px-3 text-center font-bold font-mono text-slate-900 dark:text-white">
+                            {rev.meanScore.toFixed(2)}
+                          </td>
+                          <td className="py-2.5 px-3">
+                            <span
+                              className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                PERFORMANCE_CLASSIFICATION_BADGES[rev.classification]
+                              }`}
+                            >
+                              {PERFORMANCE_CLASSIFICATION_LABELS[rev.classification].label}
+                            </span>
+                          </td>
+                          <td className="py-2.5 px-3 text-slate-600 dark:text-slate-300">
+                            {rev.evaluatorName ?? 'Avaliador'}
+                          </td>
+                          <td className="py-2.5 px-3">
+                            {rev.isSuperseded ? (
+                              <span
+                                className="text-[10px] text-amber-600 font-semibold bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded border border-amber-200 dark:border-amber-800"
+                                title={rev.supersessionReason ?? 'Substituída'}
+                              >
+                                Substituída
+                              </span>
+                            ) : (
+                              <span className="text-[10px] text-emerald-600 font-semibold bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-800">
+                                Vigente
+                              </span>
+                            )}
+                          </td>
+                          <td className="py-2.5 px-3 text-right">
+                            {rev.generatedDocumentId && (
+                              <button
+                                type="button"
+                                onClick={async () => {
+                                  try {
+                                    const doc = await api.getDocument(rev.generatedDocumentId!);
+                                    void handleOpenPdfPreview(doc);
+                                  } catch {
+                                    toastError('Não foi possível carregar o laudo PDF.');
+                                  }
+                                }}
+                                className="p-1 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/50 rounded transition-colors"
+                                title="Ver laudo PDF"
+                              >
+                                <FileText className="w-4 h-4 inline" />
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-            ))}
-          </div>
-
-          <div className="pt-4 text-xs text-slate-400">
-            Status: Em preparação para implementação na Fase HR-7.
-          </div>
+            </div>
+          ) : (
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-8 shadow-xs text-center max-w-2xl mx-auto space-y-4">
+              <div className="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center mx-auto shadow-inner border border-blue-100 dark:border-blue-900">
+                <Award className="w-6 h-6" />
+              </div>
+              <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                Nenhuma avaliação registrada ainda
+              </h3>
+              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                As avaliações de desempenho consolidam os 8 critérios canônicos da{' '}
+                <strong>PH Motopeças</strong> com notas de 1 a 5, cálculo automático da média e
+                emissão do laudo em PDF para assinatura física.
+              </p>
+              <div className="pt-2">
+                <Link
+                  to={`/admin/documentos/avaliacao?employeeId=${employeeId}`}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md shadow-blue-500/20 transition-all"
+                >
+                  <Plus className="w-4 h-4" />
+                  Realizar Primeira Avaliação
+                </Link>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

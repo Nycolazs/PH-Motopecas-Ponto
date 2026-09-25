@@ -235,7 +235,7 @@ describe('AdminEmployeeDetailPage', () => {
     const avaliacoesTab = within(tabsNav).getByRole('button', { name: /avaliações/i });
     await user.click(avaliacoesTab);
     expect(await screen.findByText(/avaliações de desempenho e competências/i)).toBeInTheDocument();
-    expect(screen.getByText(/1\. pontualidade e assiduidade/i)).toBeInTheDocument();
+    expect(screen.getByText('Nova Avaliação de Desempenho')).toBeInTheDocument();
 
     // 4. Click Acesso ao App tab
     const acessoTab = within(tabsNav).getByRole('button', { name: /acesso ao app/i });

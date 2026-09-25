@@ -20,6 +20,7 @@ import { RequestIdMiddleware } from './http/request-id.js';
 import { InterviewsModule } from './interviews/interviews.module.js';
 import { JobRolesModule } from './job-roles/job-roles.module.js';
 import { DisciplineModule } from './discipline/discipline.module.js';
+import { PerformanceModule } from './performance/performance.module.js';
 import { RegulationsModule } from './regulations/regulations.module.js';
 import { SchedulesModule } from './schedules/schedules.module.js';
 import { StorageModule } from './storage/storage.module.js';
@@ -52,6 +53,7 @@ import { VacationsModule } from './vacations/vacations.module.js';
     InterviewsModule,
     AcknowledgmentsModule,
     DisciplineModule,
+    PerformanceModule,
     SchedulesModule,
     CalendarExceptionsModule,
     AttendanceModule,

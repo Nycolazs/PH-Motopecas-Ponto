@@ -16,6 +16,8 @@ import {
   disciplineVerbalPayloadSchema,
   disciplineWrittenPayloadSchema,
   disciplineSuspensionPayloadSchema,
+  performanceReviewPayloadSchema,
+  calculatePerformanceMean,
   type RegulationPayloadDto,
   type InterviewPayloadDto,
   type AcknowledgmentRegulationPayloadDto,
@@ -23,6 +25,7 @@ import {
   type DisciplineVerbalPayloadDto,
   type DisciplineWrittenPayloadDto,
   type DisciplineSuspensionPayloadDto,
+  type PerformanceReviewPayloadDto,
 } from '@ph-ponto/shared';
 import { AuditService } from '../audit/audit.service.js';
 import type { ClientContext } from '../auth/auth.types.js';
@@ -37,6 +40,8 @@ import {
   DocumentType,
   EmploymentEventType,
   type DocumentDraft,
+  type PerformanceClassification,
+  type Prisma,
 } from '../generated/prisma/client.js';
 import type {
   ConfirmDocumentDraftDto,
@@ -695,6 +700,138 @@ export class DocumentDraftsService {
           },
           tx,
         );
+      } else if (draft.documentType === DocumentType.PERFORMANCE_REVIEW) {
+        const payload = draft.payload as unknown as PerformanceReviewPayloadDto;
+        const targetEmployeeId = draft.employeeId ?? payload.employeeId;
+
+        const targetEmployee = await tx.user.findUnique({
+          where: { id: targetEmployeeId },
+        });
+
+        if (!targetEmployee) {
+          throw new NotFoundException({
+            code: 'EMPLOYEE_NOT_FOUND',
+            message: 'Colaborador não encontrado.',
+          });
+        }
+
+        const scoring = calculatePerformanceMean(payload.criteriaScores);
+
+        if (payload.supersedesReviewId) {
+          const prior = await tx.performanceReview.findUnique({
+            where: { id: payload.supersedesReviewId },
+          });
+
+          if (
+            !prior ||
+            prior.companyId !== companyDto.id ||
+            prior.employeeId !== targetEmployeeId
+          ) {
+            throw new BadRequestException({
+              code: 'INVALID_SUPERSEDED_REVIEW',
+              message:
+                'A avaliação anterior a ser substituída é inválida ou pertence a outro colaborador.',
+            });
+          }
+
+          if (prior.isSuperseded) {
+            throw new BadRequestException({
+              code: 'REVIEW_ALREADY_SUPERSEDED',
+              message: 'A avaliação anterior já foi substituída anteriormente.',
+            });
+          }
+        }
+
+        const review = await tx.performanceReview.create({
+          data: {
+            companyId: companyDto.id,
+            employeeId: targetEmployeeId,
+            evaluatorId: payload.evaluatorId,
+            evaluationPeriod: payload.evaluationPeriod,
+            evaluationDate: new Date(payload.evaluationDate),
+            meanScore: scoring.meanScore,
+            classification: scoring.classification as PerformanceClassification,
+            scores: payload.criteriaScores as unknown as Prisma.InputJsonValue,
+            strengths: payload.strengths ?? null,
+            improvements: payload.improvements ?? null,
+            actionPlan: payload.actionPlan ?? null,
+            evaluatorComments: payload.evaluatorComments ?? null,
+            employeeComments: payload.employeeComments ?? null,
+            generatedDocumentId: doc.id,
+            supersedesReviewId: payload.supersedesReviewId ?? null,
+            supersessionReason: payload.supersedesReviewId
+              ? (payload.supersessionReason ?? 'Revisão substituída por nova avaliação.')
+              : null,
+          },
+        });
+
+        if (payload.supersedesReviewId) {
+          await tx.performanceReview.update({
+            where: { id: payload.supersedesReviewId },
+            data: {
+              isSuperseded: true,
+              supersededById: review.id,
+              supersededAt: new Date(),
+              supersessionReason:
+                payload.supersessionReason ?? 'Revisão substituída por nova avaliação.',
+            },
+          });
+
+          await this.audit.record(
+            {
+              actorId: authorId,
+              action: AuditAction.PERFORMANCE_REVIEW_SUPERSEDED,
+              outcome: AuditOutcome.SUCCESS,
+              targetType: AuditTargetType.PERFORMANCE_REVIEW,
+              targetId: payload.supersedesReviewId,
+              ...context,
+              afterState: {
+                supersededById: review.id,
+                supersessionReason:
+                  payload.supersessionReason ?? 'Revisão substituída por nova avaliação.',
+              },
+            },
+            tx,
+          );
+        }
+
+        await tx.employmentEvent.create({
+          data: {
+            employeeId: targetEmployeeId,
+            eventType: EmploymentEventType.NOTE,
+            effectiveDate: new Date(payload.evaluationDate),
+            title: `Avaliação de Desempenho (${payload.evaluationPeriod})`,
+            description: `Avaliação concluída com nota média ${scoring.meanScore.toFixed(2)} (${scoring.classificationLabel}). Avaliador: ${payload.evaluatorName}.`,
+            metadata: {
+              performanceReviewId: review.id,
+              generatedDocumentId: doc.id,
+              evaluationPeriod: payload.evaluationPeriod,
+              meanScore: scoring.meanScore,
+              classification: scoring.classification,
+            },
+            createdById: authorId,
+          },
+        });
+
+        await this.audit.record(
+          {
+            actorId: authorId,
+            action: AuditAction.PERFORMANCE_REVIEW_CREATED,
+            outcome: AuditOutcome.SUCCESS,
+            targetType: AuditTargetType.PERFORMANCE_REVIEW,
+            targetId: review.id,
+            ...context,
+            afterState: {
+              employeeId: targetEmployeeId,
+              evaluationPeriod: payload.evaluationPeriod,
+              meanScore: scoring.meanScore,
+              classification: scoring.classification,
+              generatedDocumentId: doc.id,
+              supersedesReviewId: payload.supersedesReviewId ?? null,
+            },
+          },
+          tx,
+        );
       }
 
       // 3. Delete draft
@@ -829,6 +966,16 @@ export class DocumentDraftsService {
           code: 'INVALID_DOCUMENT_PAYLOAD',
           message:
             'Os campos obrigatórios da suspensão disciplinar não foram preenchidos corretamente.',
+          errors: parsed.error.issues,
+        });
+      }
+    } else if (type === DocumentType.PERFORMANCE_REVIEW) {
+      const parsed = performanceReviewPayloadSchema.safeParse(payload);
+      if (!parsed.success) {
+        throw new BadRequestException({
+          code: 'INVALID_DOCUMENT_PAYLOAD',
+          message:
+            'Os campos obrigatórios da avaliação de desempenho não foram preenchidos corretamente.',
           errors: parsed.error.issues,
         });
       }

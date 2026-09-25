@@ -33,9 +33,9 @@ Statuses: pending, active, review, done, blocked. A planned task is never eviden
 | HR6-002 | done    | discipline        | written warnings                      | HR-5       | Same-employee prior references                                     |
 | HR6-003 | done    | discipline        | suspension                            | HR-5       | Valid period, no attendance effects                                |
 | HR6-004 | done    | discipline        | summary/voids                         | HR-5       | Pure progression tests                                             |
-| HR7-001 | pending | performance       | criteria                              | HR-6       | Versioned criteria                                                 |
-| HR7-002 | pending | performance       | reviews/scores                        | HR-6       | Bounded scores and deterministic mean                              |
-| HR7-003 | pending | documents         | review document/history               | HR-6       | Supersession preserves history                                     |
+| HR7-001 | done    | performance       | criteria                              | HR-6       | Versioned criteria                                                 |
+| HR7-002 | done    | performance       | reviews/scores                        | HR-6       | Bounded scores and deterministic mean                              |
+| HR7-003 | done    | documents         | review document/history               | HR-6       | Supersession preserves history                                     |
 | HR8-001 | pending | product           | setup dashboard                       | HR-7       | Six real requirements                                              |
 | HR8-002 | pending | frontend          | archive filters                       | HR-7       | Search/page/state coverage                                         |
 | HR8-003 | pending | UX                | cross-feature UI                      | HR-7       | Keyboard/mobile/theme visual review                                |

@@ -7,6 +7,7 @@ import type {
   DisciplineVerbalPayloadDto,
   DisciplineWrittenPayloadDto,
   InterviewPayloadDto,
+  PerformanceReviewPayloadDto,
   RegulationPayloadDto,
   RoleMapPayloadDto,
 } from '@ph-ponto/shared';
@@ -129,6 +130,11 @@ export class RenderJobsService {
         case DocumentType.DISCIPLINE_SUSPENSION: {
           const payload = job.payload as unknown as DisciplineSuspensionPayloadDto;
           html = this.templates.renderDisciplineSuspensionDocument(company, payload);
+          break;
+        }
+        case DocumentType.PERFORMANCE_REVIEW: {
+          const payload = job.payload as unknown as PerformanceReviewPayloadDto;
+          html = this.templates.renderPerformanceReviewDocument(company, payload);
           break;
         }
         default:

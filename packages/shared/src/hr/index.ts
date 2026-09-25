@@ -10,3 +10,4 @@ export * from './acknowledgment.js';
 export * from './employment-events.js';
 export * from './timeline.js';
 export * from './discipline.js';
+export * from './performance.js';

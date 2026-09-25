@@ -29,6 +29,7 @@ import { InterviewDocumentPage } from './pages/admin/interview-document-page.js'
 import { AcknowledgmentDocumentPage } from './pages/admin/acknowledgment-document-page.js';
 import { DocumentsArchivePage } from './pages/admin/documents-archive-page.js';
 import { DisciplineDocumentPage } from './pages/admin/discipline-document-page.js';
+import { PerformanceReviewPage } from './pages/admin/performance-review-page.js';
 import { EmployeeHomePage } from './pages/employee-home-page.js';
 import { HistoryPage } from './pages/history-page.js';
 import { LoginPage } from './pages/login-page.js';
@@ -60,6 +61,7 @@ function AppRoutes(): React.JSX.Element {
           <Route path="documentos/entrevista" element={<InterviewDocumentPage />} />
           <Route path="documentos/ciencia" element={<AcknowledgmentDocumentPage />} />
           <Route path="documentos/disciplina" element={<DisciplineDocumentPage />} />
+          <Route path="documentos/avaliacao" element={<PerformanceReviewPage />} />
           <Route path="gestao" element={<AdminDashboardPage />} />
           <Route path="solicitacoes" element={<AdjustmentRequestsPage />} />
           <Route path="incompletos" element={<IncompletePunchesPage />} />

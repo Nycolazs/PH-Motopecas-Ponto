@@ -9,9 +9,11 @@ import type {
   DisciplineVerbalPayloadDto,
   DisciplineWrittenPayloadDto,
   InterviewPayloadDto,
+  PerformanceReviewPayloadDto,
   RegulationPayloadDto,
   RoleMapPayloadDto,
 } from '@ph-ponto/shared';
+import { calculatePerformanceMean, PERFORMANCE_CLASSIFICATION_LABELS } from '@ph-ponto/shared';
 import type { Company } from '../generated/prisma/client.js';
 
 function escapeHtml(text: string | null | undefined): string {
@@ -1255,6 +1257,242 @@ export class DocumentTemplatesService {
   </div>
 
   ${witnessSignaturesHtml}
+</body>
+</html>`;
+  }
+
+  public renderPerformanceReviewDocument(
+    company: Company,
+    payload: PerformanceReviewPayloadDto,
+  ): string {
+    const formattedEvalDate = formatDateBR(payload.evaluationDate);
+    const pubDate = new Date();
+    const formattedPubDate = formatDateBR(pubDate);
+    const city = company.addressCity || 'São Paulo';
+    const state = company.addressState || 'SP';
+
+    const evalResult = calculatePerformanceMean(payload.criteriaScores);
+    const classInfo = PERFORMANCE_CLASSIFICATION_LABELS[evalResult.classification];
+
+    const classificationBadgeBg: Record<string, string> = {
+      emerald: '#d1fae5; color: #065f46; border: 1px solid #10b981;',
+      blue: '#dbeafe; color: #1e40af; border: 1px solid #3b82f6;',
+      amber: '#fef3c7; color: #92400e; border: 1px solid #f59e0b;',
+      rose: '#ffe4e6; color: #9f1239; border: 1px solid #f43f5e;',
+    };
+
+    const badgeStyle = classificationBadgeBg[classInfo.badgeColor] || classificationBadgeBg.blue;
+
+    const criteriaRowsHtml = payload.criteriaScores
+      .map((item, idx) => {
+        const stars = '★'.repeat(item.score) + '☆'.repeat(5 - item.score);
+        return `
+        <tr style="border-bottom: 1px solid #e2e8f0;">
+          <td style="padding: 8px 10px; font-weight: 600; text-align: center; color: #475569; width: 35px;">
+            ${idx + 1}
+          </td>
+          <td style="padding: 8px 10px; font-weight: 600; color: #1e293b; width: 220px;">
+            ${escapeHtml(item.criterionTitle)}
+          </td>
+          <td style="padding: 8px 10px; text-align: center; width: 110px;">
+            <div style="font-weight: 700; font-size: 11pt; color: #1e3a8a;">${item.score} / 5</div>
+            <div style="font-size: 8pt; color: #f59e0b; letter-spacing: 1px;">${stars}</div>
+          </td>
+          <td style="padding: 8px 10px; font-size: 9pt; color: #334155;">
+            ${item.feedback ? escapeHtml(item.feedback) : '<span style="color: #94a3b8; font-style: italic;">Sem observações adicionais.</span>'}
+          </td>
+        </tr>`;
+      })
+      .join('');
+
+    return `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <title>Avaliação de Desempenho - ${escapeHtml(payload.employeeName)}</title>
+  <style>
+    ${this.getBaseStyles()}
+    .score-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin-bottom: 18px;
+    }
+    .score-big {
+      font-size: 26pt;
+      font-weight: 800;
+      color: #1e3a8a;
+      line-height: 1;
+    }
+    .criteria-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      margin-bottom: 18px;
+      font-size: 9pt;
+    }
+    .criteria-table th {
+      background: #f1f5f9;
+      color: #334155;
+      font-weight: 700;
+      text-align: left;
+      padding: 8px 10px;
+      border-bottom: 2px solid #cbd5e1;
+    }
+  </style>
+</head>
+<body>
+  ${this.buildHeaderHtml(company)}
+
+  <div class="document-title-block">
+    <h1 class="document-title">Laudo de Avaliação de Desempenho e Competências</h1>
+    <div class="document-meta">Ciclo Periódico de Avaliação de Desempenho e Alinhamento Funcional</div>
+  </div>
+
+  <div class="metadata-grid">
+    <div class="metadata-item">
+      <span class="metadata-label">Colaborador Avaliado</span>
+      <span class="metadata-value">${escapeHtml(payload.employeeName)}</span>
+    </div>
+    <div class="metadata-item">
+      <span class="metadata-label">Cargo / Função</span>
+      <span class="metadata-value">${escapeHtml(payload.employeeRole || 'Não informado')}</span>
+    </div>
+    <div class="metadata-item">
+      <span class="metadata-label">CPF</span>
+      <span class="metadata-value">${escapeHtml(payload.employeeCpf || 'Não informado')}</span>
+    </div>
+    <div class="metadata-item">
+      <span class="metadata-label">Período de Avaliação</span>
+      <span class="metadata-value" style="font-weight: 700; color: #1e3a8a;">${escapeHtml(payload.evaluationPeriod)}</span>
+    </div>
+    <div class="metadata-item">
+      <span class="metadata-label">Data da Avaliação</span>
+      <span class="metadata-value">${formattedEvalDate}</span>
+    </div>
+    <div class="metadata-item">
+      <span class="metadata-label">Avaliador Responsável</span>
+      <span class="metadata-value">${escapeHtml(payload.evaluatorName)} ${payload.evaluatorRole ? `(${escapeHtml(payload.evaluatorRole)})` : ''}</span>
+    </div>
+  </div>
+
+  <div class="score-card">
+    <div>
+      <div style="font-size: 8.5pt; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b; font-weight: 700; margin-bottom: 4px;">
+        Pontuação Geral Consolidada
+      </div>
+      <div style="display: flex; align-items: baseline; gap: 8px;">
+        <span class="score-big">${evalResult.meanScore.toFixed(2)}</span>
+        <span style="font-size: 11pt; color: #64748b; font-weight: 600;">/ 5.00</span>
+      </div>
+      <div style="font-size: 8.5pt; color: #475569; margin-top: 4px;">
+        Total: <strong>${evalResult.totalPoints}</strong> de 40 pontos possíveis (8 critérios canônicos com pesos iguais).
+      </div>
+    </div>
+    <div style="text-align: right;">
+      <div style="display: inline-block; padding: 6px 14px; border-radius: 9999px; font-weight: 700; font-size: 10pt; ${badgeStyle}">
+        ${escapeHtml(classInfo.label)}
+      </div>
+      <div style="font-size: 8pt; color: #64748b; max-width: 240px; margin-top: 6px; line-height: 1.3;">
+        ${escapeHtml(classInfo.description)}
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3 class="section-title">1. Avaliação Detalhada por Critério Canônico</h3>
+    <table class="criteria-table">
+      <thead>
+        <tr>
+          <th style="text-align: center; width: 35px;">Nº</th>
+          <th style="width: 220px;">Critério</th>
+          <th style="text-align: center; width: 110px;">Nota (1 a 5)</th>
+          <th>Feedback / Evidências Observadas</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${criteriaRowsHtml}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section" style="page-break-inside: avoid;">
+    <h3 class="section-title">2. Diagnóstico Qualitativo e Desenvolvimento</h3>
+    <div style="display: flex; gap: 12px; margin-bottom: 12px;">
+      <div class="section-box" style="flex: 1; margin-bottom: 0;">
+        <strong style="color: #065f46; display: block; margin-bottom: 4px;">Pontos Fortes (Destaques)</strong>
+        <p style="font-size: 9pt; color: #334155; line-height: 1.5;">
+          ${payload.strengths ? escapeHtml(payload.strengths) : '<span style="color: #94a3b8; font-style: italic;">Nenhum ponto forte registrado.</span>'}
+        </p>
+      </div>
+      <div class="section-box" style="flex: 1; margin-bottom: 0;">
+        <strong style="color: #991b1b; display: block; margin-bottom: 4px;">Oportunidades de Melhoria</strong>
+        <p style="font-size: 9pt; color: #334155; line-height: 1.5;">
+          ${payload.improvements ? escapeHtml(payload.improvements) : '<span style="color: #94a3b8; font-style: italic;">Nenhum ponto de melhoria registrado.</span>'}
+        </p>
+      </div>
+    </div>
+
+    ${
+      payload.actionPlan
+        ? `
+    <div class="section-box" style="margin-bottom: 12px; background: #eff6ff; border-left: 4px solid #3b82f6;">
+      <strong style="color: #1e40af; display: block; margin-bottom: 4px;">Plano de Ação e Metas de Desenvolvimento Individual</strong>
+      <p style="font-size: 9pt; color: #1e3a8a; line-height: 1.5;">
+        ${escapeHtml(payload.actionPlan)}
+      </p>
+    </div>`
+        : ''
+    }
+  </div>
+
+  ${
+    payload.evaluatorComments || payload.employeeComments
+      ? `
+  <div class="section" style="page-break-inside: avoid;">
+    <h3 class="section-title">3. Considerações das Partes</h3>
+    ${
+      payload.evaluatorComments
+        ? `
+    <div class="section-box" style="margin-bottom: 8px;">
+      <strong>Parecer da Liderança / Avaliador:</strong>
+      <p style="margin-top: 4px; font-size: 9pt;">${escapeHtml(payload.evaluatorComments)}</p>
+    </div>`
+        : ''
+    }
+    ${
+      payload.employeeComments
+        ? `
+    <div class="section-box" style="margin-bottom: 8px;">
+      <strong>Comentários do Colaborador Avaliado:</strong>
+      <p style="margin-top: 4px; font-size: 9pt;">${escapeHtml(payload.employeeComments)}</p>
+    </div>`
+        : ''
+    }
+  </div>`
+      : ''
+  }
+
+  <p style="text-align: right; margin-top: 24px; font-weight: 500; font-size: 9pt;">
+    ${escapeHtml(city)} - ${escapeHtml(state)}, ${formattedPubDate}.
+  </p>
+
+  <div class="footer-signatures" style="margin-top: 45px; page-break-inside: avoid;">
+    <div class="signature-block" style="width: 250px;">
+      <div class="signature-line"></div>
+      <div class="signature-name">${escapeHtml(payload.evaluatorName)}</div>
+      <div class="signature-role">Avaliador / Liderança</div>
+    </div>
+    <div class="signature-block" style="width: 250px;">
+      <div class="signature-line"></div>
+      <div class="signature-name">${escapeHtml(payload.employeeName)}</div>
+      <div class="signature-role">Colaborador Avaliado (Ciente)</div>
+    </div>
+  </div>
 </body>
 </html>`;
   }

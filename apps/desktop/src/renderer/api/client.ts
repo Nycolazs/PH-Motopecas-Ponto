@@ -104,6 +104,12 @@ import {
   type DisciplinaryActionDto,
   type DisciplinaryProgressionSummaryDto,
   type VoidDisciplinaryActionDto,
+  performanceCriteriaResponseSchema,
+  performanceReviewSchema,
+  type PerformanceCriteriaResponseDto,
+  type PerformanceReviewDto,
+  type ListPerformanceReviewsQueryDto,
+  type SupersedePerformanceReviewDto,
 } from './contracts.js';
 
 function getDefaultApiBaseUrl(): string {
@@ -828,6 +834,10 @@ export class ApiClient {
     });
   }
 
+  public getDocument(id: string, signal?: AbortSignal): Promise<GeneratedDocumentDto> {
+    return this.getDocumentById(id, signal);
+  }
+
   public voidDocument(id: string, data: VoidDocumentDto): Promise<GeneratedDocumentDto> {
     return this.request(`/documents/${encodeURIComponent(id)}/void`, generatedDocumentSchema, {
       method: 'POST',
@@ -1096,6 +1106,67 @@ export class ApiClient {
     return this.request(
       `/discipline/actions/${encodeURIComponent(id)}/void`,
       disciplinaryActionSchema,
+      {
+        method: 'POST',
+        body: JSON.stringify(data),
+        headers: { 'Content-Type': 'application/json' },
+      },
+    );
+  }
+
+  // Performance Evaluations & Reviews
+  public getPerformanceCriteria(signal?: AbortSignal): Promise<PerformanceCriteriaResponseDto> {
+    return this.request('/performance/criteria', performanceCriteriaResponseSchema, {
+      ...(signal === undefined ? {} : { signal }),
+    });
+  }
+
+  public listPerformanceReviews(
+    params?: ListPerformanceReviewsQueryDto,
+    signal?: AbortSignal,
+  ): Promise<PerformanceReviewDto[]> {
+    const q = new URLSearchParams();
+    if (params?.employeeId) q.set('employeeId', params.employeeId);
+    if (params?.period) q.set('period', params.period);
+    if (params?.includeSuperseded !== undefined) {
+      q.set('includeSuperseded', String(params.includeSuperseded));
+    }
+    const qs = q.toString();
+    return this.request(
+      `/performance/reviews${qs ? `?${qs}` : ''}`,
+      z.array(performanceReviewSchema),
+      {
+        ...(signal === undefined ? {} : { signal }),
+      },
+    );
+  }
+
+  public getPerformanceReview(id: string, signal?: AbortSignal): Promise<PerformanceReviewDto> {
+    return this.request(`/performance/reviews/${encodeURIComponent(id)}`, performanceReviewSchema, {
+      ...(signal === undefined ? {} : { signal }),
+    });
+  }
+
+  public getLatestEmployeePerformanceReview(
+    employeeId: string,
+    signal?: AbortSignal,
+  ): Promise<PerformanceReviewDto | null> {
+    return this.request(
+      `/performance/employees/${encodeURIComponent(employeeId)}/latest`,
+      performanceReviewSchema.nullable(),
+      {
+        ...(signal === undefined ? {} : { signal }),
+      },
+    );
+  }
+
+  public supersedePerformanceReview(
+    id: string,
+    data: SupersedePerformanceReviewDto,
+  ): Promise<PerformanceReviewDto> {
+    return this.request(
+      `/performance/reviews/${encodeURIComponent(id)}/supersede`,
+      performanceReviewSchema,
       {
         method: 'POST',
         body: JSON.stringify(data),

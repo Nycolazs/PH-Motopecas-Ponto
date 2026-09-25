@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
+  Award,
   BookOpen,
   Briefcase,
   Building2,
@@ -135,6 +136,12 @@ export function AdminLayout(): React.JSX.Element {
           to: '/admin/documentos/disciplina',
           label: 'Medidas Disciplinares',
           icon: ShieldAlert,
+          end: false,
+        },
+        {
+          to: '/admin/documentos/avaliacao',
+          label: 'Avaliação de Desempenho',
+          icon: Award,
           end: false,
         },
       ],

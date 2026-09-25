@@ -2,11 +2,11 @@
 
 ## Current Phase
 
-HR-7 — Performance evaluations, versioned criteria, deterministic scoring, and review documents
+HR-8 — Setup progress, archive filtering, cross-feature polish, and local seed
 
 ## Overall Status
 
-IN_PROGRESS — HR evolution in active local development. HR-0, HR-1, HR-2, HR-3, HR-4, HR-5, and HR-6 completed and verified.
+IN_PROGRESS — HR evolution in active local development. HR-0, HR-1, HR-2, HR-3, HR-4, HR-5, HR-6, and HR-7 completed and verified.
 
 ## Last Updated
 
@@ -60,10 +60,18 @@ IN_PROGRESS — HR evolution in active local development. HR-0, HR-1, HR-2, HR-3
   - Backend Services & Controllers: HTML/CSS PDF templates in `DocumentTemplatesService` for `DISCIPLINE_VERBAL`, `DISCIPLINE_WRITTEN`, and `DISCIPLINE_SUSPENSION` with official PH Motopeças branding and signature lines; background render queue support; atomic creation on draft confirmation with automatic `EmploymentEvent` logging for suspensions; cascade voiding in `DocumentsService`; progression summary endpoint `GET /discipline/employees/:employeeId/summary` and audit-logged void endpoint `POST /discipline/actions/:id/void`.
   - Frontend Pages: built `DisciplineDocumentPage` (`/admin/documentos/disciplina`) with mode selector, live progression summary banner, prior action linker, PDF preview modal, confirmation, and general history table with void modal. Added quick action "Medida Disciplinar" on `AdminEmployeeDetailPage` timeline tab and navigation item in `AdminLayout`.
   - Quality verification: 356 unit/tooling tests passed (API 172, desktop 88, shared 84, node tooling 12), 25 PostgreSQL integration tests passed applying all 11 migrations, 100% clean typecheck and lint (0 errors, 0 warnings), Prettier formatted, and production builds passing.
-- **Next Phase — HR-7**:
-  - Task HR7-001: Performance evaluation criteria catalog with 8 canonical criteria, versioning, and company association.
-  - Task HR7-002: Performance reviews with bounded scores (1-5) and deterministic rounded mean calculation in pure domain.
-  - Task HR7-003: Performance review document drafts, HTML/CSS PDF templates, atomic confirmation, and history supersession.
+- **HR-7 Completed**:
+  - Performance Criteria Catalog: defined 8 canonical performance criteria in pure domain with integer scores bounded between 1 and 5 (`packages/shared/src/hr/performance.ts`). Created `PerformanceEvaluationCriteria` model with company association and versioning.
+  - Deterministic Scoring Domain: implemented `calculatePerformanceMean` with equal weights, integer validation, deterministic 2-decimal rounding (`Math.round(raw * 100) / 100`), and standard classification bands (`EXCELLENT` >= 4.5, `GOOD` >= 3.5, `REGULAR` >= 2.5, `NEEDS_IMPROVEMENT` < 2.5). Added unit tests with 17 passing tests.
+  - Backend Models, Migration & Services: created `PerformanceReview` table with self-relation for supersession history and audit logging with migration `20260925060000_hr_performance_reviews`. Built `PerformanceModule`, `PerformanceService`, `PerformanceController` (`GET /performance/criteria`, `GET /performance/reviews`, `GET /performance/reviews/:id`, `GET /performance/employees/:employeeId/latest`, `POST /performance/reviews/:id/supersede`).
+  - Document Templates & Render Queue: added HTML/CSS PDF template `renderPerformanceReviewDocument` in `DocumentTemplatesService` with PH Motopeças branding, 8 criteria score breakdown, strengths, areas for improvement, action plan, and signatures; registered `PERFORMANCE_REVIEW` in `RenderJobsService` and `DocumentDraftsService` with atomic confirmation and automatic `EmploymentEvent` logging (`NOTE`).
+  - Frontend Pages & Components: built `PerformanceReviewPage` (`/admin/documentos/avaliacao`) with employee picker, 8 canonical criteria score pickers (1-5), live calculated mean score and classification badge, qualitative feedback inputs, PDF preview modal, confirmation, and past reviews table with supersession modal. Implemented Tab 4 (`Avaliações`) in `AdminEmployeeDetailPage` with latest review summary card, criteria breakdown, and evaluation history table.
+  - Quality verification: 376 unit/tooling tests passed (API 183, desktop 90, shared 91, node tooling 12), 25 PostgreSQL integration tests passed applying all 12 migrations, 100% clean typecheck and lint (0 errors, 0 warnings), Prettier formatted, and production builds passing.
+- **Next Phase — HR-8**:
+  - Task HR8-001: Setup progress dashboard with 6 concrete company requirements.
+  - Task HR8-002: Document archive advanced filtering (search, type, employee, active/voided status).
+  - Task HR8-003: Cross-feature UX polish (mobile/tablet/desktop responsiveness, accessible states, theme consistency).
+  - Task HR8-004: Comprehensive local synthetic seed dataset covering the complete HR & attendance workflow.
 
 ## Local Interactive Test Environment — 2026-09-19
 
