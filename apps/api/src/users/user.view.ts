@@ -9,6 +9,7 @@ export const safeUserSelect = {
   login: true,
   role: true,
   isActive: true,
+  accessEnabled: true,
   createdAt: true,
   updatedAt: true,
   avatar: { select: { id: true } },
@@ -21,6 +22,7 @@ export interface SafeUserState extends Record<string, string | boolean> {
   login: string;
   role: UserRole;
   isActive: boolean;
+  accessEnabled: boolean;
 }
 
 export class UserViewDto {
@@ -38,6 +40,9 @@ export class UserViewDto {
 
   @ApiProperty()
   public isActive!: boolean;
+
+  @ApiProperty()
+  public accessEnabled!: boolean;
 
   @ApiProperty()
   public hasAvatar!: boolean;
@@ -78,6 +83,7 @@ export function toUserView(user: SafeUserRecord): UserViewDto {
     login: user.login,
     role: user.role,
     isActive: user.isActive,
+    accessEnabled: user.accessEnabled,
     hasAvatar: user.avatar !== null,
     createdAt: user.createdAt.toISOString(),
     updatedAt: user.updatedAt.toISOString(),
@@ -90,5 +96,6 @@ export function toSafeUserState(user: SafeUserRecord): SafeUserState {
     login: user.login,
     role: user.role,
     isActive: user.isActive,
+    accessEnabled: user.accessEnabled,
   };
 }

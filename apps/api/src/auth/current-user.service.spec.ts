@@ -22,6 +22,7 @@ function session(overrides: Record<string, unknown> = {}) {
       login: 'ana.souza',
       role: 'EMPLOYEE',
       isActive: true,
+      accessEnabled: true,
     },
     ...overrides,
   };

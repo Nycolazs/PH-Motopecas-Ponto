@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
+  Briefcase,
+  Building2,
   Clock,
   FileText,
   LayoutDashboard,
@@ -85,29 +87,47 @@ export function AdminLayout(): React.JSX.Element {
   const pendingCount = pendingData?.pendingCount ?? 0;
   const incompleteCount = incompleteData?.totalIncompleteDays ?? 0;
 
-  const navItems = [
-    { to: '/admin', label: 'Visão geral', icon: LayoutDashboard, end: true },
+  const navSections = [
     {
-      to: '/admin/solicitacoes',
-      label: 'Solicitações',
-      icon: GitPullRequest,
-      badge: pendingCount,
-      end: false,
+      title: 'Início & Empresa',
+      items: [
+        { to: '/admin', label: 'Início', icon: LayoutDashboard, end: true },
+        { to: '/admin/empresa', label: 'Minha Empresa', icon: Building2, end: false },
+        { to: '/admin/cargos', label: 'Cargos & Funções', icon: Briefcase, end: false },
+        { to: '/admin/gestao', label: 'Painel Operacional', icon: Clock, end: false },
+      ],
     },
     {
-      to: '/admin/incompletos',
-      label: 'Incompletos',
-      icon: AlertTriangle,
-      badge: incompleteCount,
-      end: false,
+      title: 'Gestão de Frequência',
+      items: [
+        { to: '/admin/funcionarios', label: 'Colaboradores', icon: Users, end: false },
+        { to: '/admin/pontos', label: 'Registros de Ponto', icon: Clock, end: false },
+        {
+          to: '/admin/solicitacoes',
+          label: 'Solicitações',
+          icon: GitPullRequest,
+          badge: pendingCount,
+          end: false,
+        },
+        {
+          to: '/admin/incompletos',
+          label: 'Incompletos',
+          icon: AlertTriangle,
+          badge: incompleteCount,
+          end: false,
+        },
+        { to: '/admin/relatorios', label: 'Relatórios & Espelho', icon: FileText, end: false },
+      ],
     },
-    { to: '/admin/funcionarios', label: 'Funcionários', icon: Users, end: false },
-    { to: '/admin/pontos', label: 'Pontos', icon: Clock, end: false },
-    { to: '/admin/relatorios', label: 'Relatórios', icon: FileText, end: false },
-    { to: '/admin/aplicativo', label: 'Aplicativo Desktop', icon: MonitorDown, end: false },
-    { to: '/admin/administradores', label: 'Administradores', icon: ShieldCheck, end: false },
-    { to: '/admin/configuracoes', label: 'Configurações', icon: Settings, end: false },
-    { to: '/admin/auditoria', label: 'Auditoria', icon: ScrollText, end: false },
+    {
+      title: 'Sistema & Segurança',
+      items: [
+        { to: '/admin/administradores', label: 'Administradores', icon: ShieldCheck, end: false },
+        { to: '/admin/configuracoes', label: 'Jornadas & Regras', icon: Settings, end: false },
+        { to: '/admin/auditoria', label: 'Trilha de Auditoria', icon: ScrollText, end: false },
+        { to: '/admin/aplicativo', label: 'Aplicativo Desktop', icon: MonitorDown, end: false },
+      ],
+    },
   ];
 
   return (
@@ -118,34 +138,41 @@ export function AdminLayout(): React.JSX.Element {
           <Brand />
         </div>
 
-        <nav className="flex-1 p-3 space-y-1 overflow-y-auto" aria-label="Navegação administrativa">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                end={item.end}
-                className={({ isActive }) =>
-                  `flex items-center justify-between px-3.5 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                    isActive
-                      ? 'bg-blue-600 text-white shadow-xs font-semibold'
-                      : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
-                  }`
-                }
-              >
-                <div className="flex items-center">
-                  <Icon className="w-4 h-4 mr-3 shrink-0" />
-                  <span>{item.label}</span>
-                </div>
-                {item.badge !== undefined && item.badge > 0 ? (
-                  <span className="px-2 py-0.5 text-xs font-extrabold rounded-full bg-amber-500 text-slate-950 shadow-sm animate-pulse">
-                    {item.badge}
-                  </span>
-                ) : null}
-              </NavLink>
-            );
-          })}
+        <nav className="flex-1 p-3 space-y-4 overflow-y-auto" aria-label="Navegação administrativa">
+          {navSections.map((section) => (
+            <div key={section.title} className="space-y-1">
+              <div className="px-3 py-1 text-2xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                {section.title}
+              </div>
+              {section.items.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    end={item.end}
+                    className={({ isActive }) =>
+                      `flex items-center justify-between px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
+                        isActive
+                          ? 'bg-blue-600 text-white shadow-xs font-semibold'
+                          : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
+                      }`
+                    }
+                  >
+                    <div className="flex items-center min-w-0">
+                      <Icon className="w-4 h-4 mr-2.5 shrink-0" />
+                      <span className="truncate">{item.label}</span>
+                    </div>
+                    {item.badge !== undefined && item.badge > 0 ? (
+                      <span className="px-1.5 py-0.5 text-2xs font-extrabold rounded-full bg-amber-500 text-slate-950 shadow-sm animate-pulse ml-1.5 shrink-0">
+                        {item.badge}
+                      </span>
+                    ) : null}
+                  </NavLink>
+                );
+              })}
+            </div>
+          ))}
         </nav>
 
         {/* User profile & logout */}

@@ -17,3 +17,4 @@ export type {
 } from './contracts.js';
 export { formatDurationMinutes, formatMinutesDuration } from './duration.js';
 export * from './attendance/index.js';
+export * from './hr/index.js';

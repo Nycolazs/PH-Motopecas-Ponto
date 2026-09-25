@@ -44,6 +44,24 @@ import {
   type UserList,
   type Vacation,
   type VacationList,
+  companySchema,
+  setupStatusSchema,
+  jobRoleSchema,
+  jobRoleVersionSchema,
+  employeeRoleAssignmentSchema,
+  employeeProfileSchema,
+  type CompanyDto,
+  type UpdateCompanyDto,
+  type SetupStatusDto,
+  type JobRoleDto,
+  type CreateJobRoleDto,
+  type UpdateJobRoleDto,
+  type JobRoleVersionDto,
+  type CreateJobRoleVersionDto,
+  type EmployeeRoleAssignmentDto,
+  type AssignEmployeeRoleDto,
+  type EmployeeProfileDto,
+  type UpdateEmployeeProfileDto,
 } from './contracts.js';
 
 function getDefaultApiBaseUrl(): string {
@@ -561,6 +579,126 @@ export class ApiClient {
     return this.request(`/audit-logs${qs ? `?${qs}` : ''}`, auditLogListSchema, {
       ...(signal === undefined ? {} : { signal }),
     });
+  }
+
+  // Company
+  public getCompany(signal?: AbortSignal): Promise<CompanyDto> {
+    return this.request('/company', companySchema, {
+      ...(signal === undefined ? {} : { signal }),
+    });
+  }
+
+  public updateCompany(data: UpdateCompanyDto): Promise<CompanyDto> {
+    return this.request('/company', companySchema, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  public getSetupStatus(signal?: AbortSignal): Promise<SetupStatusDto> {
+    return this.request('/company/setup-status', setupStatusSchema, {
+      ...(signal === undefined ? {} : { signal }),
+    });
+  }
+
+  // Employee Profile & Access
+  public toggleEmployeeAccess(
+    id: string,
+    accessEnabled: boolean,
+    password?: string,
+  ): Promise<ManagedUser> {
+    return this.request(`/employees/${encodeURIComponent(id)}/access`, managedUserSchema, {
+      method: 'PATCH',
+      body: JSON.stringify({ accessEnabled, ...(password ? { password } : {}) }),
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  public getEmployeeProfile(id: string, signal?: AbortSignal): Promise<EmployeeProfileDto> {
+    return this.request(`/employees/${encodeURIComponent(id)}/profile`, employeeProfileSchema, {
+      ...(signal === undefined ? {} : { signal }),
+    });
+  }
+
+  public updateEmployeeProfile(
+    id: string,
+    data: UpdateEmployeeProfileDto,
+  ): Promise<EmployeeProfileDto> {
+    return this.request(`/employees/${encodeURIComponent(id)}/profile`, employeeProfileSchema, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  // Job Roles
+  public getJobRoles(includeInactive?: boolean, signal?: AbortSignal): Promise<JobRoleDto[]> {
+    const qs = includeInactive ? '?includeInactive=true' : '';
+    return this.request(`/job-roles${qs}`, z.array(jobRoleSchema), {
+      ...(signal === undefined ? {} : { signal }),
+    });
+  }
+
+  public getJobRole(id: string, signal?: AbortSignal): Promise<JobRoleDto> {
+    return this.request(`/job-roles/${encodeURIComponent(id)}`, jobRoleSchema, {
+      ...(signal === undefined ? {} : { signal }),
+    });
+  }
+
+  public createJobRole(data: CreateJobRoleDto): Promise<JobRoleDto> {
+    return this.request('/job-roles', jobRoleSchema, {
+      method: 'POST',
+      body: JSON.stringify(data),
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  public updateJobRole(id: string, data: UpdateJobRoleDto): Promise<JobRoleDto> {
+    return this.request(`/job-roles/${encodeURIComponent(id)}`, jobRoleSchema, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  public publishJobRoleVersion(
+    id: string,
+    data: CreateJobRoleVersionDto,
+  ): Promise<JobRoleVersionDto> {
+    return this.request(`/job-roles/${encodeURIComponent(id)}/versions`, jobRoleVersionSchema, {
+      method: 'POST',
+      body: JSON.stringify(data),
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  public getEmployeeRoleAssignments(
+    employeeId: string,
+    signal?: AbortSignal,
+  ): Promise<EmployeeRoleAssignmentDto[]> {
+    return this.request(
+      `/employees/${encodeURIComponent(employeeId)}/roles`,
+      z.array(employeeRoleAssignmentSchema),
+      {
+        ...(signal === undefined ? {} : { signal }),
+      },
+    );
+  }
+
+  public assignEmployeeRole(
+    employeeId: string,
+    data: AssignEmployeeRoleDto,
+  ): Promise<EmployeeRoleAssignmentDto> {
+    return this.request(
+      `/employees/${encodeURIComponent(employeeId)}/roles`,
+      employeeRoleAssignmentSchema,
+      {
+        method: 'POST',
+        body: JSON.stringify(data),
+        headers: { 'Content-Type': 'application/json' },
+      },
+    );
   }
 
   // Time Punch Adjustment Requests

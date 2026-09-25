@@ -46,6 +46,7 @@ function userRecord(overrides: Partial<SafeUserRecord> = {}): SafeUserRecord {
     login: 'joao.silva',
     role: 'EMPLOYEE',
     isActive: true,
+    accessEnabled: true,
     createdAt: new Date('2026-08-15T00:00:00.000Z'),
     updatedAt: new Date('2026-08-15T00:00:00.000Z'),
     avatar: null,
@@ -62,10 +63,35 @@ function createFixture() {
       update: vi.fn().mockResolvedValue(userRecord()),
       count: vi.fn().mockResolvedValue(2),
     },
+    employeeProfile: {
+      findUnique: vi.fn().mockResolvedValue(null),
+      upsert: vi.fn().mockResolvedValue({
+        userId: '30000000-0000-4000-8000-000000000001',
+        cpf: '123.456.789-00',
+        rg: '1234567-8',
+        birthDate: new Date('1995-05-15T00:00:00.000Z'),
+        phone: '(85) 98888-7777',
+        personalEmail: 'colaborador@email.com',
+        addressStreet: 'Rua A',
+        addressNumber: '10',
+        addressComplement: null,
+        addressNeighborhood: 'Centro',
+        addressCity: 'Fortaleza',
+        addressState: 'CE',
+        addressPostalCode: '60000-000',
+        hireDate: new Date('2024-01-10T00:00:00.000Z'),
+        notes: null,
+        createdAt: new Date('2026-08-15T00:00:00.000Z'),
+        updatedAt: new Date('2026-08-15T00:00:00.000Z'),
+      }),
+    },
   };
   const prisma = {
     user: {
-      findFirst: vi.fn().mockResolvedValue(userRecord()),
+      findFirst: vi.fn().mockResolvedValue({
+        ...userRecord(),
+        employeeProfile: null,
+      }),
     },
     $transaction: vi.fn(async (operation: unknown) => {
       if (typeof operation !== 'function') {
@@ -233,5 +259,87 @@ describe('UserManagementService', () => {
     const auditPayload = JSON.stringify(fixture.audit.record.mock.calls);
     expect(auditPayload).not.toContain('new-safe-password');
     expect(auditPayload).not.toContain('argon2id-hash');
+  });
+
+  it('toggles employee access to false and revokes all active sessions with ACCESS_DISABLED', async () => {
+    const fixture = createFixture();
+    fixture.transaction.user.findFirst.mockResolvedValue(userRecord({ accessEnabled: true }));
+    fixture.transaction.user.update.mockResolvedValue(userRecord({ accessEnabled: false }));
+
+    const result = await fixture.service.toggleAccess(
+      'EMPLOYEE',
+      actor,
+      '30000000-0000-4000-8000-000000000001',
+      { accessEnabled: false },
+      context,
+    );
+
+    expect(result.accessEnabled).toBe(false);
+    expect(fixture.sessions.revokeAllForUser).toHaveBeenCalledWith(
+      '30000000-0000-4000-8000-000000000001',
+      SessionRevocationReason.ACCESS_DISABLED,
+      fixture.transaction,
+    );
+    expect(fixture.audit.record).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: AuditAction.EMPLOYEE_ACCESS_UPDATED,
+        beforeState: { accessEnabled: true },
+        afterState: { accessEnabled: false },
+      }),
+      fixture.transaction,
+    );
+  });
+
+  it('requires password when enabling access for user with disabled access', async () => {
+    const fixture = createFixture();
+    fixture.transaction.user.findFirst.mockResolvedValue(userRecord({ accessEnabled: false }));
+
+    await expect(
+      fixture.service.toggleAccess(
+        'EMPLOYEE',
+        actor,
+        '30000000-0000-4000-8000-000000000001',
+        { accessEnabled: true },
+        context,
+      ),
+    ).rejects.toThrow('Uma senha válida é obrigatória');
+  });
+
+  it('retrieves employee profile accurately', async () => {
+    const fixture = createFixture();
+
+    const profile = await fixture.service.getEmployeeProfile(
+      '30000000-0000-4000-8000-000000000001',
+    );
+
+    expect(profile.userId).toBe('30000000-0000-4000-8000-000000000001');
+    expect(profile.accessEnabled).toBe(true);
+    expect(profile.isActive).toBe(true);
+  });
+
+  it('updates employee profile with upsert and logs audit event', async () => {
+    const fixture = createFixture();
+
+    const updated = await fixture.service.updateEmployeeProfile(
+      actor,
+      '30000000-0000-4000-8000-000000000001',
+      {
+        cpf: '123.456.789-00',
+        rg: '1234567-8',
+        birthDate: '1995-05-15',
+        phone: '(85) 98888-7777',
+      },
+      context,
+    );
+
+    expect(updated.cpf).toBe('123.456.789-00');
+    expect(fixture.transaction.employeeProfile.upsert).toHaveBeenCalled();
+    expect(fixture.audit.record).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: AuditAction.EMPLOYEE_PROFILE_UPDATED,
+        targetId: '30000000-0000-4000-8000-000000000001',
+      }),
+      fixture.transaction,
+    );
   });
 });

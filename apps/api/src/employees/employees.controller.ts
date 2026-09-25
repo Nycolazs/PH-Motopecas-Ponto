@@ -9,6 +9,7 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Put,
   Query,
   Req,
 } from '@nestjs/common';
@@ -31,11 +32,19 @@ import type { AuthenticatedUser } from '../auth/auth.types.js';
 import { ClientContextService } from '../auth/client-context.service.js';
 import {
   CreateManagedUserDto,
+  EmployeeProfileResponseDto,
   ListUsersQueryDto,
   ResetUserPasswordDto,
+  ToggleUserAccessDto,
+  UpdateEmployeeProfileRequestDto,
   UpdateManagedUserDto,
   UpdateUserStatusDto,
 } from '../users/user.dto.js';
+import {
+  AssignEmployeeRoleDto,
+  EmployeeRoleAssignmentResponseDto,
+} from '../job-roles/job-roles.dto.js';
+import { JobRolesService } from '../job-roles/job-roles.service.js';
 import { UserListViewDto, UserViewDto } from '../users/user.view.js';
 import { EmployeesService } from './employees.service.js';
 
@@ -46,6 +55,7 @@ import { EmployeesService } from './employees.service.js';
 export class EmployeesController {
   public constructor(
     @Inject(EmployeesService) private readonly employees: EmployeesService,
+    @Inject(JobRolesService) private readonly jobRolesService: JobRolesService,
     @Inject(ClientContextService) private readonly clientContext: ClientContextService,
   ) {}
 
@@ -127,6 +137,83 @@ export class EmployeesController {
       actor,
       employeeId,
       input.password,
+      this.clientContext.fromRequest(request),
+    );
+  }
+
+  @Patch(':id/access')
+  @ApiOperation({ summary: 'Habilita ou desabilita o acesso do colaborador ao aplicativo' })
+  @ApiBody({ type: ToggleUserAccessDto })
+  @ApiParam({ name: 'id', format: 'uuid' })
+  @ApiOkResponse({ type: UserViewDto })
+  public toggleAccess(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Param('id', new ParseUUIDPipe()) employeeId: string,
+    @Body() input: ToggleUserAccessDto,
+    @Req() request: Request,
+  ): Promise<UserViewDto> {
+    return this.employees.toggleAccess(
+      actor,
+      employeeId,
+      input,
+      this.clientContext.fromRequest(request),
+    );
+  }
+
+  @Get(':id/profile')
+  @ApiOperation({ summary: 'Consulta o perfil detalhado de RH do colaborador' })
+  @ApiParam({ name: 'id', format: 'uuid' })
+  @ApiOkResponse({ type: EmployeeProfileResponseDto })
+  public getProfile(
+    @Param('id', new ParseUUIDPipe()) employeeId: string,
+  ): Promise<EmployeeProfileResponseDto> {
+    return this.employees.getProfile(employeeId);
+  }
+
+  @Put(':id/profile')
+  @ApiOperation({ summary: 'Atualiza o perfil detalhado de RH do colaborador' })
+  @ApiBody({ type: UpdateEmployeeProfileRequestDto })
+  @ApiParam({ name: 'id', format: 'uuid' })
+  @ApiOkResponse({ type: EmployeeProfileResponseDto })
+  public updateProfile(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Param('id', new ParseUUIDPipe()) employeeId: string,
+    @Body() input: UpdateEmployeeProfileRequestDto,
+    @Req() request: Request,
+  ): Promise<EmployeeProfileResponseDto> {
+    return this.employees.updateProfile(
+      actor,
+      employeeId,
+      input,
+      this.clientContext.fromRequest(request),
+    );
+  }
+
+  @Get(':id/roles')
+  @ApiOperation({ summary: 'Lista o histórico de cargos atribuídos ao colaborador' })
+  @ApiParam({ name: 'id', format: 'uuid' })
+  @ApiOkResponse({ type: [EmployeeRoleAssignmentResponseDto] })
+  public getRoleAssignments(
+    @Param('id', new ParseUUIDPipe()) employeeId: string,
+  ): Promise<EmployeeRoleAssignmentResponseDto[]> {
+    return this.jobRolesService.getEmployeeAssignments(employeeId);
+  }
+
+  @Post(':id/roles')
+  @ApiOperation({ summary: 'Atribui um cargo ao colaborador' })
+  @ApiParam({ name: 'id', format: 'uuid' })
+  @ApiBody({ type: AssignEmployeeRoleDto })
+  @ApiCreatedResponse({ type: EmployeeRoleAssignmentResponseDto })
+  public assignRole(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Param('id', new ParseUUIDPipe()) employeeId: string,
+    @Body() input: AssignEmployeeRoleDto,
+    @Req() request: Request,
+  ): Promise<EmployeeRoleAssignmentResponseDto> {
+    return this.jobRolesService.assignRole(
+      actor.id,
+      employeeId,
+      input,
       this.clientContext.fromRequest(request),
     );
   }

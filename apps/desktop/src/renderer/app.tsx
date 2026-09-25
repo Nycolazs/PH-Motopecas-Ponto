@@ -20,6 +20,9 @@ import { AdminSettingsPage } from './pages/admin/settings-page.js';
 import { AdminUsersPage } from './pages/admin/admins-page.js';
 import { AdjustmentRequestsPage } from './pages/admin/adjustment-requests-page.js';
 import { IncompletePunchesPage } from './pages/admin/incomplete-punches-page.js';
+import { SetupDashboardPage } from './pages/admin/setup-dashboard-page.js';
+import { CompanyPage } from './pages/admin/company-page.js';
+import { JobRolesPage } from './pages/admin/job-roles-page.js';
 import { EmployeeHomePage } from './pages/employee-home-page.js';
 import { HistoryPage } from './pages/history-page.js';
 import { LoginPage } from './pages/login-page.js';
@@ -42,7 +45,10 @@ function AppRoutes(): React.JSX.Element {
     return (
       <Routes>
         <Route path="/admin" element={<AdminLayout />}>
-          <Route index element={<AdminDashboardPage />} />
+          <Route index element={<SetupDashboardPage />} />
+          <Route path="empresa" element={<CompanyPage />} />
+          <Route path="cargos" element={<JobRolesPage />} />
+          <Route path="gestao" element={<AdminDashboardPage />} />
           <Route path="solicitacoes" element={<AdjustmentRequestsPage />} />
           <Route path="incompletos" element={<IncompletePunchesPage />} />
           <Route path="funcionarios" element={<AdminEmployeesPage />} />

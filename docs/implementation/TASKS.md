@@ -12,10 +12,10 @@ Statuses: pending, active, review, done, blocked. A planned task is never eviden
 | HR1-002 | done    | orchestrator      | shared dates/config                   | HR-0       | São Paulo end-to-end and local origins                             |
 | HR1-003 | done    | attendance        | punches/adjustments/schema            | HR-0       | Voids preserve original history; race tests                        |
 | HR1-004 | done    | security          | avatars/Electron                      | HR-0       | Decode/reencode validation, sandbox enabled                        |
-| HR2-001 | pending | backend           | company                               | HR-1       | Company persistence and DTO tests                                  |
-| HR2-002 | pending | backend           | users/employees                       | HR-1       | App access independent, migration preserves users                  |
-| HR2-003 | pending | backend           | job-roles                             | HR-1       | Versions and assignment constraints                                |
-| HR2-004 | pending | frontend          | layout/routes                         | HR-1       | Responsive coherent navigation                                     |
+| HR2-001 | done    | backend           | company                               | HR-1       | Company persistence and DTO tests                                  |
+| HR2-002 | done    | backend           | users/employees                       | HR-1       | App access independent, migration preserves users                  |
+| HR2-003 | done    | backend           | job-roles                             | HR-1       | Versions and assignment constraints                                |
+| HR2-004 | done    | frontend          | layout/routes                         | HR-1       | Responsive coherent navigation                                     |
 | HR3-001 | pending | documents         | drafts/shared schemas                 | HR-2       | Autosave/conflict/refresh                                          |
 | HR3-002 | pending | documents         | builders/storage/worker               | HR-2       | Durable jobs, recovery, safe PDF                                   |
 | HR3-003 | pending | documents         | prepare/finalize/preview              | HR3-002    | Same reviewed bytes, atomic confirmation                           |

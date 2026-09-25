@@ -91,13 +91,36 @@ describe('PH-Ponto employee application', () => {
           }),
         );
       }
+      if (url.includes('/company/setup-status')) {
+        return Promise.resolve(
+          jsonResponse({
+            completionPercentage: 100,
+            items: [],
+          }),
+        );
+      }
+      if (url.includes('/company')) {
+        return Promise.resolve(
+          jsonResponse({
+            id: '10000000-0000-0000-0000-000000000001',
+            legalName: 'PH MOTOPECAS LTDA',
+            tradeName: 'PH Motopeças',
+            cnpj: '00.000.000/0001-00',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          }),
+        );
+      }
+      if (url.includes('/attendance/incomplete-days')) {
+        return Promise.resolve(jsonResponse({ totalIncompleteDays: 0, items: [] }));
+      }
       throw new Error(`Unexpected request: ${url}`);
     });
     vi.stubGlobal('fetch', fetchMock);
 
     render(<App />);
 
-    expect(await screen.findByRole('heading', { name: 'Painel Operacional' })).toBeVisible();
+    expect(await screen.findByRole('heading', { name: 'Progresso de Implantação' })).toBeVisible();
     expect(screen.getByText('Ana Admin')).toBeVisible();
     expect(screen.queryByRole('button', { name: 'Bater ponto' })).not.toBeInTheDocument();
   });

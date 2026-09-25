@@ -27,7 +27,14 @@ export class CurrentUserService {
         expiresAt: true,
         absoluteExpiresAt: true,
         user: {
-          select: { id: true, name: true, login: true, role: true, isActive: true },
+          select: {
+            id: true,
+            name: true,
+            login: true,
+            role: true,
+            isActive: true,
+            accessEnabled: true,
+          },
         },
       },
     });
@@ -39,6 +46,7 @@ export class CurrentUserService {
       session.expiresAt.getTime() <= now ||
       session.absoluteExpiresAt.getTime() <= now ||
       !session.user.isActive ||
+      !session.user.accessEnabled ||
       session.user.id !== claims.sub ||
       session.user.role !== claims.role
     ) {

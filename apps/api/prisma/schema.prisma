@@ -21,6 +21,7 @@ enum SessionRevocationReason {
   ROLE_CHANGED
   EXPIRED
   ADMIN_ACTION
+  ACCESS_DISABLED
 }
 
 enum AvatarMimeType {
@@ -125,6 +126,13 @@ enum AuditAction {
   REPORT_EXPORTED
   VACATION_CREATED
   VACATION_DELETED
+  COMPANY_UPDATED
+  JOB_ROLE_CREATED
+  JOB_ROLE_UPDATED
+  JOB_ROLE_VERSION_PUBLISHED
+  EMPLOYEE_ROLE_ASSIGNED
+  EMPLOYEE_ACCESS_UPDATED
+  EMPLOYEE_PROFILE_UPDATED
 }
 
 enum AuditOutcome {
@@ -143,6 +151,11 @@ enum AuditTargetType {
   SETTING
   REPORT
   VACATION
+  COMPANY
+  JOB_ROLE
+  JOB_ROLE_VERSION
+  EMPLOYEE_ROLE_ASSIGNMENT
+  EMPLOYEE_PROFILE
 }
 
 model User {
@@ -153,10 +166,12 @@ model User {
   passwordHash    String   @map("password_hash") @db.VarChar(255)
   role            UserRole
   isActive        Boolean  @default(true) @map("is_active")
+  accessEnabled   Boolean  @default(true) @map("access_enabled")
   createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt       DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   avatar                     Avatar?
+  employeeProfile            EmployeeProfile?
   refreshSessions            RefreshSession[]
   createdScheduleVersions    BusinessScheduleVersion[]    @relation("ScheduleCreatedBy")
   createdExceptionRevisions  CalendarExceptionRevision[]  @relation("ExceptionCreatedBy")
@@ -171,8 +186,12 @@ model User {
   vacations                  Vacation[]                   @relation("EmployeeVacations")
   createdVacations           Vacation[]                   @relation("VacationsCreatedBy")
   punchVoids                 TimePunchVoid[]              @relation("PunchVoidedBy")
+  roleAssignments            EmployeeRoleAssignment[]     @relation("EmployeeRoleAssignments")
+  createdRoleAssignments     EmployeeRoleAssignment[]     @relation("RoleAssignmentsCreatedBy")
+  createdRoleVersions        JobRoleVersion[]             @relation("RoleVersionsCreatedBy")
 
   @@index([role, isActive])
+  @@index([role, accessEnabled])
   @@map("users")
 }
 
@@ -464,4 +483,110 @@ model Vacation {
 
   @@index([employeeId, startDate, endDate])
   @@map("vacations")
+}
+
+model Company {
+  id                  String   @id @default(uuid()) @db.Uuid
+  legalName           String   @map("legal_name") @db.VarChar(200)
+  tradeName           String   @map("trade_name") @db.VarChar(200)
+  cnpj                String   @unique @db.VarChar(18)
+  stateRegistration   String?  @map("state_registration") @db.VarChar(30)
+  email               String?  @db.VarChar(120)
+  phone               String?  @db.VarChar(30)
+  addressStreet       String?  @map("address_street") @db.VarChar(200)
+  addressNumber       String?  @map("address_number") @db.VarChar(30)
+  addressComplement   String?  @map("address_complement") @db.VarChar(100)
+  addressNeighborhood String?  @map("address_neighborhood") @db.VarChar(100)
+  addressCity         String?  @map("address_city") @db.VarChar(100)
+  addressState        String?  @map("address_state") @db.VarChar(2)
+  addressPostalCode   String?  @map("address_postal_code") @db.VarChar(10)
+  primaryContactName  String?  @map("primary_contact_name") @db.VarChar(120)
+  createdAt           DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("companies")
+}
+
+model EmployeeProfile {
+  userId              String    @id @map("user_id") @db.Uuid
+  cpf                 String?   @unique @db.VarChar(14)
+  rg                  String?   @db.VarChar(30)
+  birthDate           DateTime? @map("birth_date") @db.Date
+  phone               String?   @db.VarChar(30)
+  personalEmail       String?   @map("personal_email") @db.VarChar(120)
+  addressStreet       String?   @map("address_street") @db.VarChar(200)
+  addressNumber       String?   @map("address_number") @db.VarChar(30)
+  addressComplement   String?   @map("address_complement") @db.VarChar(100)
+  addressNeighborhood String?   @map("address_neighborhood") @db.VarChar(100)
+  addressCity         String?   @map("address_city") @db.VarChar(100)
+  addressState        String?   @map("address_state") @db.VarChar(2)
+  addressPostalCode   String?   @map("address_postal_code") @db.VarChar(10)
+  hireDate            DateTime? @map("hire_date") @db.Date
+  notes               String?   @db.Text
+  createdAt           DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Restrict)
+
+  @@map("employee_profiles")
+}
+
+model JobRole {
+  id          String   @id @default(uuid()) @db.Uuid
+  title       String   @db.VarChar(120)
+  department  String?  @db.VarChar(100)
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  versions    JobRoleVersion[]
+  assignments EmployeeRoleAssignment[]
+
+  @@index([isActive, title])
+  @@map("job_roles")
+}
+
+model JobRoleVersion {
+  id               String   @id @default(uuid()) @db.Uuid
+  jobRoleId        String   @map("job_role_id") @db.Uuid
+  versionNumber    Int      @map("version_number")
+  title            String   @db.VarChar(120)
+  cbo              String?  @db.VarChar(20)
+  description      String   @db.Text
+  responsibilities Json     @default("[]")
+  requirements     Json     @default("[]")
+  createdById      String   @map("created_by_id") @db.Uuid
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  publishedAt      DateTime @default(now()) @map("published_at") @db.Timestamptz(6)
+
+  jobRole          JobRole                  @relation(fields: [jobRoleId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  createdBy        User                     @relation("RoleVersionsCreatedBy", fields: [createdById], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  assignments      EmployeeRoleAssignment[]
+
+  @@unique([jobRoleId, versionNumber])
+  @@index([jobRoleId, publishedAt])
+  @@map("job_role_versions")
+}
+
+model EmployeeRoleAssignment {
+  id               String    @id @default(uuid()) @db.Uuid
+  employeeId       String    @map("employee_id") @db.Uuid
+  jobRoleId        String    @map("job_role_id") @db.Uuid
+  jobRoleVersionId String    @map("job_role_version_id") @db.Uuid
+  startDate        DateTime  @map("start_date") @db.Date
+  endDate          DateTime? @map("end_date") @db.Date
+  isPrincipal      Boolean   @default(true) @map("is_principal")
+  notes            String?   @db.Text
+  createdById      String    @map("created_by_id") @db.Uuid
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  employee         User           @relation("EmployeeRoleAssignments", fields: [employeeId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  jobRole          JobRole        @relation(fields: [jobRoleId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  jobRoleVersion   JobRoleVersion @relation(fields: [jobRoleVersionId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  createdBy        User           @relation("RoleAssignmentsCreatedBy", fields: [createdById], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@index([employeeId, isPrincipal, startDate])
+  @@index([jobRoleId])
+  @@map("employee_role_assignments")
 }

@@ -4,7 +4,10 @@ import type { AuthenticatedUser, ClientContext } from '../auth/auth.types.js';
 import { AuditAction } from '../generated/prisma/client.js';
 import type {
   CreateManagedUserDto,
+  EmployeeProfileResponseDto,
   ListUsersQueryDto,
+  ToggleUserAccessDto,
+  UpdateEmployeeProfileRequestDto,
   UpdateManagedUserDto,
 } from '../users/user.dto.js';
 import { UserManagementService } from '../users/user-management.service.js';
@@ -86,5 +89,27 @@ export class EmployeesService {
       password,
       context,
     );
+  }
+
+  public toggleAccess(
+    actor: AuthenticatedUser,
+    employeeId: string,
+    input: ToggleUserAccessDto,
+    context: ClientContext,
+  ): Promise<UserViewDto> {
+    return this.management.toggleAccess('EMPLOYEE', actor, employeeId, input, context);
+  }
+
+  public getProfile(employeeId: string): Promise<EmployeeProfileResponseDto> {
+    return this.management.getEmployeeProfile(employeeId);
+  }
+
+  public updateProfile(
+    actor: AuthenticatedUser,
+    employeeId: string,
+    input: UpdateEmployeeProfileRequestDto,
+    context: ClientContext,
+  ): Promise<EmployeeProfileResponseDto> {
+    return this.management.updateEmployeeProfile(actor, employeeId, input, context);
   }
 }

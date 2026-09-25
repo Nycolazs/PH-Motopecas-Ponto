@@ -125,6 +125,7 @@ export class AuthService {
         passwordHash: true,
         role: true,
         isActive: true,
+        accessEnabled: true,
       },
     });
     const verification =
@@ -140,6 +141,7 @@ export class AuthService {
       user === null ||
       !verification.valid ||
       !user.isActive ||
+      !user.accessEnabled ||
       (requiredRole !== undefined && user.role !== requiredRole)
     ) {
       await this.audit.record({
@@ -175,11 +177,12 @@ export class AuthService {
         async (transaction) => {
           const currentUser = await transaction.user.findUnique({
             where: { id: user.id },
-            select: { isActive: true, role: true, passwordHash: true },
+            select: { isActive: true, accessEnabled: true, role: true, passwordHash: true },
           });
           if (
             currentUser === null ||
             !currentUser.isActive ||
+            !currentUser.accessEnabled ||
             currentUser.role !== user.role ||
             currentUser.passwordHash !== user.passwordHash
           ) {
@@ -300,11 +303,14 @@ export class AuthService {
             session.expiresAt.getTime() <= now.getTime() ||
             session.absoluteExpiresAt.getTime() <= now.getTime() ||
             !session.user.isActive ||
+            !session.user.accessEnabled ||
             (requiredRole !== undefined && session.user.role !== requiredRole)
           ) {
-            const reason = session.user.isActive
-              ? SessionRevocationReason.EXPIRED
-              : SessionRevocationReason.USER_DEACTIVATED;
+            const reason = !session.user.isActive
+              ? SessionRevocationReason.USER_DEACTIVATED
+              : !session.user.accessEnabled
+                ? SessionRevocationReason.ACCESS_DISABLED
+                : SessionRevocationReason.EXPIRED;
             await this.sessionRevocation.revokeFamily(session.familyId, reason, transaction, now);
             return { outcome: 'INVALID' };
           }

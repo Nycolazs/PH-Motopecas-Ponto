@@ -40,12 +40,16 @@ const activeUser = {
   passwordHash: '$argon2id$test',
   role: 'EMPLOYEE' as const,
   isActive: true,
+  accessEnabled: true,
 };
 
 function createHarness(
   options: {
     user?: typeof activeUser | null;
-    currentUser?: Pick<typeof activeUser, 'isActive' | 'role' | 'passwordHash'> | null;
+    currentUser?: Pick<
+      typeof activeUser,
+      'isActive' | 'role' | 'passwordHash' | 'accessEnabled'
+    > | null;
     session?: Record<string, unknown> | null;
     claimedCount?: number;
   } = {},
@@ -64,6 +68,7 @@ function createHarness(
         options.currentUser === undefined
           ? {
               isActive: activeUser.isActive,
+              accessEnabled: activeUser.accessEnabled,
               role: activeUser.role,
               passwordHash: activeUser.passwordHash,
             }

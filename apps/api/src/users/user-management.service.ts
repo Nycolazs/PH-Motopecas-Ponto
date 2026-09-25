@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import {
   BadRequestException,
   ConflictException,
@@ -14,13 +15,20 @@ import { SessionRevocationService } from '../auth/session-revocation.service.js'
 import { AuditService } from '../audit/audit.service.js';
 import { PrismaService } from '../database/prisma.service.js';
 import {
+  AuditAction,
   AuditOutcome,
   AuditTargetType,
   SessionRevocationReason,
-  type AuditAction,
   type Prisma,
 } from '../generated/prisma/client.js';
-import type { CreateManagedUserDto, ListUsersQueryDto, UpdateManagedUserDto } from './user.dto.js';
+import type {
+  CreateManagedUserDto,
+  EmployeeProfileResponseDto,
+  ListUsersQueryDto,
+  ToggleUserAccessDto,
+  UpdateEmployeeProfileRequestDto,
+  UpdateManagedUserDto,
+} from './user.dto.js';
 import {
   safeUserSelect,
   toSafeUserState,
@@ -65,6 +73,24 @@ function isUniqueConstraintError(error: unknown): boolean {
   );
 }
 
+function parseDateOnly(dateStr: string | null | undefined): Date | null | undefined {
+  if (dateStr === undefined) return undefined;
+  if (dateStr === null || dateStr.trim() === '') return null;
+  const parts = dateStr.trim().split('-');
+  const year = Number(parts[0]);
+  const month = Number(parts[1]);
+  const day = Number(parts[2]);
+  if (!Number.isInteger(year) || !Number.isInteger(month) || !Number.isInteger(day)) {
+    throw new BadRequestException('Formato de data inválido. Use AAAA-MM-DD.');
+  }
+  return new Date(Date.UTC(year, month - 1, day));
+}
+
+function formatDateOnly(date: Date | null | undefined): string | null {
+  if (!date) return null;
+  return date.toISOString().slice(0, 10);
+}
+
 @Injectable()
 export class UserManagementService {
   public constructor(
@@ -83,7 +109,15 @@ export class UserManagementService {
     context: ClientContext,
   ): Promise<UserViewDto> {
     const login = input.login.trim();
-    const passwordHash = await this.passwords.hash(input.password);
+    const rawPassword =
+      input.password?.trim() || (input.accessEnabled === false ? randomUUID() : '');
+    if (!rawPassword) {
+      throw new BadRequestException({
+        code: 'VALIDATION_ERROR',
+        message: 'A senha é obrigatória para usuários com acesso ativo.',
+      });
+    }
+    const passwordHash = await this.passwords.hash(rawPassword);
 
     try {
       const user = await this.prisma.$transaction(async (transaction) => {
@@ -94,6 +128,7 @@ export class UserManagementService {
             normalizedLogin: normalizeLogin(login),
             passwordHash,
             role,
+            accessEnabled: input.accessEnabled ?? true,
           },
           select: safeUserSelect,
         });
@@ -324,6 +359,237 @@ export class UserManagementService {
         transaction,
       );
     });
+  }
+
+  public async toggleAccess(
+    role: UserRole,
+    actor: MutationActor,
+    userId: string,
+    input: ToggleUserAccessDto,
+    context: ClientContext,
+  ): Promise<UserViewDto> {
+    const user = await this.prisma.$transaction(async (transaction) => {
+      const current = await this.lockAndFind(transaction, role, userId);
+      const isEnabling = input.accessEnabled && !current.accessEnabled;
+
+      let passwordHash: string | undefined;
+      if (input.accessEnabled) {
+        if (input.password?.trim()) {
+          passwordHash = await this.passwords.hash(input.password.trim());
+        } else if (isEnabling) {
+          throw new BadRequestException({
+            code: 'PASSWORD_REQUIRED',
+            message: 'Uma senha válida é obrigatória para habilitar o acesso ao aplicativo.',
+          });
+        }
+      }
+
+      if (current.accessEnabled === input.accessEnabled && !passwordHash) {
+        return current;
+      }
+
+      const updated = await transaction.user.update({
+        where: { id: current.id },
+        data: {
+          accessEnabled: input.accessEnabled,
+          ...(passwordHash ? { passwordHash } : {}),
+        },
+        select: safeUserSelect,
+      });
+
+      if (!input.accessEnabled) {
+        await this.sessions.revokeAllForUser(
+          current.id,
+          SessionRevocationReason.ACCESS_DISABLED,
+          transaction,
+        );
+      }
+
+      await this.audit.record(
+        {
+          actorId: actor.id,
+          action: AuditAction.EMPLOYEE_ACCESS_UPDATED,
+          outcome: AuditOutcome.SUCCESS,
+          targetType: AuditTargetType.USER,
+          targetId: updated.id,
+          ...context,
+          beforeState: { accessEnabled: current.accessEnabled },
+          afterState: { accessEnabled: updated.accessEnabled },
+        },
+        transaction,
+      );
+
+      return updated;
+    });
+
+    return toUserView(user);
+  }
+
+  public async getEmployeeProfile(userId: string): Promise<EmployeeProfileResponseDto> {
+    const user = await this.prisma.user.findFirst({
+      where: { id: userId, role: 'EMPLOYEE' },
+      include: {
+        employeeProfile: true,
+      },
+    });
+
+    if (!user) {
+      throw resourceNotFound();
+    }
+
+    const profile = user.employeeProfile;
+
+    return {
+      userId: user.id,
+      cpf: profile?.cpf ?? null,
+      rg: profile?.rg ?? null,
+      birthDate: formatDateOnly(profile?.birthDate),
+      phone: profile?.phone ?? null,
+      personalEmail: profile?.personalEmail ?? null,
+      addressStreet: profile?.addressStreet ?? null,
+      addressNumber: profile?.addressNumber ?? null,
+      addressComplement: profile?.addressComplement ?? null,
+      addressNeighborhood: profile?.addressNeighborhood ?? null,
+      addressCity: profile?.addressCity ?? null,
+      addressState: profile?.addressState ?? null,
+      addressPostalCode: profile?.addressPostalCode ?? null,
+      hireDate: formatDateOnly(profile?.hireDate),
+      notes: profile?.notes ?? null,
+      accessEnabled: user.accessEnabled,
+      isActive: user.isActive,
+      createdAt: (profile?.createdAt ?? user.createdAt).toISOString(),
+      updatedAt: (profile?.updatedAt ?? user.updatedAt).toISOString(),
+    };
+  }
+
+  public async updateEmployeeProfile(
+    actor: MutationActor,
+    userId: string,
+    input: UpdateEmployeeProfileRequestDto,
+    context: ClientContext,
+  ): Promise<EmployeeProfileResponseDto> {
+    const result = await this.prisma.$transaction(async (transaction) => {
+      const user = await this.lockAndFind(transaction, 'EMPLOYEE', userId);
+
+      const existingProfile = await transaction.employeeProfile.findUnique({
+        where: { userId },
+      });
+
+      const birthDate = parseDateOnly(input.birthDate);
+      const hireDate = parseDateOnly(input.hireDate);
+
+      const profile = await transaction.employeeProfile.upsert({
+        where: { userId },
+        create: {
+          userId,
+          cpf: input.cpf !== undefined ? input.cpf?.trim() || null : null,
+          rg: input.rg !== undefined ? input.rg?.trim() || null : null,
+          birthDate: birthDate !== undefined ? birthDate : null,
+          phone: input.phone !== undefined ? input.phone?.trim() || null : null,
+          personalEmail:
+            input.personalEmail !== undefined ? input.personalEmail?.trim() || null : null,
+          addressStreet:
+            input.addressStreet !== undefined ? input.addressStreet?.trim() || null : null,
+          addressNumber:
+            input.addressNumber !== undefined ? input.addressNumber?.trim() || null : null,
+          addressComplement:
+            input.addressComplement !== undefined ? input.addressComplement?.trim() || null : null,
+          addressNeighborhood:
+            input.addressNeighborhood !== undefined
+              ? input.addressNeighborhood?.trim() || null
+              : null,
+          addressCity: input.addressCity !== undefined ? input.addressCity?.trim() || null : null,
+          addressState:
+            input.addressState !== undefined
+              ? input.addressState?.trim().toUpperCase() || null
+              : null,
+          addressPostalCode:
+            input.addressPostalCode !== undefined ? input.addressPostalCode?.trim() || null : null,
+          hireDate: hireDate !== undefined ? hireDate : null,
+          notes: input.notes !== undefined ? input.notes?.trim() || null : null,
+        },
+        update: {
+          ...(input.cpf !== undefined ? { cpf: input.cpf?.trim() || null } : {}),
+          ...(input.rg !== undefined ? { rg: input.rg?.trim() || null } : {}),
+          ...(birthDate !== undefined ? { birthDate } : {}),
+          ...(input.phone !== undefined ? { phone: input.phone?.trim() || null } : {}),
+          ...(input.personalEmail !== undefined
+            ? { personalEmail: input.personalEmail?.trim() || null }
+            : {}),
+          ...(input.addressStreet !== undefined
+            ? { addressStreet: input.addressStreet?.trim() || null }
+            : {}),
+          ...(input.addressNumber !== undefined
+            ? { addressNumber: input.addressNumber?.trim() || null }
+            : {}),
+          ...(input.addressComplement !== undefined
+            ? { addressComplement: input.addressComplement?.trim() || null }
+            : {}),
+          ...(input.addressNeighborhood !== undefined
+            ? { addressNeighborhood: input.addressNeighborhood?.trim() || null }
+            : {}),
+          ...(input.addressCity !== undefined
+            ? { addressCity: input.addressCity?.trim() || null }
+            : {}),
+          ...(input.addressState !== undefined
+            ? { addressState: input.addressState?.trim().toUpperCase() || null }
+            : {}),
+          ...(input.addressPostalCode !== undefined
+            ? { addressPostalCode: input.addressPostalCode?.trim() || null }
+            : {}),
+          ...(hireDate !== undefined ? { hireDate } : {}),
+          ...(input.notes !== undefined ? { notes: input.notes?.trim() || null } : {}),
+        },
+      });
+
+      await this.audit.record(
+        {
+          actorId: actor.id,
+          action: AuditAction.EMPLOYEE_PROFILE_UPDATED,
+          outcome: AuditOutcome.SUCCESS,
+          targetType: AuditTargetType.EMPLOYEE_PROFILE,
+          targetId: userId,
+          ...context,
+          beforeState: existingProfile
+            ? {
+                cpf: existingProfile.cpf,
+                rg: existingProfile.rg,
+                hireDate: formatDateOnly(existingProfile.hireDate),
+              }
+            : {},
+          afterState: {
+            cpf: profile.cpf,
+            rg: profile.rg,
+            hireDate: formatDateOnly(profile.hireDate),
+          },
+        },
+        transaction,
+      );
+
+      return {
+        userId: user.id,
+        cpf: profile.cpf,
+        rg: profile.rg,
+        birthDate: formatDateOnly(profile.birthDate),
+        phone: profile.phone,
+        personalEmail: profile.personalEmail,
+        addressStreet: profile.addressStreet,
+        addressNumber: profile.addressNumber,
+        addressComplement: profile.addressComplement,
+        addressNeighborhood: profile.addressNeighborhood,
+        addressCity: profile.addressCity,
+        addressState: profile.addressState,
+        addressPostalCode: profile.addressPostalCode,
+        hireDate: formatDateOnly(profile.hireDate),
+        notes: profile.notes,
+        accessEnabled: user.accessEnabled,
+        isActive: user.isActive,
+        createdAt: profile.createdAt.toISOString(),
+        updatedAt: profile.updatedAt.toISOString(),
+      };
+    });
+
+    return result;
   }
 
   private async lockAndFind(

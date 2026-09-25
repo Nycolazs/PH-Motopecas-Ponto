@@ -8,11 +8,13 @@ import { AuditModule } from './audit/audit.module.js';
 import { AuthModule } from './auth/auth.module.js';
 import { AvatarsModule } from './avatars/avatars.module.js';
 import { CalendarExceptionsModule } from './calendar-exceptions/calendar-exceptions.module.js';
+import { CompanyModule } from './company/company.module.js';
 import { validateEnvironment } from './config/environment.js';
 import { DatabaseModule } from './database/database.module.js';
 import { EmployeesModule } from './employees/employees.module.js';
 import { HealthModule } from './health/health.module.js';
 import { RequestIdMiddleware } from './http/request-id.js';
+import { JobRolesModule } from './job-roles/job-roles.module.js';
 import { SchedulesModule } from './schedules/schedules.module.js';
 import { StorageModule } from './storage/storage.module.js';
 import { TimeAdjustmentsModule } from './time-adjustments/time-adjustments.module.js';
@@ -36,6 +38,8 @@ import { VacationsModule } from './vacations/vacations.module.js';
     UsersModule,
     EmployeesModule,
     AdminsModule,
+    CompanyModule,
+    JobRolesModule,
     SchedulesModule,
     CalendarExceptionsModule,
     AttendanceModule,

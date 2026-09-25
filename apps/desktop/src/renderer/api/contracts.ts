@@ -16,6 +16,7 @@ export const managedUserSchema = z
     login: z.string().trim().min(1),
     role: z.enum(['ADMIN', 'EMPLOYEE']),
     isActive: z.boolean(),
+    accessEnabled: z.boolean().default(true),
     hasAvatar: z.boolean(),
     createdAt: z.string().datetime({ offset: true }),
     updatedAt: z.string().datetime({ offset: true }),
@@ -560,3 +561,34 @@ export type VacationList = z.infer<typeof vacationListSchema>;
 export type CreateVacationInput = z.infer<typeof createVacationInputSchema>;
 export type IncompleteAttendanceDayItem = z.infer<typeof incompleteAttendanceDayItemSchema>;
 export type IncompleteAttendance = z.infer<typeof incompleteAttendanceSchema>;
+
+export {
+  companySchema,
+  updateCompanySchema,
+  setupItemStatusSchema,
+  setupStatusSchema,
+  jobRoleVersionSchema,
+  jobRoleSchema,
+  createJobRoleSchema,
+  updateJobRoleSchema,
+  createJobRoleVersionSchema,
+  employeeRoleAssignmentSchema,
+  assignEmployeeRoleSchema,
+  employeeProfileSchema,
+  updateEmployeeProfileSchema,
+  toggleEmployeeAccessSchema,
+  type CompanyDto,
+  type UpdateCompanyDto,
+  type SetupItemStatusDto,
+  type SetupStatusDto,
+  type JobRoleVersionDto,
+  type JobRoleDto,
+  type CreateJobRoleDto,
+  type UpdateJobRoleDto,
+  type CreateJobRoleVersionDto,
+  type EmployeeRoleAssignmentDto,
+  type AssignEmployeeRoleDto,
+  type EmployeeProfileDto,
+  type UpdateEmployeeProfileDto,
+  type ToggleEmployeeAccessDto,
+} from '@ph-ponto/shared';
