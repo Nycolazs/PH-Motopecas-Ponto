@@ -1,4 +1,4 @@
-import { createReadStream } from 'node:fs';
+import { createReadStream, existsSync } from 'node:fs';
 import { mkdir, unlink, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import type { Readable } from 'node:stream';
@@ -189,6 +189,12 @@ export class AvatarsService {
     }
 
     const filePath = resolve(this.uploadDirectory, avatar.objectKey);
+    if (!existsSync(filePath)) {
+      throw new NotFoundException({
+        code: 'AVATAR_NOT_FOUND',
+        message: 'Foto de perfil não encontrada no armazenamento.',
+      });
+    }
     const stream = createReadStream(filePath);
 
     return {

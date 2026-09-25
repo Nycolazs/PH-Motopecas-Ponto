@@ -45,4 +45,25 @@ describe('AvatarsService', () => {
       ),
     ).rejects.toThrow('O formato do arquivo é inválido. Utilize JPEG, PNG ou WebP.');
   });
+
+  it('throws NotFoundException when avatar file is missing from disk', async () => {
+    const mockPrisma = {
+      avatar: {
+        findUnique: vi.fn().mockResolvedValue({
+          id: 'av-1',
+          userId: 'user-1',
+          objectKey: 'avatars/missing-file.jpg',
+          mimeType: 'IMAGE_JPEG',
+          byteSize: 100,
+          checksum: 'abc',
+        }),
+      },
+    } as unknown as PrismaService;
+
+    const service = new AvatarsService(mockPrisma, mockAuditService, mockConfigService);
+
+    await expect(service.getAvatarStream('user-1')).rejects.toThrow(
+      'Foto de perfil não encontrada no armazenamento.',
+    );
+  });
 });

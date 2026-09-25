@@ -54,6 +54,14 @@ export class AvatarsController {
     res.setHeader('Content-Length', byteSize);
     res.setHeader('ETag', `"${checksum}"`);
     res.setHeader('Cache-Control', 'public, max-age=86400, stale-while-revalidate=604800');
+    stream.on('error', () => {
+      if (!res.headersSent) {
+        res.status(HttpStatus.NOT_FOUND).json({
+          code: 'AVATAR_NOT_FOUND',
+          message: 'Foto de perfil não encontrada.',
+        });
+      }
+    });
     stream.pipe(res);
   }
 
