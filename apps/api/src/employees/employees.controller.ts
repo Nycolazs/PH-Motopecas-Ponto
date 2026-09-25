@@ -45,6 +45,20 @@ import {
   EmployeeRoleAssignmentResponseDto,
 } from '../job-roles/job-roles.dto.js';
 import { JobRolesService } from '../job-roles/job-roles.service.js';
+import {
+  CreateEmploymentEventRequestDto,
+  EmploymentEventResponseDto,
+  type ListEmploymentEventsQueryDto,
+  PaginatedEmploymentEventsResponseDto,
+  ReactivateEmployeeRequestDto,
+  TerminateEmployeeRequestDto,
+} from '../employment-events/employment-events.dto.js';
+import { EmploymentEventsService } from '../employment-events/employment-events.service.js';
+import {
+  type ListTimelineQueryDto,
+  PaginatedTimelineResponseDto,
+} from '../employee-timeline/employee-timeline.dto.js';
+import { EmployeeTimelineService } from '../employee-timeline/employee-timeline.service.js';
 import { UserListViewDto, UserViewDto } from '../users/user.view.js';
 import { EmployeesService } from './employees.service.js';
 
@@ -56,6 +70,10 @@ export class EmployeesController {
   public constructor(
     @Inject(EmployeesService) private readonly employees: EmployeesService,
     @Inject(JobRolesService) private readonly jobRolesService: JobRolesService,
+    @Inject(EmploymentEventsService)
+    private readonly employmentEventsService: EmploymentEventsService,
+    @Inject(EmployeeTimelineService)
+    private readonly employeeTimelineService: EmployeeTimelineService,
     @Inject(ClientContextService) private readonly clientContext: ClientContextService,
   ) {}
 
@@ -216,5 +234,100 @@ export class EmployeesController {
       input,
       this.clientContext.fromRequest(request),
     );
+  }
+
+  @Get(':id/events')
+  @ApiOperation({ summary: 'Lista os eventos de emprego e anotações do colaborador' })
+  @ApiParam({ name: 'id', format: 'uuid' })
+  @ApiOkResponse({ type: PaginatedEmploymentEventsResponseDto })
+  public listEvents(
+    @Param('id', new ParseUUIDPipe()) employeeId: string,
+    @Query() query: ListEmploymentEventsQueryDto,
+  ): Promise<PaginatedEmploymentEventsResponseDto> {
+    return this.employmentEventsService.listEvents(employeeId, query);
+  }
+
+  @Post(':id/events')
+  @ApiOperation({ summary: 'Registra um evento de emprego ou anotação para o colaborador' })
+  @ApiParam({ name: 'id', format: 'uuid' })
+  @ApiBody({ type: CreateEmploymentEventRequestDto })
+  @ApiCreatedResponse({ type: EmploymentEventResponseDto })
+  public createEvent(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Param('id', new ParseUUIDPipe()) employeeId: string,
+    @Body() input: CreateEmploymentEventRequestDto,
+    @Req() request: Request,
+  ): Promise<EmploymentEventResponseDto> {
+    return this.employmentEventsService.createEvent(
+      actor.id,
+      employeeId,
+      input,
+      this.clientContext.fromRequest(request),
+    );
+  }
+
+  @Post(':id/terminate')
+  @ApiOperation({ summary: 'Realiza o desligamento contratual manual do colaborador' })
+  @ApiParam({ name: 'id', format: 'uuid' })
+  @ApiBody({ type: TerminateEmployeeRequestDto })
+  @ApiOkResponse({ description: 'Colaborador desligado com sucesso.' })
+  public terminate(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Param('id', new ParseUUIDPipe()) employeeId: string,
+    @Body() input: TerminateEmployeeRequestDto,
+    @Req() request: Request,
+  ): Promise<{ success: boolean; message: string }> {
+    return this.employmentEventsService.terminate(
+      actor.id,
+      employeeId,
+      input,
+      this.clientContext.fromRequest(request),
+    );
+  }
+
+  @Post(':id/reactivate')
+  @ApiOperation({ summary: 'Reativa um colaborador anteriormente desligado' })
+  @ApiParam({ name: 'id', format: 'uuid' })
+  @ApiBody({ type: ReactivateEmployeeRequestDto })
+  @ApiOkResponse({ description: 'Colaborador reativado com sucesso.' })
+  public reactivate(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Param('id', new ParseUUIDPipe()) employeeId: string,
+    @Body() input: ReactivateEmployeeRequestDto,
+    @Req() request: Request,
+  ): Promise<{ success: boolean; message: string }> {
+    return this.employmentEventsService.reactivate(
+      actor.id,
+      employeeId,
+      input,
+      this.clientContext.fromRequest(request),
+    );
+  }
+
+  @Post(':id/revoke-sessions')
+  @ApiOperation({ summary: 'Revoga imediatamente todas as sessões ativas do colaborador' })
+  @ApiParam({ name: 'id', format: 'uuid' })
+  @ApiOkResponse({ description: 'Sessões revogadas com sucesso.' })
+  public revokeSessions(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Param('id', new ParseUUIDPipe()) employeeId: string,
+    @Req() request: Request,
+  ): Promise<{ success: boolean; message: string }> {
+    return this.employmentEventsService.revokeSessions(
+      actor.id,
+      employeeId,
+      this.clientContext.fromRequest(request),
+    );
+  }
+
+  @Get(':id/timeline')
+  @ApiOperation({ summary: 'Consulta a linha do tempo cronológica unificada do colaborador' })
+  @ApiParam({ name: 'id', format: 'uuid' })
+  @ApiOkResponse({ type: PaginatedTimelineResponseDto })
+  public getTimeline(
+    @Param('id', new ParseUUIDPipe()) employeeId: string,
+    @Query() query: ListTimelineQueryDto,
+  ): Promise<PaginatedTimelineResponseDto> {
+    return this.employeeTimelineService.getTimeline(employeeId, query);
   }
 }

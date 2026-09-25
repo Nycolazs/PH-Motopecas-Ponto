@@ -162,6 +162,9 @@ enum AuditAction {
   REGULATION_PUBLISHED
   INTERVIEW_RECORDED
   ACKNOWLEDGMENT_GENERATED
+  EMPLOYMENT_EVENT_CREATED
+  EMPLOYEE_TERMINATED
+  EMPLOYEE_REACTIVATED
 }
 
 enum AuditOutcome {
@@ -191,6 +194,7 @@ enum AuditTargetType {
   REGULATION
   INTERVIEW
   ACKNOWLEDGMENT
+  EMPLOYMENT_EVENT
 }
 
 enum InterviewRecommendation {
@@ -202,6 +206,24 @@ enum InterviewRecommendation {
 enum AcknowledgmentType {
   REGULATION
   ROLE
+}
+
+enum EmploymentEventType {
+  ADMISSION
+  ROLE_CHANGE
+  SUSPENSION
+  TERMINATION
+  REACTIVATION
+  NOTE
+}
+
+enum TerminationReason {
+  WITHOUT_CAUSE
+  WITH_CAUSE
+  EMPLOYEE_RESIGNATION
+  MUTUAL_AGREEMENT
+  CONTRACT_EXPIRATION
+  OTHER
 }
 
 model User {
@@ -245,6 +267,8 @@ model User {
   interviewsEvaluated        HiringInterview[]            @relation("InterviewEvaluator")
   createdAcknowledgments     EmployeeDocumentAcknowledgment[] @relation("AcknowledgmentsCreatedBy")
   employeeAcknowledgments    EmployeeDocumentAcknowledgment[] @relation("EmployeeAcknowledgments")
+  employmentEvents           EmploymentEvent[]                @relation("EmployeeEmploymentEvents")
+  createdEmploymentEvents    EmploymentEvent[]                @relation("EmploymentEventsCreatedBy")
 
   @@index([role, isActive])
   @@index([role, accessEnabled])
@@ -858,4 +882,23 @@ model EmployeeDocumentAcknowledgment {
 
   @@index([employeeId, acknowledgmentType])
   @@map("employee_document_acknowledgments")
+}
+
+model EmploymentEvent {
+  id            String              @id @default(uuid()) @db.Uuid
+  employeeId    String              @map("employee_id") @db.Uuid
+  eventType     EmploymentEventType @map("event_type")
+  effectiveDate DateTime            @map("effective_date") @db.Date
+  title         String              @db.VarChar(150)
+  description   String?             @db.Text
+  metadata      Json?
+  createdById   String              @map("created_by_id") @db.Uuid
+  createdAt     DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  employee  User @relation("EmployeeEmploymentEvents", fields: [employeeId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  createdBy User @relation("EmploymentEventsCreatedBy", fields: [createdById], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@index([employeeId, effectiveDate(sort: Desc)])
+  @@index([employeeId, eventType])
+  @@map("employment_events")
 }

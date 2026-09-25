@@ -25,10 +25,10 @@ Statuses: pending, active, review, done, blocked. A planned task is never eviden
 | HR4-002 | done    | documents         | role map                              | HR-3       | Published role version snapshots                                   |
 | HR4-003 | done    | product           | interviews                            | HR-3       | Candidate not silently made employee                               |
 | HR4-004 | done    | product           | acknowledgments                       | HR-3       | Exact role/regulation historical references                        |
-| HR5-001 | pending | frontend          | profile                               | HR-4       | Unified tabs/quick actions                                         |
-| HR5-002 | pending | backend           | employee-history                      | HR-4       | Stable paginated projection, no duplicates                         |
-| HR5-003 | pending | backend           | access                                | HR-4       | Revocation and preserved employment                                |
-| HR5-004 | pending | backend           | employment events                     | HR-4       | Manual termination and archive history                             |
+| HR5-001 | done    | frontend          | profile                               | HR-4       | Unified tabs/quick actions                                         |
+| HR5-002 | done    | backend           | employee-history                      | HR-4       | Stable paginated projection, no duplicates                         |
+| HR5-003 | done    | backend           | access                                | HR-4       | Revocation and preserved employment                                |
+| HR5-004 | done    | backend           | employment events                     | HR-4       | Manual termination and archive history                             |
 | HR6-001 | pending | discipline        | conversation/verbal                   | HR-5       | Structured record, PDF, idempotency                                |
 | HR6-002 | pending | discipline        | written warnings                      | HR-5       | Same-employee prior references                                     |
 | HR6-003 | pending | discipline        | suspension                            | HR-5       | Valid period, no attendance effects                                |

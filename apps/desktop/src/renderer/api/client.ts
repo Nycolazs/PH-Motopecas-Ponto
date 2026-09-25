@@ -88,6 +88,17 @@ import {
   paginatedAcknowledgmentsSchema,
   type AcknowledgmentStatusSummaryDto,
   type PaginatedAcknowledgmentsDto,
+  employmentEventSchema,
+  paginatedEmploymentEventsSchema,
+  paginatedTimelineSchema,
+  type CreateEmploymentEventDto,
+  type EmploymentEventDto,
+  type EmploymentEventTypeDto,
+  type PaginatedEmploymentEventsDto,
+  type ReactivateEmployeeDto,
+  type TerminateEmployeeDto,
+  type PaginatedTimelineDto,
+  type TimelineCategoryDto,
 } from './contracts.js';
 
 function getDefaultApiBaseUrl(): string {
@@ -930,6 +941,110 @@ export class ApiClient {
     return this.request('/acknowledgments/status', acknowledgmentStatusSummarySchema, {
       ...(signal === undefined ? {} : { signal }),
     });
+  }
+
+  // Employment Events & Timeline
+  public getEmploymentEvents(
+    employeeId: string,
+    params?: {
+      eventType?: EmploymentEventTypeDto;
+      limit?: number;
+      offset?: number;
+    },
+    signal?: AbortSignal,
+  ): Promise<PaginatedEmploymentEventsDto> {
+    const q = new URLSearchParams();
+    if (params?.eventType) q.set('eventType', params.eventType);
+    if (params?.limit) q.set('limit', String(params.limit));
+    if (params?.offset) q.set('offset', String(params.offset));
+    const qs = q.toString();
+    return this.request(
+      `/employees/${encodeURIComponent(employeeId)}/events${qs ? `?${qs}` : ''}`,
+      paginatedEmploymentEventsSchema,
+      {
+        ...(signal === undefined ? {} : { signal }),
+      },
+    );
+  }
+
+  public createEmploymentEvent(
+    employeeId: string,
+    data: CreateEmploymentEventDto,
+  ): Promise<EmploymentEventDto> {
+    return this.request(
+      `/employees/${encodeURIComponent(employeeId)}/events`,
+      employmentEventSchema,
+      {
+        method: 'POST',
+        body: JSON.stringify(data),
+        headers: { 'Content-Type': 'application/json' },
+      },
+    );
+  }
+
+  public terminateEmployee(
+    employeeId: string,
+    data: TerminateEmployeeDto,
+  ): Promise<{ success: boolean; message: string }> {
+    return this.request(
+      `/employees/${encodeURIComponent(employeeId)}/terminate`,
+      z.object({ success: z.boolean(), message: z.string() }),
+      {
+        method: 'POST',
+        body: JSON.stringify(data),
+        headers: { 'Content-Type': 'application/json' },
+      },
+    );
+  }
+
+  public reactivateEmployee(
+    employeeId: string,
+    data: ReactivateEmployeeDto,
+  ): Promise<{ success: boolean; message: string }> {
+    return this.request(
+      `/employees/${encodeURIComponent(employeeId)}/reactivate`,
+      z.object({ success: z.boolean(), message: z.string() }),
+      {
+        method: 'POST',
+        body: JSON.stringify(data),
+        headers: { 'Content-Type': 'application/json' },
+      },
+    );
+  }
+
+  public revokeEmployeeSessions(
+    employeeId: string,
+  ): Promise<{ success: boolean; message: string }> {
+    return this.request(
+      `/employees/${encodeURIComponent(employeeId)}/revoke-sessions`,
+      z.object({ success: z.boolean(), message: z.string() }),
+      {
+        method: 'POST',
+      },
+    );
+  }
+
+  public getEmployeeTimeline(
+    employeeId: string,
+    params?: {
+      category?: TimelineCategoryDto;
+      limit?: number;
+      offset?: number;
+    },
+    signal?: AbortSignal,
+  ): Promise<PaginatedTimelineDto> {
+    const q = new URLSearchParams();
+    if (params?.category) q.set('category', params.category);
+    if (params?.limit) q.set('limit', String(params.limit));
+    if (params?.offset) q.set('offset', String(params.offset));
+    const qs = q.toString();
+    return this.request(
+      `/employees/${encodeURIComponent(employeeId)}/timeline${qs ? `?${qs}` : ''}`,
+      paginatedTimelineSchema,
+      {
+        ...(signal === undefined ? {} : { signal }),
+      },
+    );
   }
 
   // Time Punch Adjustment Requests

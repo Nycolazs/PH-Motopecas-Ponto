@@ -2,15 +2,15 @@
 
 ## Current Phase
 
-HR-5 — Unified employee profile tabs, employment events, and timeline projection
+HR-6 — Disciplinary actions, progressive record history, suspensions, and progression summary
 
 ## Overall Status
 
-IN_PROGRESS — HR evolution in active local development. HR-0, HR-1, HR-2, HR-3, and HR-4 completed and verified.
+IN_PROGRESS — HR evolution in active local development. HR-0, HR-1, HR-2, HR-3, HR-4, and HR-5 completed and verified.
 
 ## Last Updated
 
-2026-09-24 America/Sao_Paulo
+2026-09-25 America/Sao_Paulo
 
 ## Active HR Implementation
 
@@ -48,11 +48,17 @@ IN_PROGRESS — HR evolution in active local development. HR-0, HR-1, HR-2, HR-3
   - Backend models & migration `20260925030000_hr_regulations_role_maps_interviews_acknowledgments`: `CompanyRegulation`, `CompanyRegulationVersion`, `HiringInterview`, `EmployeeDocumentAcknowledgment`. Complete HTML/CSS PDF templates in `DocumentTemplatesService`, endpoints in `RegulationsModule`, `InterviewsModule`, `AcknowledgmentsModule`.
   - Frontend pages: `RegulationsWizardPage` (`/admin/documentos/regimento`), `InterviewDocumentPage` (`/admin/documentos/entrevista`), `AcknowledgmentDocumentPage` (`/admin/documentos/ciencia`), updated navigation in `AdminLayout` and routes in `App.tsx`.
   - Quality verification: 313 unit/tooling tests passed (API 155, desktop 82, shared 64, node tooling 12), 25 PostgreSQL integration tests passed applying all 9 migrations, 100% clean typecheck and lint (0 errors, 0 warnings), Prettier formatted, and production builds passing.
-- **Next Phase — HR-5**:
-  - Task HR5-001: Unified Employee Profile tabs (Resumo, Histórico, Documentos, Avaliações, Ponto, Acesso ao app) and quick actions.
-  - Task HR5-002: Stable paginated timeline projection combining employment events, role changes, disciplinary records, documents, and attendance.
-  - Task HR5-003: App access revocation preserving active employment, and inactive employee checks.
-  - Task HR5-004: Employment events schema & service: admission, manual termination (without severance calculations), suspension history, archive/reactivate.
+- **HR-5 Completed**:
+  - Employment Events Model & Service: `EmploymentEvent` model (`ADMISSION`, `ROLE_CHANGE`, `SUSPENSION`, `TERMINATION`, `REACTIVATION`, `NOTE`) with explicit manual termination (`POST /employees/:id/terminate` without severance calculations), reactivation (`POST /employees/:id/reactivate`), session revocation (`POST /employees/:id/revoke-sessions`), and event creation (`POST /employees/:id/events`).
+  - Unified Employee Timeline Projection: `EmployeeTimelineService` (`GET /employees/:id/timeline`) aggregating events, role assignments, generated documents, vacations, and access audit events in chronological order with category filtering.
+  - Database Migration: `20260925040000_hr_employment_events`.
+  - Unified Employee Profile Tabs: `AdminEmployeeDetailPage` updated with 6 responsive tabs (`Resumo`, `Histórico`, `Documentos`, `Avaliações`, `Ponto & Frequência`, `Acesso ao app`). Implemented modals for profile editing, termination, reactivation, role assignment, event registration, access enabling with password setup, password reset, and document PDF preview/download, while fully preserving the monthly attendance calendar, day selector, punch adjustments, and manual punch modals.
+  - Quality verification: 326 unit/tooling tests passed (API 165, desktop 85, shared 64, node tooling 12), 25 PostgreSQL integration tests passed applying all 10 migrations, 100% clean typecheck and lint (0 errors, 0 warnings), Prettier formatted, and production builds passing.
+- **Next Phase — HR-6**:
+  - Task HR6-001: Disciplinary conversation / verbal warning structured record, PDF template, draft confirmation, and idempotency.
+  - Task HR6-002: Written warning document, prior disciplinary references linked to the same employee.
+  - Task HR6-003: Disciplinary suspension document, date range validation, and documentary isolation (no automatic attendance changes).
+  - Task HR6-004: Disciplinary progression summary service, void handling (voids preserved in history, ignored in active summary), and progression unit tests.
 
 ## Local Interactive Test Environment — 2026-09-19
 
