@@ -88,9 +88,22 @@ COMPLETED — HR evolution in active local development on `feat/hr-evolution`. P
     - Added "Acesso ao app" widget card displaying status, CPF/login, "Gerar outra senha" button, and "Tirar o acesso" button.
   - Setup Dashboard (`/admin`): added time-of-day greeting ("Bom dia", "Boa tarde", "Boa noite") personalized with admin first name and "Gerar Documento" shortcut in quick access.
   - Quality verification: 409 tests passed 100% across the monorepo: 379 unit/tooling tests (shared 91, API 183, desktop 93, tooling 12), 25 PostgreSQL integration tests applying all 12 migrations, and 5 Playwright E2E browser suites. Clean TypeScript typecheck, 0 ESLint errors/warnings, Prettier formatted, and all production builds passing.
+- **Production Database Clone & Local HR Data Migration (2026-09-25)**:
+  - Cloned the real production database from remote host `ssh nyc@100.73.175.88` (container `ph-ponto-postgres-1`) into local PostgreSQL cluster at `127.0.0.1:55432`.
+  - Applied all 7 pending HR evolution migrations (migrations 6 to 12) seamlessly with `pnpm db:migrate`.
+  - Verified 17 imported users (11 active shop employees, 4 active admins: `nycolazs`, `pedro`, `ana`, `elisangela`) and 926 real time punches. Ensured local admin account `admin` is initialized with `INITIAL_ADMIN_PASSWORD` from `.env`.
+- **CORS & Dev Loopback Connectivity Fix (2026-09-25)**:
+  - Identified root cause of `"Não foi possível acessar o servidor. Tente novamente em alguns instantes."`: the NestJS API's CORS middleware rejected requests from `http://127.0.0.1:5173` with 403 Forbidden (`CORS_ORIGIN_FORBIDDEN`) because `allowedOrigins` only contained `http://localhost:5173`. In browsers, CORS preflight rejection throws `TypeError: Failed to fetch`, which was translated by `auth-error.ts` into the network error message.
+  - Enhanced `webAllowedOrigins` in `apps/api/src/config/allowed-origins.ts` to automatically expand all loopback variants (`localhost`, `127.0.0.1`, `[::1]`) in non-production environments.
+  - Added unit test suite `apps/api/src/config/allowed-origins.spec.ts` (100% pass rate).
+  - Updated Electron desktop security CSP in `apps/desktop/src/main/security.ts` to expand loopback variants for both `apiOrigin` and `developmentOrigin` in development mode.
+  - Updated renderer API base URL resolution in `apps/desktop/src/renderer/api/client.ts` and `apps/desktop/src/renderer/auth/web-auth.ts` to prioritize current `window.location.hostname` (`127.0.0.1` vs `localhost`).
+  - Set `API_HOST=0.0.0.0` in `.env` so local server binds to all IPv4 interfaces.
+  - Quality verification: all 185 API tests passed, all 94 Desktop tests passed, ESLint clean (0 errors, 0 warnings), TypeScript clean, production builds passing.
 - **Next Steps**:
-  - Present final operational handoff to the user.
+  - Present local test environment status to the user.
   - Retain local isolation on branch `feat/hr-evolution`. No remote pushes or deployments.
+
 
 ## Local Interactive Test Environment — 2026-09-19
 
