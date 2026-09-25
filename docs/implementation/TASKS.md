@@ -40,8 +40,8 @@ Statuses: pending, active, review, done, blocked. A planned task is never eviden
 | HR8-002 | done    | frontend          | archive filters                       | HR-7       | Search/page/state coverage                                         |
 | HR8-003 | done    | UX                | cross-feature UI                      | HR-7       | Keyboard/mobile/theme visual review                                |
 | HR8-004 | done    | QA                | local seed                            | HR-7       | Idempotent synthetic full workflow dataset                         |
-| HR9-001 | active  | QA                | regression/E2E                        | HR-8       | Real local API/database flows                                      |
-| HR9-002 | pending | QA                | recovery/migrations                   | HR-8       | Upgrade/restore/job restart                                        |
-| HR9-003 | pending | reviewer          | security/architecture                 | HR-8       | Independent findings resolved                                      |
-| HR9-004 | pending | UX                | PDFs/screens                          | HR-8       | Rendered page/layout evidence                                      |
-| HR9-005 | pending | orchestrator      | builds/handoff                        | HR-8       | Complete evidence and platform limitations                         |
+| HR9-001 | done    | QA                | regression/E2E                        | HR-8       | Real local API/database flows                                      |
+| HR9-002 | done    | QA                | recovery/migrations                   | HR-8       | Upgrade/restore/job restart                                        |
+| HR9-003 | done    | reviewer          | security/architecture                 | HR-8       | Independent findings resolved                                      |
+| HR9-004 | done    | UX                | PDFs/screens                          | HR-8       | Rendered page/layout evidence                                      |
+| HR9-005 | done    | orchestrator      | builds/handoff                        | HR-8       | Complete evidence and platform limitations                         |

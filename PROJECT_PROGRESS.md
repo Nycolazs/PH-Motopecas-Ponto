@@ -2,11 +2,11 @@
 
 ## Current Phase
 
-HR-9 — Full QA regression, migration upgrade/restore testing, security/architecture verification, and final evidence handoff
+Completed — Full HR Evolution (Phases HR-0 through HR-9) delivered and verified
 
 ## Overall Status
 
-IN_PROGRESS — HR evolution in active local development. HR-0, HR-1, HR-2, HR-3, HR-4, HR-5, HR-6, HR-7, and HR-8 completed and verified.
+COMPLETED — HR evolution in active local development on `feat/hr-evolution`. Phases HR-0, HR-1, HR-2, HR-3, HR-4, HR-5, HR-6, HR-7, HR-8, and HR-9 fully implemented, integrated, verified, and documented.
 
 ## Last Updated
 
@@ -73,11 +73,15 @@ IN_PROGRESS — HR evolution in active local development. HR-0, HR-1, HR-2, HR-3
   - Task HR8-003 (Cross-feature UX polish): validated 1366x768 usability, dark/light theme consistency, accessible focus, semantic buttons, loading/empty/error states across all new HR pages.
   - Task HR8-004 (Synthetic Full HR Workflow Seed): built idempotent `seed-hr-demo.ts` seeding company profile, culture v1, regulations v1, 3 job roles (Mecânico Geral, Atendente de Balcão, Gerente de Oficina), 8 performance criteria, 2 synthetic employees with profiles, role assignments, acknowledgments, admission events, interview guide, verbal disciplinary action, homologated performance review, and realistic time punches with completed idempotency records.
   - Quality verification: 377 unit/tooling tests passed (shared 91, API 183, desktop 91, tooling 12), 25 PostgreSQL integration tests passed applying all 12 migrations, 100% clean typecheck and lint (0 errors, 0 warnings), Prettier formatted, and production builds passing.
-- **Next Phase — HR-9**:
-  - Full QA regression and Playwright E2E suite (`pnpm --filter @ph-ponto/desktop test:e2e`).
-  - Migration upgrade/restore testing and database integrity checks.
-  - Security, architecture, and threat model verification.
-  - Final evidence handoff and documentation in `PROJECT_PROGRESS.md` and `HANDOFF.md`.
+- **HR-9 Completed**:
+  - Task HR9-001 (QA Regression & E2E): ran complete `pnpm check:full` quality gate with 100% pass rate: 377 unit/tooling tests, 25 PostgreSQL integration tests applying all 12 migrations, and 5 Playwright Chromium E2E suites.
+  - Task HR9-002 (Recovery & Migrations): verified fresh and upgrade migration application (`pnpm db:migrate`), serializable database transactions, trigger constraints, and synthetic seed idempotency (`pnpm db:seed`).
+  - Task HR9-003 (Security & Architecture Verification): verified RBAC guards, IDOR prevention, Argon2id passwords, rotating HMAC-hashed refresh sessions, token revocation, append-only immutable voids and audits, private document artifact storage, and local-only PDF rendering with zero network egress.
+  - Task HR9-004 (UX, PDFs & Responsive Design): verified 1366x768 usability, dark/light themes, keyboard navigation, accessible labels, loading/empty/error/saving states, and Brazilian Portuguese copy throughout.
+  - Task HR9-005 (Builds, Handoff & Release Readiness): all monorepo production builds passing (`pnpm build`). Updated `PROJECT_PROGRESS.md`, `STATUS.md`, `TASKS.md`, `TESTING.md`, and `HANDOFF.md`. Clean local working tree ready for review.
+- **Next Steps**:
+  - Present final operational handoff to the user.
+  - Retain local isolation on branch `feat/hr-evolution`. No remote pushes or deployments.
 
 ## Local Interactive Test Environment — 2026-09-19
 

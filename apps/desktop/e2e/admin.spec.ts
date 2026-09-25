@@ -59,6 +59,7 @@ const employeesData = {
       login: 'marina.souza',
       role: 'EMPLOYEE',
       isActive: true,
+      accessEnabled: true,
       hasAvatar: false,
       createdAt: '2026-08-01T10:00:00.000Z',
       updatedAt: '2026-08-01T10:00:00.000Z',
@@ -104,6 +105,92 @@ test('admin logs in, views operational dashboard and navigates admin modules', a
       return;
     }
 
+    if (url.pathname === '/company/setup-status') {
+      await route.fulfill({
+        contentType: 'application/json',
+        body: JSON.stringify({
+          completionPercentage: 100,
+          milestones: [
+            {
+              key: 'company',
+              title: 'Dados da Empresa',
+              description: 'Empresa cadastrada',
+              completed: true,
+              href: '/admin/empresa',
+            },
+            {
+              key: 'culture',
+              title: 'Manual de Cultura',
+              description: 'Cultura publicada',
+              completed: true,
+              href: '/admin/documentos/cultura',
+            },
+            {
+              key: 'regulations',
+              title: 'Regimento Interno',
+              description: 'Regimento publicado',
+              completed: true,
+              href: '/admin/documentos/regimento',
+            },
+            {
+              key: 'job_roles',
+              title: 'Cargos e Funções',
+              description: 'Cargos cadastrados',
+              completed: true,
+              href: '/admin/cargos',
+            },
+            {
+              key: 'employees',
+              title: 'Cadastro de Colaboradores',
+              description: 'Colaboradores cadastrados',
+              completed: true,
+              href: '/admin/funcionarios',
+            },
+            {
+              key: 'assignment',
+              title: 'Cargos e Termos de Ciência',
+              description: 'Termos e cargos atribuídos',
+              completed: true,
+              href: '/admin/documentos/ciencia',
+            },
+          ],
+        }),
+      });
+      return;
+    }
+
+    if (url.pathname === '/company') {
+      await route.fulfill({
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: 'c0000000-0000-4000-8000-000000000001',
+          tradeName: 'PH Motopeças',
+          corporateName: 'PH Motopeças Ltda',
+          cnpj: '12.345.678/0001-90',
+          address: 'Rua Exemplo, 123',
+          city: 'São Paulo',
+          state: 'SP',
+          zipCode: '01000-000',
+          phone: '(11) 99999-9999',
+          email: 'contato@phmotos.com.br',
+        }),
+      });
+      return;
+    }
+
+    if (url.pathname === '/attendance/incompletes') {
+      await route.fulfill({
+        contentType: 'application/json',
+        body: JSON.stringify({ totalIncompleteDays: 0, items: [] }),
+      });
+      return;
+    }
+
+    if (url.pathname.includes('/avatar')) {
+      await route.fulfill({ status: 404, body: '' });
+      return;
+    }
+
     if (url.pathname === '/adjustment-requests/pending-count') {
       await route.fulfill({
         contentType: 'application/json',
@@ -136,16 +223,20 @@ test('admin logs in, views operational dashboard and navigates admin modules', a
   await page.getByLabel('Senha', { exact: true }).fill('AdminSeguro123!');
   await page.getByRole('button', { name: 'Entrar' }).click();
 
-  // Wait for admin header
-  await expect(page.getByRole('heading', { name: 'Painel Operacional' })).toBeVisible();
+  // Wait for admin header on setup dashboard
   await expect(page.getByText('Carlos Administrador')).toBeVisible();
+  await expect(page.getByRole('heading', { name: /Bem-vindo ao painel/i })).toBeVisible();
+
+  // Navigate to Operational Dashboard
+  await page.getByRole('link', { name: 'Painel Operacional' }).click();
+  await expect(page.getByRole('heading', { name: 'Painel Operacional' })).toBeVisible();
 
   // Check metric card and table
   await expect(page.getByText('Colaboradores ativos')).toBeVisible();
   await expect(page.getByRole('table').getByText('Marina Souza')).toBeVisible();
 
   // Navigate to Employees Page
-  await page.getByRole('link', { name: 'Funcionários' }).click();
+  await page.getByRole('link', { name: 'Colaboradores' }).click();
   await expect(page.getByRole('heading', { name: 'Gestão de Funcionários' })).toBeVisible();
   await expect(page.getByRole('table')).toContainText('Marina Souza');
   await expect(page.getByRole('table')).toContainText('marina.souza');

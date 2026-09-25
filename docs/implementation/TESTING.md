@@ -18,6 +18,25 @@ macOS arm64, Node 24.18.1, pnpm 11.21.0. Commands initially failed because pnpm 
 | pnpm test:e2e                                              | PASS: 5 Chromium suites passing                                    |
 | pnpm check:full                                            | PASS: complete quality gate passed                                 |
 
+## Final HR Evolution Verification — 2026-09-25, branch feat/hr-evolution
+
+macOS arm64, Node 24.18.1, pnpm 11.21.0, PostgreSQL 16.13 (Homebrew on 127.0.0.1:55432).
+
+| Command                                                      | Result                                                                               |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------------------ |
+| `pnpm --filter @ph-ponto/shared exec vitest run`             | PASS: 10 files, 91 tests (attendance, culture, regulations, discipline, performance)|
+| `pnpm --filter @ph-ponto/api exec vitest run`                | PASS: 34 files, 183 tests (all HR & attendance controllers, services, guards, DTOs)  |
+| `pnpm --filter @ph-ponto/desktop exec vitest run`            | PASS: 20 files, 91 tests (renderer pages, modals, components, hooks, auth client)    |
+| `node --test apps/api/scripts/*.test.mjs scripts/*.test.mjs` | PASS: 12 tooling tests (loopback isolation, test targets, web distribution copy)     |
+| `pnpm lint`                                                  | PASS: 0 errors, 0 warnings across all workspaces                                     |
+| `pnpm format:check`                                          | PASS: 100% compliant across monorepo                                                 |
+| `pnpm typecheck`                                             | PASS: strict across shared, API, desktop electron & renderer                        |
+| `pnpm build`                                                 | PASS: shared build, NestJS build, Electron build, Vite renderer build, web dist copy |
+| `pnpm test:integration`                                      | PASS: 6 files, 25 tests against local PostgreSQL applying all 12 migrations          |
+| `pnpm test:e2e`                                              | PASS: 5 Chromium E2E suites passing (employee punch, slow logout, retry, admin flows)|
+| `pnpm db:migrate` & `pnpm db:seed`                           | PASS: 12 migrations applied cleanly; idempotent synthetic HR seed dataset populated  |
+| `pnpm check:full`                                            | PASS: 100% complete quality gate passed                                              |
+
 ## Required coverage
 
 - Unit: document builders, setup progress, actual disciplinary stages, score mean/bounds, dates, schemas, draft transitions.

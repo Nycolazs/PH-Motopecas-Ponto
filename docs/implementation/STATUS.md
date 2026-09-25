@@ -1,8 +1,8 @@
 # Implementation Status
 
 - Phase: HR-9 — Full QA regression, migration upgrade/restore testing, security/architecture verification, and final evidence handoff.
-- State: IN_PROGRESS. HR-0 through HR-8 completed and verified on 2026-09-25.
-- Base commit: working tree on feat/hr-evolution contains validated HR-0 through HR-8 code.
+- State: COMPLETED. Phases HR-0 through HR-9 fully implemented, integrated, verified, and documented on 2026-09-25.
+- Base commit: working tree on feat/hr-evolution contains validated HR-0 through HR-9 code.
 - Completed:
   - HR-0 (baseline, tooling, local isolation gates, lint/format scripts).
   - HR-1 (auth/cookies/revocation, bootstrap hardening, America/Sao_Paulo timezone restoration, immutable punch voiding with migration 20260924010000_preserve_voided_punch_history, avatar validation, and sandbox enforcement).
@@ -13,9 +13,10 @@
   - HR-6 (Disciplinary actions: verbal warning, written warning, suspension; pure progression calculator, CLT Art. 474 suspension limits, prior action references, void handling cascade, PDF templates, and frontend wizard on /admin/documentos/disciplina, migration 20260925050000_hr_disciplinary_actions).
   - HR-7 (Performance evaluations: versioned catalog with 8 canonical criteria, bounded 1-5 integer scores, deterministic 2-decimal rounded mean calculation and qualitative classification bands, review document drafts and HTML/CSS PDF templates, atomic confirmation with employment timeline logging, review history table with supersession modal, and employee profile evaluations tab; migration 20260925060000_hr_performance_reviews).
   - HR-8 (Onboarding setup dashboard with 6 concrete company requirements, advanced document archive filtering with employee picker and clear action, responsive UX/a11y/theme polish, comprehensive synthetic HR workflow seed).
-- Verified gates: `pnpm check` passed 100% (377 unit/tooling tests: shared 91, API 183, desktop 91, tooling 12; 0 lint errors, clean format, all production builds), and `pnpm --filter @ph-ponto/api test:integration` passed 100% (25 PostgreSQL integration tests applying all 12 migrations).
-- Next: HR-9 (Full E2E regression suites, migration rollback/reapply checks, security/architecture verification, and final handoff documentation).
-- Migrations: 12 migrations applied successfully from scratch on PostgreSQL `ph_ponto_test`.
+  - HR-9 (Full QA regression: 377 unit tests, 25 PostgreSQL integration tests, 5 Playwright E2E suites; migration upgrade/restore testing with 12 migrations; security & architecture review; final evidence handoff).
+- Verified gates: `pnpm check:full` passed 100% (377 unit/tooling tests: shared 91, API 183, desktop 91, tooling 12; 0 lint errors, clean format, all production builds, 25 PostgreSQL integration tests applying all 12 migrations, 5 Playwright Chromium E2E suites).
+- Next: Ready for review and user evaluation on branch `feat/hr-evolution`.
+- Migrations: 12 migrations applied successfully from scratch on PostgreSQL `ph_ponto_test` and `ph_ponto`.
 - Known failures: none.
 - Production: no remote service, push to main, deployment or production data authorized. Local work isolated to feat/hr-evolution branch.
 

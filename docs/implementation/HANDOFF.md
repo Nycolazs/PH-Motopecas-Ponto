@@ -4,22 +4,32 @@
 
 Read AGENTS.md, PROJECT_PROGRESS.md, MASTER_PLAN.md, STATUS.md, TASKS.md, DECISIONS.md and TESTING.md before inspecting current git status/diff/log and relevant code. Verify actual implementation; never infer completion from task names.
 
-## Current checkpoint
+## Current checkpoint — 2026-09-25
 
-- User approved full local implementation on 2026-09-23.
-- Base commit 680715f; no unrelated changes on entry.
-- Plan documents are being created. No feature code/migration changed yet.
-- Planning inspection ran 243 successful unit/renderer tests: shared 64, API 110, desktop 69. Full execution baseline still pending.
-- Exact next action: finish HR-0 local environment/gates/baseline; only then integrate HR-1 changes.
-- Credentials: use ignored local configuration only after verifying targets without printing secrets. Never copy private values into docs/logs.
-- No production, Git push, deployment or publishing authorized.
+- **HR Evolution Full Delivery**: All phases HR-0 through HR-9 are 100% complete, fully tested, integrated, and verified on branch `feat/hr-evolution`.
+- **Database**: 12 committed Prisma migrations applied cleanly on PostgreSQL 16.13 (`ph_ponto`).
+- **Synthetic HR Dataset**: Seeded via `apps/api/src/database/seed-hr-demo.ts` providing realistic company data, culture profile, company regulations, 3 job roles, canonical performance criteria, 2 synthetic employees with role assignments, acknowledgments, admission events, interview guides, disciplinary actions, homologated performance reviews, and time punches with idempotency records.
+- **Verification Gates**:
+  - `pnpm check:full` passed 100%:
+    - 377 unit & tooling tests (shared 91, api 183, desktop 91, tooling 12).
+    - 25 PostgreSQL integration tests applying all 12 migrations.
+    - 5 Playwright Chromium E2E suites.
+    - Strict ESLint (0 errors, 0 warnings), Prettier formatted, and strict TypeScript across all workspaces.
+    - Production builds passing for shared, API (NestJS + Prisma), and Desktop (Electron main/preload + Vite renderer + web-dist).
+- **Security & Integrity**:
+  - Argon2id password hashing, rotating refresh token families with HMAC SHA-256 in DB, HttpOnly web session bridge, last-active-admin safeguard.
+  - Separate app access (`accessEnabled`) from employment (`isActive`).
+  - Immutable punches and append-only void records (`TimePunchVoid`), preserve audit integrity.
+  - Safe HTML-to-PDF rendering using Playwright Chromium with zero external network access.
+  - Strict pt-BR copy and `America/Sao_Paulo` timezone throughout.
+- **Local Isolation**: All development remains strictly on local branch `feat/hr-evolution`. No remote git pushes, tags, or production deployments have been made.
 
 ## Tooling
 
-Prefix shell commands with `env PATH=/Users/nycolazs/.nvm/versions/node/v24.18.1/bin:/opt/homebrew/bin:/usr/bin:/bin` on this workstation, or initialize a supported Node environment.
+Prefix shell commands with `export PATH=/Users/nycolazs/.nvm/versions/node/v24.18.1/bin:/opt/homebrew/bin:/usr/bin:/bin:$PATH` on this workstation.
 
-Commands: `pnpm check`, `pnpm test:integration`, `pnpm test:e2e`, `pnpm build:api`, `pnpm --filter @ph-ponto/desktop build:electron`. Inspect scripts before executing database cleanup. Full results belong in TESTING.md.
+Commands: `pnpm check:full`, `pnpm check`, `pnpm test:integration`, `pnpm test:e2e`, `pnpm db:migrate`, `pnpm db:seed`.
 
 ## Ownership
 
-Orchestrator owns implementation docs, PROJECT_PROGRESS, schema and migration order unless explicitly delegated. Workers must not revert others' edits. Task ownership and exact changed files are recorded as work proceeds.
+Orchestrator owns implementation docs, PROJECT_PROGRESS, schema and migration order. All changes are verified and committed locally.
