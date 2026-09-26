@@ -29,6 +29,12 @@ COMPLETED — HR evolution in active local development on `feat/hr-evolution`. P
     - Added `@IsInt() limit` and `offset` pagination to `ListDisciplinaryActionsQueryDto` in `apps/api/src/discipline/discipline.dto.ts` and wired pagination parameters in `DisciplineService` and desktop `ApiClient.listDisciplinaryActions`.
     - Added `isVoid` filter support in `ListDocumentsQueryDto` and `DocumentsService`.
     - Standardized `@IsUUID('all')` across all API DTOs and `ParseUUIDPipe()`.
+- **Company Cadastral Form Empty String Resilience (2026-09-26)**:
+  - Root Cause: In `UpdateCompanyRequestDto`, `addressState` had `@IsOptional()` with `@Length(2, 2)`. When an empty string `""` was submitted from the frontend form (or initial unset database values), `class-validator` failed to skip the check because `""` is a string with length 0, triggering `"Revise os campos informados. (addressState: UF deve conter exatamente 2 letras.)"`.
+  - Fix: Added `@ValidateIf((o) => typeof o.addressState === 'string' && o.addressState.trim().length > 0)` in `apps/api/src/company/company.dto.ts`. Additionally sanitized empty strings to `null` in `onSubmit` in `apps/desktop/src/renderer/pages/admin/company-page.tsx`.
+  - Verified live via automated Playwright test: form saves successfully with 200 OK and green confirmation toast.
+- **Regulations Wizard Interactive 6-Step Verification (2026-09-26)**:
+  - Validated progression through all 6 wizard steps (1. Empresa, 2. Jornada, 3. Conduta, 4. Tecnologia, 5. Disciplina, 6. Revisão e Publicação) and draft saving with the fluid slide-in toast notification. 0 console errors.
 - **Regulations Wizard Database Resilience & Payload Mapper (2026-09-26)**:
   - Built `extractRegulationFormValues` in `apps/desktop/src/renderer/pages/admin/regulations-wizard-page.tsx` guaranteeing 100% resilient parsing of existing database payloads (both legacy version format `{ principles, conductRules, scheduleRules, technologyRules, disciplinaryRules }` and canonical `RegulationPayloadDto`), with safe fallbacks to `CompanyDto` and `DEFAULT_FORM`.
   - Resolved TypeScript strict types for `CompanyRegulationVersionDto['content']`.

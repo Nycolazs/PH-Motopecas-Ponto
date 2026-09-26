@@ -70,7 +70,13 @@ export function CompanyPage(): React.JSX.Element {
 
   const onSubmit = (data: UpdateCompanyDto): void => {
     setSuccessMessage(null);
-    updateMutation.mutate(data);
+    const cleaned = Object.fromEntries(
+      Object.entries(data).map(([k, v]) => [
+        k,
+        typeof v === 'string' && v.trim() === '' ? null : v,
+      ]),
+    ) as UpdateCompanyDto;
+    updateMutation.mutate(cleaned);
   };
 
   if (isLoading) {

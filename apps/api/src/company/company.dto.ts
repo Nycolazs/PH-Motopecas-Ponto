@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsString, Length, MaxLength, MinLength } from 'class-validator';
+import { IsOptional, IsString, Length, MaxLength, MinLength, ValidateIf } from 'class-validator';
 
 export class UpdateCompanyRequestDto {
   @ApiProperty({ description: 'Razão Social', example: 'PH MOTOPECAS LTDA' })
@@ -69,6 +69,7 @@ export class UpdateCompanyRequestDto {
 
   @ApiPropertyOptional({ description: 'UF (Estado com 2 letras)', example: 'CE' })
   @IsOptional()
+  @ValidateIf((o) => typeof o.addressState === 'string' && o.addressState.trim().length > 0)
   @IsString()
   @Length(2, 2, { message: 'UF deve conter exatamente 2 letras.' })
   public addressState?: string | null;
