@@ -15,6 +15,7 @@ export interface ToastItem {
   type: ToastType;
   title?: string | undefined;
   message: string;
+  isExiting?: boolean | undefined;
 }
 
 interface ToastContextValue {
@@ -57,22 +58,36 @@ const STYLES = {
 export function ToastProvider({ children }: { children: ReactNode }): React.JSX.Element {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
 
-  const removeToast = useCallback((id: string) => {
-    setToasts((current) => current.filter((item) => item.id !== id));
+  const dismissToast = useCallback((id: string) => {
+    setToasts((current) =>
+      current.map((item) => (item.id === id ? { ...item, isExiting: true } : item)),
+    );
+    setTimeout(() => {
+      setToasts((current) => current.filter((item) => item.id !== id));
+    }, 300);
   }, []);
+
+  const removeToast = useCallback(
+    (id: string) => {
+      dismissToast(id);
+    },
+    [dismissToast],
+  );
 
   const showToast = useCallback(
     (type: ToastType, message: string, title?: string) => {
       const id = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
       setToasts((current) => [
         ...current,
-        title !== undefined ? { id, type, message, title } : { id, type, message },
+        title !== undefined
+          ? { id, type, message, title, isExiting: false }
+          : { id, type, message, isExiting: false },
       ]);
       setTimeout(() => {
-        removeToast(id);
+        dismissToast(id);
       }, 4500);
     },
-    [removeToast],
+    [dismissToast],
   );
 
   const success = useCallback(
@@ -111,7 +126,9 @@ export function ToastProvider({ children }: { children: ReactNode }): React.JSX.
             <div
               key={toast.id}
               role="status"
-              className={`pointer-events-auto flex items-start gap-3 p-4 rounded-xl border shadow-lg backdrop-blur-sm transition-all duration-300 animate-in fade-in slide-in-from-bottom-3 ${style.bg}`}
+              className={`pointer-events-auto flex items-start gap-3 p-4 rounded-xl border shadow-lg backdrop-blur-sm transition-all duration-300 ${
+                toast.isExiting ? 'toast-slide-exit' : 'toast-slide-enter'
+              } ${style.bg}`}
             >
               <Icon className={`w-5 h-5 mt-0.5 shrink-0 ${style.iconColor}`} />
               <div className="flex-1 text-sm">
@@ -122,7 +139,7 @@ export function ToastProvider({ children }: { children: ReactNode }): React.JSX.
               </div>
               <button
                 type="button"
-                onClick={() => removeToast(toast.id)}
+                onClick={() => dismissToast(toast.id)}
                 className="shrink-0 p-1 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
                 aria-label="Fechar notificação"
               >

@@ -33,6 +33,7 @@ export class DocumentsService {
     const where: Prisma.GeneratedDocumentWhereInput = {
       ...(query.documentType ? { documentType: query.documentType } : {}),
       ...(query.employeeId ? { employeeId: query.employeeId } : {}),
+      ...(query.isVoid !== undefined ? { isVoid: query.isVoid } : {}),
       ...(query.search
         ? {
             OR: [

@@ -48,14 +48,14 @@ import { JobRolesService } from '../job-roles/job-roles.service.js';
 import {
   CreateEmploymentEventRequestDto,
   EmploymentEventResponseDto,
-  type ListEmploymentEventsQueryDto,
+  ListEmploymentEventsQueryDto,
   PaginatedEmploymentEventsResponseDto,
   ReactivateEmployeeRequestDto,
   TerminateEmployeeRequestDto,
 } from '../employment-events/employment-events.dto.js';
 import { EmploymentEventsService } from '../employment-events/employment-events.service.js';
 import {
-  type ListTimelineQueryDto,
+  ListTimelineQueryDto,
   PaginatedTimelineResponseDto,
 } from '../employee-timeline/employee-timeline.dto.js';
 import { EmployeeTimelineService } from '../employee-timeline/employee-timeline.service.js';

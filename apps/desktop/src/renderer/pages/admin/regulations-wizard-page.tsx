@@ -23,6 +23,8 @@ import {
 import { Link, useNavigate } from 'react-router-dom';
 
 import type {
+  CompanyDto,
+  CompanyRegulationVersionDto,
   DocumentDraftDto,
   RegulationClauseDto,
   RegulationPayloadDto,
@@ -124,6 +126,121 @@ const DEFAULT_FORM: RegulationFormData = {
   additionalClauses: [],
 };
 
+function extractRegulationFormValues(
+  version: CompanyRegulationVersionDto,
+  companyData?: CompanyDto | null,
+  fallback: RegulationFormData = DEFAULT_FORM,
+): RegulationFormData {
+  const c = (version.content ?? {}) as Record<string, unknown>;
+  const companyInfo = c['companyInfo'] as Record<string, unknown> | undefined;
+  const workSchedule = c['workSchedule'] as Record<string, unknown> | undefined;
+  const conductEthics = c['conductEthics'] as Record<string, unknown> | undefined;
+  const technologyPolicy = c['technologyPolicy'] as Record<string, unknown> | undefined;
+  const disciplineRules = c['disciplineRules'] as Record<string, unknown> | undefined;
+  const rawClauses = c['additionalClauses'];
+  const additionalClauses: RegulationClauseDto[] = Array.isArray(rawClauses)
+    ? (rawClauses as RegulationClauseDto[])
+    : fallback.additionalClauses;
+
+  return {
+    ...fallback,
+    title: version.title || fallback.title,
+    effectiveDate: version.effectiveDate
+      ? version.effectiveDate.slice(0, 10)
+      : fallback.effectiveDate,
+    tradeName:
+      (typeof companyInfo?.['tradeName'] === 'string' && companyInfo['tradeName']) ||
+      companyData?.tradeName ||
+      fallback.tradeName,
+    legalName:
+      (typeof companyInfo?.['legalName'] === 'string' && companyInfo['legalName']) ||
+      companyData?.legalName ||
+      fallback.legalName,
+    cnpj:
+      (typeof companyInfo?.['cnpj'] === 'string' && companyInfo['cnpj']) ||
+      companyData?.cnpj ||
+      fallback.cnpj,
+    presentation:
+      (typeof companyInfo?.['presentation'] === 'string' && companyInfo['presentation']) ||
+      fallback.presentation,
+    principles: Array.isArray(companyInfo?.['principles'])
+      ? (companyInfo['principles'] as string[])
+      : typeof c['principles'] === 'string'
+        ? [c['principles']]
+        : fallback.principles,
+    weeklyHours:
+      (typeof workSchedule?.['weeklyHours'] === 'string' && workSchedule['weeklyHours']) ||
+      fallback.weeklyHours,
+    lunchDurationMinutes:
+      typeof workSchedule?.['lunchDurationMinutes'] === 'number'
+        ? workSchedule['lunchDurationMinutes']
+        : fallback.lunchDurationMinutes,
+    toleranceMinutes:
+      typeof workSchedule?.['toleranceMinutes'] === 'number'
+        ? workSchedule['toleranceMinutes']
+        : fallback.toleranceMinutes,
+    overtimePolicy:
+      (typeof workSchedule?.['overtimePolicy'] === 'string' && workSchedule['overtimePolicy']) ||
+      fallback.overtimePolicy,
+    punchRules:
+      (typeof workSchedule?.['punchRules'] === 'string' && workSchedule['punchRules']) ||
+      (typeof c['scheduleRules'] === 'string' ? c['scheduleRules'] : fallback.punchRules),
+    dressCode:
+      (typeof conductEthics?.['dressCode'] === 'string' && conductEthics['dressCode']) ||
+      (typeof c['conductRules'] === 'string' ? c['conductRules'] : fallback.dressCode),
+    customerServiceEthics:
+      (typeof conductEthics?.['customerServiceEthics'] === 'string' &&
+        conductEthics['customerServiceEthics']) ||
+      fallback.customerServiceEthics,
+    confidentiality:
+      (typeof conductEthics?.['confidentiality'] === 'string' &&
+        conductEthics['confidentiality']) ||
+      fallback.confidentiality,
+    prohibitions: Array.isArray(conductEthics?.['prohibitions'])
+      ? (conductEthics['prohibitions'] as string[])
+      : fallback.prohibitions,
+    internetUsage:
+      (typeof technologyPolicy?.['internetUsage'] === 'string' &&
+        technologyPolicy['internetUsage']) ||
+      (typeof c['technologyRules'] === 'string' ? c['technologyRules'] : fallback.internetUsage),
+    personalDevicePolicy:
+      (typeof technologyPolicy?.['personalDevicePolicy'] === 'string' &&
+        technologyPolicy['personalDevicePolicy']) ||
+      fallback.personalDevicePolicy,
+    companyEquipmentCare:
+      (typeof technologyPolicy?.['companyEquipmentCare'] === 'string' &&
+        technologyPolicy['companyEquipmentCare']) ||
+      fallback.companyEquipmentCare,
+    communicationTools:
+      (typeof technologyPolicy?.['communicationTools'] === 'string' &&
+        technologyPolicy['communicationTools']) ||
+      fallback.communicationTools,
+    warningVerbalRules:
+      (typeof disciplineRules?.['warningVerbalRules'] === 'string' &&
+        disciplineRules['warningVerbalRules']) ||
+      (typeof c['disciplinaryRules'] === 'string'
+        ? c['disciplinaryRules']
+        : fallback.warningVerbalRules),
+    warningWrittenRules:
+      (typeof disciplineRules?.['warningWrittenRules'] === 'string' &&
+        disciplineRules['warningWrittenRules']) ||
+      fallback.warningWrittenRules,
+    suspensionRules:
+      (typeof disciplineRules?.['suspensionRules'] === 'string' &&
+        disciplineRules['suspensionRules']) ||
+      fallback.suspensionRules,
+    terminationRules:
+      (typeof disciplineRules?.['terminationRules'] === 'string' &&
+        disciplineRules['terminationRules']) ||
+      fallback.terminationRules,
+    progressionNotes:
+      (typeof disciplineRules?.['progressionNotes'] === 'string' &&
+        disciplineRules['progressionNotes']) ||
+      fallback.progressionNotes,
+    additionalClauses,
+  };
+}
+
 const WIZARD_STEPS = [
   { id: 1, label: '1. Empresa', icon: Building2 },
   { id: 2, label: '2. Jornada', icon: Clock },
@@ -213,37 +330,9 @@ export function RegulationsWizardPage(): React.JSX.Element {
         additionalClauses: payload.additionalClauses ?? prev.additionalClauses,
       }));
     } else if (regulationData?.currentVersion && !activeDraft) {
-      const v = regulationData.currentVersion;
-      const c = v.content;
-      setForm((prev) => ({
-        ...prev,
-        title: v.title,
-        effectiveDate: v.effectiveDate,
-        tradeName: c.companyInfo.tradeName,
-        legalName: c.companyInfo.legalName,
-        cnpj: c.companyInfo.cnpj,
-        presentation: c.companyInfo.presentation,
-        principles: c.companyInfo.principles,
-        weeklyHours: c.workSchedule.weeklyHours,
-        lunchDurationMinutes: c.workSchedule.lunchDurationMinutes,
-        toleranceMinutes: c.workSchedule.toleranceMinutes,
-        overtimePolicy: c.workSchedule.overtimePolicy,
-        punchRules: c.workSchedule.punchRules,
-        dressCode: c.conductEthics.dressCode,
-        customerServiceEthics: c.conductEthics.customerServiceEthics,
-        confidentiality: c.conductEthics.confidentiality,
-        prohibitions: c.conductEthics.prohibitions,
-        internetUsage: c.technologyPolicy.internetUsage,
-        personalDevicePolicy: c.technologyPolicy.personalDevicePolicy,
-        companyEquipmentCare: c.technologyPolicy.companyEquipmentCare,
-        communicationTools: c.technologyPolicy.communicationTools,
-        warningVerbalRules: c.disciplineRules.warningVerbalRules,
-        warningWrittenRules: c.disciplineRules.warningWrittenRules,
-        suspensionRules: c.disciplineRules.suspensionRules,
-        terminationRules: c.disciplineRules.terminationRules,
-        progressionNotes: c.disciplineRules.progressionNotes ?? '',
-        additionalClauses: c.additionalClauses,
-      }));
+      setForm((prev) =>
+        extractRegulationFormValues(regulationData.currentVersion!, companyData, prev),
+      );
     } else if (companyData && !activeDraft && !form.tradeName) {
       setForm((prev) => ({
         ...prev,
@@ -339,37 +428,9 @@ export function RegulationsWizardPage(): React.JSX.Element {
       info('Rascunho descartado.');
       void refetchDraft();
       if (regulationData?.currentVersion) {
-        const v = regulationData.currentVersion;
-        const c = v.content;
-        setForm((prev) => ({
-          ...prev,
-          title: v.title,
-          effectiveDate: v.effectiveDate,
-          tradeName: c.companyInfo.tradeName,
-          legalName: c.companyInfo.legalName,
-          cnpj: c.companyInfo.cnpj,
-          presentation: c.companyInfo.presentation,
-          principles: c.companyInfo.principles,
-          weeklyHours: c.workSchedule.weeklyHours,
-          lunchDurationMinutes: c.workSchedule.lunchDurationMinutes,
-          toleranceMinutes: c.workSchedule.toleranceMinutes,
-          overtimePolicy: c.workSchedule.overtimePolicy,
-          punchRules: c.workSchedule.punchRules,
-          dressCode: c.conductEthics.dressCode,
-          customerServiceEthics: c.conductEthics.customerServiceEthics,
-          confidentiality: c.conductEthics.confidentiality,
-          prohibitions: c.conductEthics.prohibitions,
-          internetUsage: c.technologyPolicy.internetUsage,
-          personalDevicePolicy: c.technologyPolicy.personalDevicePolicy,
-          companyEquipmentCare: c.technologyPolicy.companyEquipmentCare,
-          communicationTools: c.technologyPolicy.communicationTools,
-          warningVerbalRules: c.disciplineRules.warningVerbalRules,
-          warningWrittenRules: c.disciplineRules.warningWrittenRules,
-          suspensionRules: c.disciplineRules.suspensionRules,
-          terminationRules: c.disciplineRules.terminationRules,
-          progressionNotes: c.disciplineRules.progressionNotes ?? '',
-          additionalClauses: c.additionalClauses,
-        }));
+        setForm((prev) =>
+          extractRegulationFormValues(regulationData.currentVersion!, companyData, prev),
+        );
       } else {
         setForm(DEFAULT_FORM);
       }

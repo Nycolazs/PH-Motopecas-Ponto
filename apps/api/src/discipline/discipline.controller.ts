@@ -25,7 +25,7 @@ import { UserRole } from '../generated/prisma/client.js';
 import {
   DisciplinaryActionResponseDto,
   DisciplinaryProgressionSummaryResponseDto,
-  type ListDisciplinaryActionsQueryDto,
+  ListDisciplinaryActionsQueryDto,
   VoidDisciplinaryActionDto,
 } from './discipline.dto.js';
 import { DisciplineService } from './discipline.service.js';

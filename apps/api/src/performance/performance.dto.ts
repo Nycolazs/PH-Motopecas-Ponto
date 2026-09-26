@@ -24,7 +24,7 @@ export class ListPerformanceReviewsQueryDto {
     format: 'uuid',
   })
   @IsOptional()
-  @IsUUID('4', { message: 'O ID do colaborador deve ser um UUID válido.' })
+  @IsUUID('all', { message: 'O ID do colaborador deve ser um UUID válido.' })
   public employeeId?: string;
 
   @ApiPropertyOptional({ description: 'Filtrar por período de avaliação' })

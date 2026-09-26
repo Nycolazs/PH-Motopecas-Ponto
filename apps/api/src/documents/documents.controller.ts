@@ -21,9 +21,9 @@ import { ClientContextService } from '../auth/client-context.service.js';
 import { UserRole } from '../generated/prisma/client.js';
 import {
   GeneratedDocumentResponseDto,
-  type ListDocumentsQueryDto,
-  type VoidDocumentDto,
-  type DocumentListResponseDto,
+  ListDocumentsQueryDto,
+  VoidDocumentDto,
+  DocumentListResponseDto,
 } from './documents.dto.js';
 import { DocumentsService } from './documents.service.js';
 
@@ -49,7 +49,7 @@ export class DocumentsController {
   @ApiOperation({ summary: 'Visualizar preview do PDF preparado' })
   @ApiProduces('application/pdf')
   public async previewArtifact(
-    @Param('artifactId', new ParseUUIDPipe({ version: '4' })) artifactId: string,
+    @Param('artifactId', new ParseUUIDPipe()) artifactId: string,
     @Res() res: Response,
   ): Promise<void> {
     const { stream, fileSize } = await this.documentsService.getPreviewStream(artifactId);
@@ -66,7 +66,7 @@ export class DocumentsController {
   @ApiOperation({ summary: 'Obter metadados de documento gerado pelo ID' })
   @ApiOkResponse({ type: GeneratedDocumentResponseDto })
   public async getDocumentById(
-    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
+    @Param('id', new ParseUUIDPipe()) id: string,
   ): Promise<GeneratedDocumentResponseDto> {
     return this.documentsService.getDocumentById(id);
   }
@@ -75,7 +75,7 @@ export class DocumentsController {
   @ApiOperation({ summary: 'Baixar arquivo PDF de documento oficial' })
   @ApiProduces('application/pdf')
   public async downloadDocument(
-    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
+    @Param('id', new ParseUUIDPipe()) id: string,
     @Res() res: Response,
   ): Promise<void> {
     const { stream, filename, fileSize } = await this.documentsService.getDownloadStream(id);
@@ -94,7 +94,7 @@ export class DocumentsController {
   @ApiOkResponse({ type: GeneratedDocumentResponseDto })
   public async voidDocument(
     @CurrentUser() user: AuthenticatedUser,
-    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
+    @Param('id', new ParseUUIDPipe()) id: string,
     @Body() input: VoidDocumentDto,
     @Req() request: Request,
   ): Promise<GeneratedDocumentResponseDto> {

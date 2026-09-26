@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
+  IsBoolean,
   IsEnum,
   IsInt,
   IsNotEmpty,
@@ -22,7 +23,7 @@ export class SaveDocumentDraftDto {
 
   @ApiPropertyOptional({ format: 'uuid' })
   @IsOptional()
-  @IsUUID('4')
+  @IsUUID()
   public employeeId?: string;
 
   @ApiProperty({ example: 'Cultura e Princípios da Empresa' })
@@ -57,7 +58,7 @@ export class ConfirmDocumentDraftDto {
   public expectedRevision!: number;
 
   @ApiProperty({ format: 'uuid' })
-  @IsUUID('4')
+  @IsUUID()
   public preparedArtifactId!: string;
 }
 
@@ -92,13 +93,19 @@ export class ListDocumentsQueryDto {
 
   @ApiPropertyOptional({ format: 'uuid' })
   @IsOptional()
-  @IsUUID('4')
+  @IsUUID()
   public employeeId?: string;
 
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
   public search?: string;
+
+  @ApiPropertyOptional({ description: 'Filtrar documentos anulados ou ativos' })
+  @IsOptional()
+  @IsBoolean()
+  @Type(() => Boolean)
+  public isVoid?: boolean;
 }
 
 export class DocumentDraftResponseDto {

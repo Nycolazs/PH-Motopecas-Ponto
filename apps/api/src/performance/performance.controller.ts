@@ -23,7 +23,7 @@ import type { AuthenticatedUser } from '../auth/auth.types.js';
 import { ClientContextService } from '../auth/client-context.service.js';
 import { UserRole } from '../generated/prisma/client.js';
 import {
-  type ListPerformanceReviewsQueryDto,
+  ListPerformanceReviewsQueryDto,
   PerformanceCriteriaResponseDto,
   PerformanceReviewResponseDto,
   SupersedePerformanceReviewDto,

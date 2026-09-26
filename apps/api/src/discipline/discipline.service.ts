@@ -97,6 +97,8 @@ export class DisciplineService {
         voidedBy: true,
       },
       orderBy: { incidentDate: 'desc' },
+      ...(query.limit !== undefined ? { take: query.limit } : {}),
+      ...(query.offset !== undefined ? { skip: query.offset } : {}),
     });
 
     return actions.map((act) => this.serializeAction(act));

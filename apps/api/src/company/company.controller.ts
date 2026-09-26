@@ -9,7 +9,7 @@ import { UserRole } from '../generated/prisma/client.js';
 import {
   CompanyResponseDto,
   SetupStatusResponseDto,
-  type UpdateCompanyRequestDto,
+  UpdateCompanyRequestDto,
 } from './company.dto.js';
 import { CompanyService } from './company.service.js';
 

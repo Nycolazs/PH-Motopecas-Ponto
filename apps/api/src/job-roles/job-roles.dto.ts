@@ -116,7 +116,7 @@ export class CreateJobRoleVersionDto {
 
 export class AssignEmployeeRoleDto {
   @ApiProperty({ description: 'ID do cargo a ser atribuído', format: 'uuid' })
-  @IsUUID('4', { message: 'ID do cargo inválido.' })
+  @IsUUID('all', { message: 'ID do cargo inválido.' })
   public jobRoleId!: string;
 
   @ApiPropertyOptional({
@@ -124,7 +124,7 @@ export class AssignEmployeeRoleDto {
     format: 'uuid',
   })
   @IsOptional()
-  @IsUUID('4', { message: 'ID da versão do cargo inválido.' })
+  @IsUUID('all', { message: 'ID da versão do cargo inválido.' })
   public jobRoleVersionId?: string;
 
   @ApiProperty({ description: 'Data de início (AAAA-MM-DD)', example: '2024-01-10' })

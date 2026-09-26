@@ -10,108 +10,63 @@ COMPLETED — HR evolution in active local development on `feat/hr-evolution`. P
 
 ## Last Updated
 
-2026-09-25 America/Sao_Paulo
+2026-09-26 America/Sao_Paulo
 
 ## Active HR Implementation
 
 - User approved the phase-based implementation plan. Refer to `docs/implementation/MASTER_PLAN.md`, `STATUS.md`, `TASKS.md`, `DECISIONS.md`, `HANDOFF.md`, and `TESTING.md`.
 - Single-company ADMIN-only HR; PDF/paper signatures; separate app access and employment; documentary suspensions; explicit manual termination. No production access, deployment, pushes or tags.
 - Authoritative source remains `apps/api`, `apps/desktop`, and `packages/shared`; submodules are not independent implementation targets.
-- **HR-0 Completed**: Durable planning documentation created; local script/database isolation enforced with loopback checks (`local-targets.mjs`); renderer added to ESLint and formatting; 12 tooling tests added and passed; build artifact pollution prevented.
-- **HR-1 Completed**:
-  - Secure web session bridge implemented via `WebAuthController` with HttpOnly cookies, origin validation, CSRF checks, and refresh session revocation on logout.
-  - Bootstrap admin credentials hardened (requires explicit credentials `>=12` characters, no known defaults permitted in configuration).
-  - Admin password reset now safely revokes all active refresh sessions for the targeted user.
-  - Business timezone standardized back to `America/Sao_Paulo` end-to-end across shared models, backend services, frontend components, and tests.
-  - Time punch deletion replaced with append-only immutable voiding (`TimePunchVoid` model and migration `20260924010000_preserve_voided_punch_history`). Effective attendance chronology derives kinds without deleting original historical punch rows.
-  - Linux autostart sandbox bypass removed; avatar uploads validated and re-encoded.
-  - Quality verification: `pnpm check:full` passed 100% (262 unit/tooling tests, 25 PostgreSQL integration tests, 5 Playwright E2E suites, strict lint, format, typecheck, and builds).
-- **HR-2 Completed**:
-  - Company Singleton: backend `Company` model and singleton endpoints (`GET /company`, `PUT /company`, `GET /company/setup-status`) with DTO validation and audit logging.
-  - Identity & Access Separation: decoupled application access (`accessEnabled`) from employment (`isActive`) while preserving existing users, IDs, and attendance streams. Added `EmployeeProfile` model for HR metadata (CPF, RG, birthDate, hireDate, phone, email, notes). Added `PATCH /employees/:id/access`, `GET /employees/:id/profile`, and `PUT /employees/:id/profile`.
-  - Job Roles & Versioning: backend `JobRole`, `JobRoleVersion`, and `EmployeeRoleAssignment` models with migration `20260925010000_hr_company_roles_access`. Full endpoints for role listing, creation, version publication, and assignment with non-overlapping principal role validation.
-  - Responsive Navigation Shell & Admin Pages: redesigned admin sidebar into grouped sections (_Início & Empresa_, _Gestão de Frequência_, _Sistema & Segurança_). Built `SetupDashboardPage` (`/admin`) with 6 onboarding milestones, `CompanyPage` (`/admin/empresa`) for company metadata, and `JobRolesPage` (`/admin/cargos`) for role catalog and version history. Preserved existing operational dashboard on `/admin/gestao`.
-  - Quality verification: 275 unit/tooling tests passed (API 127, desktop 72, shared 64, node tooling 12), 25 PostgreSQL integration tests passed applying all 7 migrations, 100% clean typecheck and lint (0 errors, 0 warnings), Prettier formatted, and production builds passing.
-- **HR-3 Completed**:
-  - Document Drafts & Concurrency: backend `DocumentDraft` model with optimistic revisioning, autosave support, server-side validation on preparation/confirmation, and conflict detection. Endpoints: `GET /documents/drafts`, `GET /documents/drafts/:id`, `POST /documents/drafts`, `DELETE /documents/drafts/:id`, `POST /documents/drafts/:id/prepare`, `POST /documents/drafts/:id/confirm`.
-  - Storage & Background Render Jobs: `DocumentArtifact`, `RenderJob` models with leases, retry limits, and status tracking (`PENDING`, `PROCESSING`, `COMPLETED`, `FAILED`). Private artifact storage with SHA-256 deduplication and safe Playwright Chromium HTML-to-PDF rendering without remote network access.
-  - Document Archive & Voiding: `GeneratedDocument` immutable records with explicit voiding (`POST /documents/:id/void` with mandatory justification), PDF download (`GET /documents/:id/download`), PDF preview (`GET /documents/artifacts/:id/preview`), and paginated search/filter list (`GET /documents`).
-  - Culture Profile: `CultureProfile` and `CultureProfileVersion` singleton models for company mission, vision, values, and motto with version increments upon draft confirmation. Endpoints: `GET /culture`, `GET /culture/versions`.
-  - Frontend Pages: `CultureDocumentPage` (`/admin/documentos/cultura`) with dynamic values, autosave, PDF preview modal, confirmation, and version history. `DocumentsArchivePage` (`/admin/documentos`) with filter tabs (All, Active, Voided), type filter, search, PDF preview, and void modal. Added navigation links in `AdminLayout` and routes in `App.tsx`.
-  - Database Migration: `20260925020000_hr_document_drafts_artifacts_culture`.
-  - Quality verification: 297 unit/tooling tests passed (API 145, desktop 76, shared 64, node tooling 12), 25 PostgreSQL integration tests passed applying all 8 migrations, 100% clean typecheck and lint (0 errors, 0 warnings), Prettier formatted, and production builds passing.
-- **HR-4 Completed**:
-  - Company Internal Regulations: 6-step persisted wizard (1. Informações da Empresa e Princípios, 2. Jornada de Trabalho e Ponto, 3. Conduta, Ética e Vestimenta, 4. Uso de Tecnologia e Ferramentas, 5. Regime Disciplinar e Penalidades, 6. Revisão Geral e Publicação), optimistic autosave, discard, PDF preview modal, version publication increments, historical version modal.
-  - Job Role Maps: document generator for role descriptions (`ROLE_MAP`), snapshot publishing upon draft confirmation, responsibilities, requirements, technical skills, behavioral skills, and physical demands.
-  - Hiring Interview Guide: `INTERVIEW` guide document generator with candidate details, job role selection, criteria scoring (1-5 rating), recommendation categorization (`RECOMMENDED`, `TALENT_POOL`, `NOT_RECOMMENDED`), and interview notes. Crucially preserves isolation: candidates are never silently converted into employee accounts.
-  - Acknowledgment Terms: `ACKNOWLEDGMENT_REGULATION` and `ACKNOWLEDGMENT_ROLE` terms of acknowledgment linked directly to the immutable published version of the regulation or role assignment. Compliance metrics overview banner showing total active employees vs acknowledged count.
-  - Backend models & migration `20260925030000_hr_regulations_role_maps_interviews_acknowledgments`: `CompanyRegulation`, `CompanyRegulationVersion`, `HiringInterview`, `EmployeeDocumentAcknowledgment`. Complete HTML/CSS PDF templates in `DocumentTemplatesService`, endpoints in `RegulationsModule`, `InterviewsModule`, `AcknowledgmentsModule`.
-  - Frontend pages: `RegulationsWizardPage` (`/admin/documentos/regimento`), `InterviewDocumentPage` (`/admin/documentos/entrevista`), `AcknowledgmentDocumentPage` (`/admin/documentos/ciencia`), updated navigation in `AdminLayout` and routes in `App.tsx`.
-  - Quality verification: 313 unit/tooling tests passed (API 155, desktop 82, shared 64, node tooling 12), 25 PostgreSQL integration tests passed applying all 9 migrations, 100% clean typecheck and lint (0 errors, 0 warnings), Prettier formatted, and production builds passing.
-- **HR-5 Completed**:
-  - Employment Events Model & Service: `EmploymentEvent` model (`ADMISSION`, `ROLE_CHANGE`, `SUSPENSION`, `TERMINATION`, `REACTIVATION`, `NOTE`) with explicit manual termination (`POST /employees/:id/terminate` without severance calculations), reactivation (`POST /employees/:id/reactivate`), session revocation (`POST /employees/:id/revoke-sessions`), and event creation (`POST /employees/:id/events`).
-  - Unified Employee Timeline Projection: `EmployeeTimelineService` (`GET /employees/:id/timeline`) aggregating events, role assignments, generated documents, vacations, and access audit events in chronological order with category filtering.
-  - Database Migration: `20260925040000_hr_employment_events`.
-  - Unified Employee Profile Tabs: `AdminEmployeeDetailPage` updated with 6 responsive tabs (`Resumo`, `Histórico`, `Documentos`, `Avaliações`, `Ponto & Frequência`, `Acesso ao app`). Implemented modals for profile editing, termination, reactivation, role assignment, event registration, access enabling with password setup, password reset, and document PDF preview/download, while fully preserving the monthly attendance calendar, day selector, punch adjustments, and manual punch modals.
-  - Quality verification: 326 unit/tooling tests passed (API 165, desktop 85, shared 64, node tooling 12), 25 PostgreSQL integration tests passed applying all 10 migrations, 100% clean typecheck and lint (0 errors, 0 warnings), Prettier formatted, and production builds passing.
-- **HR-6 Completed**:
-  - Disciplinary Actions Domain & Contracts: implemented pure domain logic `calculateDisciplinaryProgression` in `packages/shared/src/hr/discipline.ts` excluding voided actions from active stages and counts, enforcing suspension limits under CLT Art. 474 (1 to 30 days max), and tracking disciplinary progression stages (`NONE`, `VERBAL_WARNING`, `WRITTEN_WARNING`, `SUSPENSION`, `DISMISSAL_REVIEW`). Added unit test suite with 10 passing tests.
-  - Database Schema & Migration `20260925050000_hr_disciplinary_actions`: created `DisciplinaryAction` table with relations to `Company`, `User` (employee, issuer, voidedBy), `GeneratedDocument`, and self-relation for progressive lineage (`priorActionId`), with audit actions (`DISCIPLINARY_ACTION_CREATED`, `DISCIPLINARY_ACTION_VOIDED`).
-  - Backend Services & Controllers: HTML/CSS PDF templates in `DocumentTemplatesService` for `DISCIPLINE_VERBAL`, `DISCIPLINE_WRITTEN`, and `DISCIPLINE_SUSPENSION` with official PH Motopeças branding and signature lines; background render queue support; atomic creation on draft confirmation with automatic `EmploymentEvent` logging for suspensions; cascade voiding in `DocumentsService`; progression summary endpoint `GET /discipline/employees/:employeeId/summary` and audit-logged void endpoint `POST /discipline/actions/:id/void`.
-  - Frontend Pages: built `DisciplineDocumentPage` (`/admin/documentos/disciplina`) with mode selector, live progression summary banner, prior action linker, PDF preview modal, confirmation, and general history table with void modal. Added quick action "Medida Disciplinar" on `AdminEmployeeDetailPage` timeline tab and navigation item in `AdminLayout`.
-  - Quality verification: 356 unit/tooling tests passed (API 172, desktop 88, shared 84, node tooling 12), 25 PostgreSQL integration tests passed applying all 11 migrations, 100% clean typecheck and lint (0 errors, 0 warnings), Prettier formatted, and production builds passing.
-- **HR-7 Completed**:
-  - Performance Criteria Catalog: defined 8 canonical performance criteria in pure domain with integer scores bounded between 1 and 5 (`packages/shared/src/hr/performance.ts`). Created `PerformanceEvaluationCriteria` model with company association and versioning.
-  - Deterministic Scoring Domain: implemented `calculatePerformanceMean` with equal weights, integer validation, deterministic 2-decimal rounding (`Math.round(raw * 100) / 100`), and standard classification bands (`EXCELLENT` >= 4.5, `GOOD` >= 3.5, `REGULAR` >= 2.5, `NEEDS_IMPROVEMENT` < 2.5). Added unit tests with 17 passing tests.
-  - Backend Models, Migration & Services: created `PerformanceReview` table with self-relation for supersession history and audit logging with migration `20260925060000_hr_performance_reviews`. Built `PerformanceModule`, `PerformanceService`, `PerformanceController` (`GET /performance/criteria`, `GET /performance/reviews`, `GET /performance/reviews/:id`, `GET /performance/employees/:employeeId/latest`, `POST /performance/reviews/:id/supersede`).
-  - Document Templates & Render Queue: added HTML/CSS PDF template `renderPerformanceReviewDocument` in `DocumentTemplatesService` with PH Motopeças branding, 8 criteria score breakdown, strengths, areas for improvement, action plan, and signatures; registered `PERFORMANCE_REVIEW` in `RenderJobsService` and `DocumentDraftsService` with atomic confirmation and automatic `EmploymentEvent` logging (`NOTE`).
-  - Frontend Pages & Components: built `PerformanceReviewPage` (`/admin/documentos/avaliacao`) with employee picker, 8 canonical criteria score pickers (1-5), live calculated mean score and classification badge, qualitative feedback inputs, PDF preview modal, confirmation, and past reviews table with supersession modal. Implemented Tab 4 (`Avaliações`) in `AdminEmployeeDetailPage` with latest review summary card, criteria breakdown, and evaluation history table.
-  - Quality verification: 376 unit/tooling tests passed (API 183, desktop 90, shared 91, node tooling 12), 25 PostgreSQL integration tests passed applying all 12 migrations, 100% clean typecheck and lint (0 errors, 0 warnings), Prettier formatted, and production builds passing.
-- **HR-8 Completed**:
-  - Task HR8-001 (Setup Dashboard 6 Milestones): updated `CompanyService.getSetupStatus` to strictly enforce all 6 concrete requirements: 1. Company profile, 2. Culture profile published, 3. Internal regulations published, 4. Job roles published, 5. Active employees registered, 6. Role assignments & acknowledgments complete for all active employees. Unit tests updated with 100% pass rate.
-  - Task HR8-002 (Document Archive Advanced Filtering): updated `DocumentsArchivePage` with live employee filter dropdown, status tabs (Todos / Ativos / Anulados), document type selector, search input, and responsive "Limpar filtros" button. Unit tests added and passing.
-  - Task HR8-003 (Cross-feature UX polish): validated 1366x768 usability, dark/light theme consistency, accessible focus, semantic buttons, loading/empty/error states across all new HR pages.
-  - Task HR8-004 (Synthetic Full HR Workflow Seed): built idempotent `seed-hr-demo.ts` seeding company profile, culture v1, regulations v1, 3 job roles (Mecânico Geral, Atendente de Balcão, Gerente de Oficina), 8 performance criteria, 2 synthetic employees with profiles, role assignments, acknowledgments, admission events, interview guide, verbal disciplinary action, homologated performance review, and realistic time punches with completed idempotency records.
-  - Quality verification: 377 unit/tooling tests passed (shared 91, API 183, desktop 91, tooling 12), 25 PostgreSQL integration tests passed applying all 12 migrations, 100% clean typecheck and lint (0 errors, 0 warnings), Prettier formatted, and production builds passing.
-- **HR-9 Completed**:
-  - Task HR9-001 (QA Regression & E2E): ran complete `pnpm check:full` quality gate with 100% pass rate: 377 unit/tooling tests, 25 PostgreSQL integration tests applying all 12 migrations, and 5 Playwright Chromium E2E suites.
-  - Task HR9-002 (Recovery & Migrations): verified fresh and upgrade migration application (`pnpm db:migrate`), serializable database transactions, trigger constraints, and synthetic seed idempotency (`pnpm db:seed`).
-  - Task HR9-003 (Security & Architecture Verification): verified RBAC guards, IDOR prevention, Argon2id passwords, rotating HMAC-hashed refresh sessions, token revocation, append-only immutable voids and audits, private document artifact storage, and local-only PDF rendering with zero network egress.
-  - Task HR9-004 (UX, PDFs & Responsive Design): verified 1366x768 usability, dark/light themes, keyboard navigation, accessible labels, loading/empty/error/saving states, and Brazilian Portuguese copy throughout.
-  - Task HR9-005 (Builds, Handoff & Release Readiness): all monorepo production builds passing (`pnpm build`). Updated `PROJECT_PROGRESS.md`, `STATUS.md`, `TASKS.md`, `TESTING.md`, and `HANDOFF.md`. Clean local working tree ready for review.
-- **Reference Video Alignment & HR UX Polish (`snapinsta-1790210494053.mp4`)**:
-  - Video Analysis: inspected `/Users/nycolazs/Downloads/snapinsta-1790210494053.mp4` frame by frame and verified that PH-Ponto implements every single feature shown (Regimento 6-step wizard, Mapa de Funções, Quadro de Cultura, Advertência Verbal, Advertência Escrita com 2 testemunhas, Suspensão com Art. 474 CLT, Avaliação de Desempenho com cálculo de média, e Prontuário do Colaborador).
-  - Documents Hub Page (`/admin/documentos/gerar`): built the central document generation hub organizing all 10 document templates into 4 categories (`01 Fundação`, `02 Contratação`, `03 Disciplina`, `04 Desempenho`) with estimated duration badges (`~ 5 min`, `~ 3 min`, `~ 1 min`, etc.), descriptions, and direct generator links. Added to navigation bar and documents archive.
-  - Employee Prontuário (`/admin/funcionarios/:id`):
-    - Added "Gerar para {Nome}" quick-action bar with 6 shortcuts: Ciência do Regimento (`~ 1 min`), Ciência de Função (`~ 3 min`), Advertência Verbal (`~ 3 min`), Advertência Escrita (`~ 3 min`), Suspensão (`~ 4 min`), and Avaliação Mensal (`~ 5 min`).
-    - Added "Escala disciplinar" widget card tracking 5 progression stages (Conversa individual, Advertência verbal, Advertência escrita, Suspensão disciplinar, Desligamento) with checkmarks on reached stages and high-visibility "PRÓXIMA" badge based on live progression.
-    - Added "Acesso ao app" widget card displaying status, CPF/login, "Gerar outra senha" button, and "Tirar o acesso" button.
-  - Setup Dashboard (`/admin`): added time-of-day greeting ("Bom dia", "Boa tarde", "Boa noite") personalized with admin first name and "Gerar Documento" shortcut in quick access.
-  - Quality verification: 409 tests passed 100% across the monorepo: 379 unit/tooling tests (shared 91, API 183, desktop 93, tooling 12), 25 PostgreSQL integration tests applying all 12 migrations, and 5 Playwright E2E browser suites. Clean TypeScript typecheck, 0 ESLint errors/warnings, Prettier formatted, and all production builds passing.
-- **Production Database Clone & Local HR Data Migration (2026-09-25)**:
-  - Cloned the real production database from remote host `ssh nyc@100.73.175.88` (container `ph-ponto-postgres-1`) into local PostgreSQL cluster at `127.0.0.1:55432`.
-  - Applied all 7 pending HR evolution migrations (migrations 6 to 12) seamlessly with `pnpm db:migrate`.
-  - Verified 17 imported users (11 active shop employees, 4 active admins: `nycolazs`, `pedro`, `ana`, `elisangela`) and 926 real time punches. Ensured local admin account `admin` is initialized with `INITIAL_ADMIN_PASSWORD` from `.env`.
-- **CORS & Dev Loopback Connectivity Fix (2026-09-25)**:
-  - Identified root cause of `"Não foi possível acessar o servidor. Tente novamente em alguns instantes."`: the NestJS API's CORS middleware rejected requests from `http://127.0.0.1:5173` with 403 Forbidden (`CORS_ORIGIN_FORBIDDEN`) because `allowedOrigins` only contained `http://localhost:5173`. In browsers, CORS preflight rejection throws `TypeError: Failed to fetch`, which was translated by `auth-error.ts` into the network error message.
-  - Enhanced `webAllowedOrigins` in `apps/api/src/config/allowed-origins.ts` to automatically expand all loopback variants (`localhost`, `127.0.0.1`, `[::1]`) in non-production environments.
-  - Added unit test suite `apps/api/src/config/allowed-origins.spec.ts` (100% pass rate).
-  - Updated Electron desktop security CSP in `apps/desktop/src/main/security.ts` to expand loopback variants for both `apiOrigin` and `developmentOrigin` in development mode.
-  - Updated renderer API base URL resolution in `apps/desktop/src/renderer/api/client.ts` and `apps/desktop/src/renderer/auth/web-auth.ts` to prioritize current `window.location.hostname` (`127.0.0.1` vs `localhost`).
-  - Set `API_HOST=0.0.0.0` in `.env` so local server binds to all IPv4 interfaces.
-  - Quality verification: all 185 API tests passed, all 94 Desktop tests passed, ESLint clean (0 errors, 0 warnings), TypeScript clean, production builds passing.
-- **Company Page & Canonical UUID Schema Validation Fix (2026-09-25)**:
-  - Identified root cause of `"Não foi possível carregar os dados da empresa. Tente novamente mais tarde."` at `/#/admin/empresa`:
-    - The backend `GET /company` returned HTTP 200 with the valid company singleton record whose primary key is `'10000000-0000-0000-0000-000000000001'`.
-    - In `zod@4.4.3`, `.uuid()` strictly enforces RFC-4122 versions (1–8) and variant bits `[89abAB]`. Because `'10000000-0000-0000-0000-000000000001'` has zeros in the version and variant fields, Zod 4 rejected it with `ZodError: Invalid UUID`, causing `ApiClient.request` to throw `INVALID_RESPONSE` ("O servidor retornou uma resposta em formato inválido.") and triggering the error banner.
-    - Defined a canonical `uuidSchema` in `@ph-ponto/shared` (`contracts.ts`) with regex `/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/`, guaranteeing 100% compatibility between PostgreSQL's native `UUID` type and Zod schema validation across all packages.
-    - Replaced `z.string().uuid()` across all shared HR contracts (`company.ts`, `culture.ts`, `regulations.ts`, `documents.ts`, `discipline.ts`, `performance.ts`, `job-role.ts`, `employee-profile.ts`, `employment-events.ts`, `interview.ts`, `timeline.ts`, `acknowledgment.ts`, `role-map.ts`) and desktop contracts (`contracts.ts`, `client.ts`).
-    - Fixed schema tolerance: made `cultureProfileId` optional in `cultureProfileVersionSchema` and allowed union with `z.record(z.string(), z.unknown())` in `companyRegulationVersionSchema.content` to ensure complete resilience with existing database payloads.
-    - Enhanced `CompanyPage` (`apps/desktop/src/renderer/pages/admin/company-page.tsx`) error state with a "Tentar novamente" (`refetch()`) action and specific error message display per `AGENTS.md` guidelines.
-    - Verified all endpoints (`/company`, `/company/setup-status`, `/culture`, `/regulations`, `/documents`, `/acknowledgments/status`) against the running local API with real cloned production data.
-    - Quality verification: 383 unit & tooling tests passed (Shared 91, API 186, Desktop 94, Tooling 12), ESLint clean (0 errors, 0 warnings), Prettier formatted, TypeScript 100% clean, and full production build passing (`pnpm build`).
+- **Toast Notifications Fluid Right Slide Animations (2026-09-25/26)**:
+  - Implemented fluid hardware-accelerated animations for toast notifications sliding in and out from the right (`translateX(calc(100% + 32px))`).
+  - Added keyframes `@keyframes toastSlideInRight` (cubic-bezier easing, 350ms) and `@keyframes toastSlideOutRight` (300ms) with classes `.toast-slide-enter` and `.toast-slide-exit` in `apps/desktop/src/renderer/styles.css`.
+  - Updated `ToastProvider` in `apps/desktop/src/renderer/components/toast-context.tsx` with smooth exit phase (`isExiting: true`) on auto-dismiss and manual close before node removal.
+- **NestJS DTO Validation Pipe & Type Import Fix (2026-09-25/26)**:
+  - Root Cause Analysis: In TypeScript projects with `emitDecoratorMetadata: true`, using `import { type MyDto }` strips the class constructor symbol from the compiled JavaScript output. NestJS's runtime reflection (`reflect-metadata`) then resolves parameter types to `Object` instead of the concrete DTO class. Consequently, `ValidationPipe` with `whitelist: true, forbidNonWhitelisted: true` failed to discover validation decorators and rejected all submitted fields with `"Revise os campos informados. (...: Propriedade não permitida.)"`.
+  - Fix: Changed all controller DTO imports to value imports (`import { MyDto }`).
+  - Lint Hardening: Disabled `@typescript-eslint/consistent-type-imports` specifically for `apps/api/**/*.ts` in `eslint.config.mjs` to permanently prevent automated tools or refactorings from converting NestJS DTO value imports into type-only imports.
+  - DTO & Query Enhancements:
+    - Added `@IsInt() limit` and `offset` pagination to `ListDisciplinaryActionsQueryDto` in `apps/api/src/discipline/discipline.dto.ts` and wired pagination parameters in `DisciplineService` and desktop `ApiClient.listDisciplinaryActions`.
+    - Added `isVoid` filter support in `ListDocumentsQueryDto` and `DocumentsService`.
+    - Standardized `@IsUUID('all')` across all API DTOs and `ParseUUIDPipe()`.
+- **Regulations Wizard Database Resilience & Payload Mapper (2026-09-26)**:
+  - Built `extractRegulationFormValues` in `apps/desktop/src/renderer/pages/admin/regulations-wizard-page.tsx` guaranteeing 100% resilient parsing of existing database payloads (both legacy version format `{ principles, conductRules, scheduleRules, technologyRules, disciplinaryRules }` and canonical `RegulationPayloadDto`), with safe fallbacks to `CompanyDto` and `DEFAULT_FORM`.
+  - Resolved TypeScript strict types for `CompanyRegulationVersionDto['content']`.
+- **Comprehensive 28-Step Browser QA Sweep with Real Production Data (2026-09-26)**:
+  - Executed automated full-fidelity Playwright test suite against the local web application (`http://localhost:5173`) running against the cloned production PostgreSQL database and local NestJS REST API.
+  - 100% of tested screens and workflows passed with ZERO browser console errors (`28 PASSOU | 0 FALHOU`):
+    1. `01_Login` (`/#/login`): admin authentication.
+    2. `02_Setup_Dashboard` (`/#/admin`): greeting, 6 milestones, 83% progress card.
+    3. `03_Empresa` (`/#/admin/empresa`): company metadata, address, contact.
+    4. `04_Cargos` (`/#/admin/cargos`): organizational roles, versions, active counts.
+    5. `05_Documentos_Hub` (`/#/admin/documentos/gerar`): 10 document cards, duration badges, category filters.
+    6. `06_Cultura` (`/#/admin/documentos/cultura`): mission, vision, values editor.
+    7. `07_Regimento_Wizard` (`/#/admin/documentos/regimento`): 6-step wizard, loaded from v1 database version.
+    8. `08_Entrevista` (`/#/admin/documentos/entrevista`): candidate guide, criteria matrix, recommendations.
+    9. `09_Ciencia` (`/#/admin/documentos/ciencia`): regulation & role assignment terms, 100% compliance banner.
+    10. `10_Disciplina` (`/#/admin/documentos/disciplina`): verbal, written, suspension forms, Art. 474 CLT bounds.
+    11. `11_Avaliacao` (`/#/admin/documentos/avaliacao`): 8 canonical criteria, deterministic mean score.
+    12. `12_Documentos_Arquivo` (`/#/admin/documentos`): 23 official documents archive, filters, PDF actions.
+    13. `13_Painel_Operacional` (`/#/admin/gestao`): real-time presence board, 13 active employees, live punch stream.
+    14. `14_Solicitacoes` (`/#/admin/solicitacoes`): adjustment requests tabs and review interface.
+    15. `15_Incompletos` (`/#/admin/incompletos`): odd punch sequences, incomplete days, direct correction shortcuts.
+    16. `16_Pontos` (`/#/admin/pontos`): daily punch mirror, manual punch modal, filters.
+    17. `17_Relatorios` (`/#/admin/relatorios`): date range timesheets, CSV export, print layout.
+    18. `18_Funcionarios` (`/#/admin/funcionarios`): active/inactive employees list, search, status toggles.
+    19. `19a_Funcionario_Resumo` (`/#/admin/funcionarios/:id`): Tab 1 Resumo, prontuário shortcuts, personal data.
+    20. `19b_Funcionario_Historico`: Tab 2 Histórico, chronological timeline events, disciplinary notes.
+    21. `19c_Funcionario_Documentos`: Tab 3 Documentos, employee document repository.
+    22. `19d_Funcionario_Avaliacoes`: Tab 4 Avaliações, 8 criteria score breakdown, recent evaluation card.
+    23. `19e_Funcionario_Ponto`: Tab 5 Ponto & Frequência, monthly attendance calendar, worked/expected totals.
+    24. `19f_Funcionario_Acesso`: Tab 6 Acesso ao App, app access status, password reset shortcut.
+    25. `20_Administradores` (`/#/admin/administradores`): admin accounts, last-active-admin safeguard.
+    26. `21_Configuracoes` (`/#/admin/configuracoes`): 7-day weekly schedule, calendar exceptions, vacations.
+    27. `22_Auditoria` (`/#/admin/auditoria`): immutable audit log, before/after diffs, details modal.
+    28. `23_Aplicativo` (`/#/admin/aplicativo`): multi-platform desktop client downloads (Windows, Linux, macOS).
+  - Screenshots recorded in `scratch/browser-qa/screenshots/`.
+  - Quality verification: 383 unit & tooling tests passed (Shared 91, API 186, Desktop 94, Tooling 12), ESLint clean (0 errors, 0 warnings), Prettier formatted, TypeScript 100% clean, and full production build passing (`pnpm build`).
 - **Next Steps**:
-  - Present local test environment status to the user.
+  - Keep local services active (`http://localhost:5173` and `http://localhost:3000`) for user interactive testing.
   - Retain local isolation on branch `feat/hr-evolution`. No remote pushes or deployments.
 
 ## Local Interactive Test Environment — 2026-09-19

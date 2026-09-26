@@ -17,6 +17,7 @@ coverage/
 playwright-report/
 test-results/
 .playwright-browsers/
+scratch/
 
 # Environment files
 .env

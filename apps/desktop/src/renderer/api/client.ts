@@ -1077,12 +1077,14 @@ export class ApiClient {
   }
 
   public listDisciplinaryActions(
-    params?: { employeeId?: string; isVoid?: boolean },
+    params?: { employeeId?: string; isVoid?: boolean; limit?: number; offset?: number },
     signal?: AbortSignal,
   ): Promise<DisciplinaryActionDto[]> {
     const q = new URLSearchParams();
     if (params?.employeeId) q.set('employeeId', params.employeeId);
     if (params?.isVoid !== undefined) q.set('isVoid', String(params.isVoid));
+    if (params?.limit !== undefined) q.set('limit', String(params.limit));
+    if (params?.offset !== undefined) q.set('offset', String(params.offset));
     const qs = q.toString();
     return this.request(
       `/discipline/actions${qs ? `?${qs}` : ''}`,

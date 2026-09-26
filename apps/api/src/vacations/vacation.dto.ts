@@ -6,7 +6,7 @@ const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 
 export class CreateVacationDto {
   @ApiProperty({ description: 'ID do funcionário', format: 'uuid' })
-  @IsUUID('4', { message: 'Informe um identificador de funcionário válido.' })
+  @IsUUID('all', { message: 'Informe um identificador de funcionário válido.' })
   public employeeId!: string;
 
   @ApiProperty({ description: 'Data de início das férias (AAAA-MM-DD)', example: '2026-09-01' })
@@ -29,7 +29,7 @@ export class CreateVacationDto {
 export class ListVacationsQueryDto {
   @ApiPropertyOptional({ description: 'Filtrar por funcionário', format: 'uuid' })
   @IsOptional()
-  @IsUUID('4', { message: 'ID do funcionário inválido.' })
+  @IsUUID('all', { message: 'ID do funcionário inválido.' })
   public employeeId?: string;
 
   @ApiPropertyOptional({ description: 'Data de corte inicial (AAAA-MM-DD)' })

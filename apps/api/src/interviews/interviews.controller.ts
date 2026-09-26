@@ -5,7 +5,7 @@ import { Roles } from '../auth/auth.decorators.js';
 import { UserRole } from '../generated/prisma/client.js';
 import {
   HiringInterviewResponseDto,
-  type ListInterviewsQueryDto,
+  ListInterviewsQueryDto,
   PaginatedInterviewsResponseDto,
 } from './interviews.dto.js';
 import { InterviewsService } from './interviews.service.js';

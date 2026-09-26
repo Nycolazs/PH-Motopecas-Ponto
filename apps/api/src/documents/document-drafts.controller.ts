@@ -21,11 +21,11 @@ import { ClientContextService } from '../auth/client-context.service.js';
 import { DocumentType, UserRole } from '../generated/prisma/client.js';
 import { DocumentDraftsService } from './document-drafts.service.js';
 import {
-  type ConfirmDocumentDraftDto,
+  ConfirmDocumentDraftDto,
   DocumentDraftResponseDto,
   GeneratedDocumentResponseDto,
-  type PrepareDocumentDraftDto,
-  type SaveDocumentDraftDto,
+  PrepareDocumentDraftDto,
+  SaveDocumentDraftDto,
 } from './documents.dto.js';
 
 @ApiTags('Rascunhos de Documentos')
@@ -56,7 +56,7 @@ export class DocumentDraftsController {
   @ApiOkResponse({ type: DocumentDraftResponseDto })
   public async getDraftById(
     @CurrentUser() user: AuthenticatedUser,
-    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
+    @Param('id', new ParseUUIDPipe()) id: string,
   ): Promise<DocumentDraftResponseDto> {
     return this.draftsService.getDraftById(user.id, id);
   }
@@ -78,7 +78,7 @@ export class DocumentDraftsController {
   @ApiOperation({ summary: 'Descartar rascunho' })
   public async discardDraft(
     @CurrentUser() user: AuthenticatedUser,
-    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
+    @Param('id', new ParseUUIDPipe()) id: string,
     @Req() request: Request,
   ): Promise<{ success: boolean }> {
     const context = this.clientContexts.fromRequest(request);
@@ -91,7 +91,7 @@ export class DocumentDraftsController {
   @ApiOkResponse({ type: DocumentDraftResponseDto })
   public async prepareDraft(
     @CurrentUser() user: AuthenticatedUser,
-    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
+    @Param('id', new ParseUUIDPipe()) id: string,
     @Body() input: PrepareDocumentDraftDto,
     @Req() request: Request,
   ): Promise<DocumentDraftResponseDto> {
@@ -105,7 +105,7 @@ export class DocumentDraftsController {
   @ApiOkResponse({ type: GeneratedDocumentResponseDto })
   public async confirmDraft(
     @CurrentUser() user: AuthenticatedUser,
-    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
+    @Param('id', new ParseUUIDPipe()) id: string,
     @Body() input: ConfirmDocumentDraftDto,
     @Req() request: Request,
   ): Promise<GeneratedDocumentResponseDto> {

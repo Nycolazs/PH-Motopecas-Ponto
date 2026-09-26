@@ -7,7 +7,17 @@ import {
   type DocumentTypeDto,
 } from '@ph-ponto/shared';
 import { Type } from 'class-transformer';
-import { IsBoolean, IsOptional, IsString, IsUUID, MaxLength, MinLength } from 'class-validator';
+import {
+  IsBoolean,
+  IsInt,
+  IsOptional,
+  IsString,
+  IsUUID,
+  Max,
+  MaxLength,
+  Min,
+  MinLength,
+} from 'class-validator';
 
 export class VoidDisciplinaryActionDto {
   @ApiProperty({
@@ -26,7 +36,7 @@ export class ListDisciplinaryActionsQueryDto {
     format: 'uuid',
   })
   @IsOptional()
-  @IsUUID('4', { message: 'O ID do colaborador deve ser um UUID válido.' })
+  @IsUUID('all', { message: 'O ID do colaborador deve ser um UUID válido.' })
   public employeeId?: string;
 
   @ApiPropertyOptional({ description: 'Filtrar por status de anulação' })
@@ -34,6 +44,21 @@ export class ListDisciplinaryActionsQueryDto {
   @IsBoolean()
   @Type(() => Boolean)
   public isVoid?: boolean;
+
+  @ApiPropertyOptional({ description: 'Limite de registros', minimum: 1, maximum: 100 })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(100)
+  public limit?: number;
+
+  @ApiPropertyOptional({ description: 'Deslocamento de paginação', minimum: 0 })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  public offset?: number;
 }
 
 export class DisciplinaryActionResponseDto implements DisciplinaryActionDto {

@@ -22,6 +22,7 @@ export default tseslint.config(
       'PH-Motopeças-Ponto-Frontend/**',
       'PH-Motopeças-Ponto-Backend/**',
       '.vercel_frontend/**',
+      'scratch/**',
     ],
   },
   eslint.configs.recommended,
@@ -54,6 +55,14 @@ export default tseslint.config(
     ],
     languageOptions: {
       globals: globals.node,
+    },
+  },
+  {
+    files: ['apps/api/**/*.ts'],
+    rules: {
+      // In NestJS, DTOs and injected services must be imported as values
+      // so emitDecoratorMetadata emits constructor symbols for ValidationPipe and DI.
+      '@typescript-eslint/consistent-type-imports': 'off',
     },
   },
   {

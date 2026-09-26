@@ -5,7 +5,7 @@ import { Roles } from '../auth/auth.decorators.js';
 import { UserRole } from '../generated/prisma/client.js';
 import {
   AcknowledgmentStatusSummaryResponseDto,
-  type ListAcknowledgmentsQueryDto,
+  ListAcknowledgmentsQueryDto,
   PaginatedAcknowledgmentsResponseDto,
 } from './acknowledgments.dto.js';
 import { AcknowledgmentsService } from './acknowledgments.service.js';
