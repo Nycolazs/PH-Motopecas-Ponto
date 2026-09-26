@@ -17,6 +17,22 @@ COMPLETED — HR evolution in active local development on `feat/hr-evolution`. P
 - User approved the phase-based implementation plan. Refer to `docs/implementation/MASTER_PLAN.md`, `STATUS.md`, `TASKS.md`, `DECISIONS.md`, `HANDOFF.md`, and `TESTING.md`.
 - Single-company ADMIN-only HR; PDF/paper signatures; separate app access and employment; documentary suspensions; explicit manual termination. No production access, deployment, pushes or tags.
 - Authoritative source remains `apps/api`, `apps/desktop`, and `packages/shared`; submodules are not independent implementation targets.
+- **Professional Collapsible Accordion Sidebar Redesign (2026-09-26)**:
+  - Transformed the flat 21-item admin navigation into a professional, focused collapsible accordion structure in `apps/desktop/src/renderer/components/admin-layout.tsx`.
+  - Widened the sidebar from `w-64` (256px) to `w-72` (288px) to eliminate text truncation (`Avaliação de Desempenho`).
+  - Separated top-level daily command centers ("Visão Geral": `Início & Metas` and `Painel Operacional`) as always-accessible direct links.
+  - Grouped all remaining 19 pages into 3 contextual accordion modules with smooth height transitions (`grid-rows-[1fr]` to `grid-rows-[0fr]`), dynamic counter badges, and left accent border indicators:
+    1. **Documentos & RH** (8 itens: Gerar Documento, Arquivo Geral, Manual de Cultura, Regimento Interno, Guia de Entrevista, Termos de Ciência, Medidas Disciplinares, Avaliação de Desempenho).
+    2. **Ponto & Frequência** (5 itens: Colaboradores, Registros de Ponto, Solicitações de Ajuste, Espelhos Incompletos, Relatórios & Espelho) with live badge count.
+    3. **Empresa & Sistema** (6 itens: Minha Empresa, Cargos & Funções, Administradores, Jornadas & Regras, Trilha de Auditoria, Aplicativo Desktop).
+  - Single-open accordion behavior: clicking a module header opens that specific section while collapsing others to keep the UI simple, uncluttered, and 100% free of vertical scrollbars or awkward spacing at 1366x768.
+  - Route-aware auto-expansion: navigating to any admin page automatically expands its parent module.
+- **Active Employee Dropdowns Fix in HR Documents (2026-09-26)**:
+  - Root Cause Analysis: In `apps/desktop/src/renderer/pages/admin/acknowledgment-document-page.tsx` and `apps/desktop/src/renderer/pages/admin/discipline-document-page.tsx`, the employee list query was erroneously calling `api.getAdmins({ status: 'ACTIVE', limit: 100 })` and filtering `u.role === 'EMPLOYEE'`. Since `/admins` only returns users with the `ADMIN` role, the dropdowns were completely empty.
+  - Fix: Updated query to call `api.getEmployees({ status: 'ACTIVE', limit: 100 })`.
+  - Test Hardening: Updated mock interceptors in `acknowledgment-document-page.test.tsx` and `discipline-document-page.test.tsx` using regex matching `/\/employees(\?|$)/` to prevent list mocks from hijacking employee subresource requests (`/profile`, `/roles`).
+  - E2E Adaptation: Updated `apps/desktop/e2e/admin.spec.ts` to expand the accordion group `Ponto & Frequência` before navigating to `Colaboradores`.
+  - Verification: 100% verified against cloned production database — all 13 active employees populate both dropdowns and selecting an employee immediately loads their details, CPF, and disciplinary history. Full `pnpm check` passed and 5/5 Playwright E2E tests passed.
 - **Toast Notifications Fluid Right Slide Animations (2026-09-25/26)**:
   - Implemented fluid hardware-accelerated animations for toast notifications sliding in and out from the right (`translateX(calc(100% + 32px))`).
   - Added keyframes `@keyframes toastSlideInRight` (cubic-bezier easing, 350ms) and `@keyframes toastSlideOutRight` (300ms) with classes `.toast-slide-enter` and `.toast-slide-exit` in `apps/desktop/src/renderer/styles.css`.

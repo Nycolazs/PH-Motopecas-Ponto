@@ -56,7 +56,7 @@ describe('AcknowledgmentDocumentPage', () => {
           }),
         );
       }
-      if (url.includes('/admins')) {
+      if (url.includes('/employees') || url.includes('/admins')) {
         return Promise.resolve(
           jsonResponse({
             items: [
@@ -185,7 +185,7 @@ describe('AcknowledgmentDocumentPage', () => {
           }),
         );
       }
-      if (url.includes('/admins')) {
+      if (url.includes('/employees') || url.includes('/admins')) {
         return Promise.resolve(
           jsonResponse({
             items: [

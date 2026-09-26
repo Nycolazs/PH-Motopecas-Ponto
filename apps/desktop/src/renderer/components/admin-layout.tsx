@@ -1,13 +1,16 @@
 import { useEffect, useState } from 'react';
 import {
+  AlertTriangle,
   Award,
   BookOpen,
   Briefcase,
   Building2,
+  ChevronDown,
   Clock,
   FileCheck2,
   FileText,
   FolderArchive,
+  GitPullRequest,
   LayoutDashboard,
   LogOut,
   MonitorDown,
@@ -20,7 +23,9 @@ import {
   Users,
   WifiOff,
 } from 'lucide-react';
-import { NavLink, Outlet } from 'react-router-dom';
+import { NavLink, Outlet, useLocation } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { BUSINESS_TIME_ZONE } from '@ph-ponto/shared';
 
 import { useAuth } from '../auth/use-auth.js';
 import { AvatarImage } from './avatar-image.js';
@@ -43,8 +48,6 @@ function useOnline(): boolean {
   }, []);
   return online;
 }
-
-import { BUSINESS_TIME_ZONE } from '@ph-ponto/shared';
 
 function useBusinessClock(): string {
   const [time, setTime] = useState('');
@@ -69,13 +72,28 @@ function useBusinessClock(): string {
   return time;
 }
 
-import { AlertTriangle, GitPullRequest } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
+interface NavItem {
+  to: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  end?: boolean;
+  badge?: number;
+}
+
+interface NavGroup {
+  id: string;
+  title: string;
+  icon: React.ComponentType<{ className?: string }>;
+  badge?: number;
+  items: NavItem[];
+}
 
 export function AdminLayout(): React.JSX.Element {
   const { logout, session, api } = useAuth();
   const online = useOnline();
   const businessClock = useBusinessClock();
+  const location = useLocation();
+  const pathname = location.pathname;
 
   const { data: pendingData } = useQuery({
     queryKey: ['pending-adjustments-count'],
@@ -93,19 +111,20 @@ export function AdminLayout(): React.JSX.Element {
 
   const pendingCount = pendingData?.pendingCount ?? 0;
   const incompleteCount = incompleteData?.totalIncompleteDays ?? 0;
+  const frequencyTotalBadge = pendingCount + incompleteCount;
 
-  const navSections = [
+  // Top level quick items (always visible, core operational actions)
+  const quickItems: NavItem[] = [
+    { to: '/admin', label: 'Início & Metas', icon: LayoutDashboard, end: true },
+    { to: '/admin/gestao', label: 'Painel Operacional', icon: Clock, end: false },
+  ];
+
+  // Collapsible accordion groups
+  const navGroups: NavGroup[] = [
     {
-      title: 'Início & Empresa',
-      items: [
-        { to: '/admin', label: 'Início', icon: LayoutDashboard, end: true },
-        { to: '/admin/empresa', label: 'Minha Empresa', icon: Building2, end: false },
-        { to: '/admin/cargos', label: 'Cargos & Funções', icon: Briefcase, end: false },
-        { to: '/admin/gestao', label: 'Painel Operacional', icon: Clock, end: false },
-      ],
-    },
-    {
+      id: 'documentos',
       title: 'Documentos & RH',
+      icon: FolderArchive,
       items: [
         {
           to: '/admin/documentos/gerar',
@@ -115,7 +134,7 @@ export function AdminLayout(): React.JSX.Element {
         },
         {
           to: '/admin/documentos',
-          label: 'Meus Documentos',
+          label: 'Arquivo Geral',
           icon: FolderArchive,
           end: true,
         },
@@ -153,20 +172,23 @@ export function AdminLayout(): React.JSX.Element {
       ],
     },
     {
-      title: 'Gestão de Frequência',
+      id: 'frequencia',
+      title: 'Ponto & Frequência',
+      icon: Users,
+      badge: frequencyTotalBadge,
       items: [
         { to: '/admin/funcionarios', label: 'Colaboradores', icon: Users, end: false },
         { to: '/admin/pontos', label: 'Registros de Ponto', icon: Clock, end: false },
         {
           to: '/admin/solicitacoes',
-          label: 'Solicitações',
+          label: 'Solicitações de Ajuste',
           icon: GitPullRequest,
           badge: pendingCount,
           end: false,
         },
         {
           to: '/admin/incompletos',
-          label: 'Incompletos',
+          label: 'Espelhos Incompletos',
           icon: AlertTriangle,
           badge: incompleteCount,
           end: false,
@@ -175,8 +197,12 @@ export function AdminLayout(): React.JSX.Element {
       ],
     },
     {
-      title: 'Sistema & Segurança',
+      id: 'sistema',
+      title: 'Empresa & Sistema',
+      icon: Building2,
       items: [
+        { to: '/admin/empresa', label: 'Minha Empresa', icon: Building2, end: false },
+        { to: '/admin/cargos', label: 'Cargos & Funções', icon: Briefcase, end: false },
         { to: '/admin/administradores', label: 'Administradores', icon: ShieldCheck, end: false },
         { to: '/admin/configuracoes', label: 'Jornadas & Regras', icon: Settings, end: false },
         { to: '/admin/auditoria', label: 'Trilha de Auditoria', icon: ScrollText, end: false },
@@ -185,54 +211,225 @@ export function AdminLayout(): React.JSX.Element {
     },
   ];
 
+  // Accordion state: by default, auto-expand the group that contains current active path
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
+    const initial: Record<string, boolean> = {
+      documentos: false,
+      frequencia: false,
+      sistema: false,
+    };
+    if (pathname.startsWith('/admin/documentos')) {
+      initial.documentos = true;
+    } else if (
+      pathname.startsWith('/admin/funcionarios') ||
+      pathname.startsWith('/admin/pontos') ||
+      pathname.startsWith('/admin/solicitacoes') ||
+      pathname.startsWith('/admin/incompletos') ||
+      pathname.startsWith('/admin/relatorios')
+    ) {
+      initial.frequencia = true;
+    } else if (
+      pathname.startsWith('/admin/empresa') ||
+      pathname.startsWith('/admin/cargos') ||
+      pathname.startsWith('/admin/administradores') ||
+      pathname.startsWith('/admin/configuracoes') ||
+      pathname.startsWith('/admin/auditoria') ||
+      pathname.startsWith('/admin/aplicativo')
+    ) {
+      initial.sistema = true;
+    }
+    return initial;
+  });
+
+  // Ensure active group is opened on route changes
+  useEffect(() => {
+    let activeKey: string | null = null;
+    if (pathname.startsWith('/admin/documentos')) {
+      activeKey = 'documentos';
+    } else if (
+      pathname.startsWith('/admin/funcionarios') ||
+      pathname.startsWith('/admin/pontos') ||
+      pathname.startsWith('/admin/solicitacoes') ||
+      pathname.startsWith('/admin/incompletos') ||
+      pathname.startsWith('/admin/relatorios')
+    ) {
+      activeKey = 'frequencia';
+    } else if (
+      pathname.startsWith('/admin/empresa') ||
+      pathname.startsWith('/admin/cargos') ||
+      pathname.startsWith('/admin/administradores') ||
+      pathname.startsWith('/admin/configuracoes') ||
+      pathname.startsWith('/admin/auditoria') ||
+      pathname.startsWith('/admin/aplicativo')
+    ) {
+      activeKey = 'sistema';
+    }
+
+    if (activeKey) {
+      setOpenGroups({
+        documentos: activeKey === 'documentos',
+        frequencia: activeKey === 'frequencia',
+        sistema: activeKey === 'sistema',
+      });
+    }
+  }, [pathname]);
+
+  const toggleGroup = (id: string): void => {
+    setOpenGroups((prev) => {
+      const willBeOpen = !prev[id];
+      return {
+        documentos: false,
+        frequencia: false,
+        sistema: false,
+        [id]: willBeOpen,
+      };
+    });
+  };
+
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans">
-      {/* Sidebar */}
-      <aside className="w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col shrink-0 select-none">
-        <div className="p-5 border-b border-slate-200 dark:border-slate-800">
+      {/* Sidebar with wider footprint for professional legibility */}
+      <aside className="w-72 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col shrink-0 select-none shadow-xs">
+        <div className="p-4 px-5 border-b border-slate-200 dark:border-slate-800">
           <Brand />
         </div>
 
-        <nav className="flex-1 p-3 space-y-4 overflow-y-auto" aria-label="Navegação administrativa">
-          {navSections.map((section) => (
-            <div key={section.title} className="space-y-1">
-              <div className="px-3 py-1 text-2xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-                {section.title}
-              </div>
-              {section.items.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <NavLink
-                    key={item.to}
-                    to={item.to}
-                    end={item.end}
-                    className={({ isActive }) =>
-                      `flex items-center justify-between px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
-                        isActive
-                          ? 'bg-blue-600 text-white shadow-xs font-semibold'
-                          : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
-                      }`
-                    }
+        <nav
+          className="flex-1 p-3 space-y-4 overflow-y-auto custom-scrollbar"
+          aria-label="Navegação administrativa"
+        >
+          {/* Quick Core Actions (Always direct and easily accessible) */}
+          <div className="space-y-1">
+            <div className="px-3 py-1 text-2xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+              Visão Geral
+            </div>
+            {quickItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  end={Boolean(item.end)}
+                  className={({ isActive }) =>
+                    `flex items-center justify-between px-3 py-2 rounded-xl text-xs sm:text-sm font-medium transition-colors ${
+                      isActive
+                        ? 'bg-blue-600 text-white shadow-xs font-semibold'
+                        : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
+                    }`
+                  }
+                >
+                  <div className="flex items-center min-w-0">
+                    <Icon className="w-4 h-4 mr-2.5 shrink-0" />
+                    <span className="truncate">{item.label}</span>
+                  </div>
+                </NavLink>
+              );
+            })}
+          </div>
+
+          {/* Collapsible Accordion Modules */}
+          <div className="space-y-2 pt-1 border-t border-slate-100 dark:border-slate-800/80">
+            <div className="px-3 py-1 text-2xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+              Módulos do Sistema
+            </div>
+
+            {navGroups.map((group) => {
+              const GroupIcon = group.icon;
+              const isOpen = Boolean(openGroups[group.id]);
+              const isGroupActive = group.items.some((item) =>
+                item.end ? pathname === item.to : pathname.startsWith(item.to),
+              );
+
+              return (
+                <div key={group.id} className="rounded-xl overflow-hidden">
+                  {/* Accordion Group Trigger Button */}
+                  <button
+                    type="button"
+                    onClick={() => toggleGroup(group.id)}
+                    aria-expanded={isOpen}
+                    aria-label={group.title}
+                    className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
+                      isGroupActive
+                        ? 'bg-slate-100 dark:bg-slate-800 text-blue-600 dark:text-blue-400'
+                        : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100/70 dark:hover:bg-slate-800/60'
+                    }`}
                   >
                     <div className="flex items-center min-w-0">
-                      <Icon className="w-4 h-4 mr-2.5 shrink-0" />
-                      <span className="truncate">{item.label}</span>
+                      <div
+                        className={`w-6 h-6 rounded-lg flex items-center justify-center mr-2.5 shrink-0 transition-colors ${
+                          isGroupActive
+                            ? 'bg-blue-100 dark:bg-blue-900/60 text-blue-600 dark:text-blue-400'
+                            : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
+                        }`}
+                      >
+                        <GroupIcon className="w-3.5 h-3.5" />
+                      </div>
+                      <span className="truncate">{group.title}</span>
                     </div>
-                    {item.badge !== undefined && item.badge > 0 ? (
-                      <span className="px-1.5 py-0.5 text-2xs font-extrabold rounded-full bg-amber-500 text-slate-950 shadow-sm animate-pulse ml-1.5 shrink-0">
-                        {item.badge}
-                      </span>
-                    ) : null}
-                  </NavLink>
-                );
-              })}
-            </div>
-          ))}
+
+                    <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                      {group.badge !== undefined && group.badge > 0 && !isOpen && (
+                        <span className="px-1.5 py-0.5 text-2xs font-black rounded-full bg-amber-500 text-slate-950 shadow-xs animate-pulse">
+                          {group.badge}
+                        </span>
+                      )}
+                      <ChevronDown
+                        className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${
+                          isOpen ? 'rotate-180' : ''
+                        }`}
+                      />
+                    </div>
+                  </button>
+
+                  {/* Accordion Smooth Height Drawer */}
+                  <div
+                    className={`grid transition-all duration-200 ease-in-out ${
+                      isOpen
+                        ? 'grid-rows-[1fr] opacity-100 mt-1 mb-1'
+                        : 'grid-rows-[0fr] opacity-0 pointer-events-none'
+                    }`}
+                  >
+                    <div className="overflow-hidden">
+                      <div className="border-l-2 border-slate-200 dark:border-slate-800 ml-4 pl-2 space-y-0.5">
+                        {group.items.map((item) => {
+                          const Icon = item.icon;
+                          return (
+                            <NavLink
+                              key={item.to}
+                              to={item.to}
+                              end={Boolean(item.end)}
+                              className={({ isActive }) =>
+                                `flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                                  isActive
+                                    ? 'bg-blue-600 text-white shadow-xs font-semibold'
+                                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-white'
+                                }`
+                              }
+                            >
+                              <div className="flex items-center min-w-0">
+                                <Icon className="w-3.5 h-3.5 mr-2 shrink-0 opacity-80" />
+                                <span className="truncate">{item.label}</span>
+                              </div>
+                              {item.badge !== undefined && item.badge > 0 ? (
+                                <span className="px-1.5 py-0.2 text-2xs font-extrabold rounded-full bg-amber-500 text-slate-950 shadow-xs ml-1 shrink-0">
+                                  {item.badge}
+                                </span>
+                              ) : null}
+                            </NavLink>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </nav>
 
-        {/* User profile & logout */}
+        {/* User Profile & Logout */}
         <div className="p-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
-          <div className="flex items-center justify-between p-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-2xs">
+          <div className="flex items-center justify-between p-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-2xs">
             <div className="flex items-center space-x-2.5 overflow-hidden">
               <AvatarImage
                 userId={session?.user.id ?? ''}
@@ -254,7 +451,7 @@ export function AdminLayout(): React.JSX.Element {
                 onClick={() => void logout()}
                 title="Sair do sistema"
                 aria-label="Sair"
-                className="p-1.5 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-md transition-colors"
+                className="p-1.5 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition-colors"
               >
                 <LogOut className="w-4 h-4" />
               </button>

@@ -101,7 +101,7 @@ export function DisciplineDocumentPage(): React.JSX.Element {
   // 1. Fetch active employees
   const { data: employeesData } = useQuery({
     queryKey: ['active-employees-for-discipline'],
-    queryFn: ({ signal }) => api.getAdmins({ status: 'ACTIVE', limit: 100 }, signal),
+    queryFn: ({ signal }) => api.getEmployees({ status: 'ACTIVE', limit: 100 }, signal),
     enabled: Boolean(session),
   });
 

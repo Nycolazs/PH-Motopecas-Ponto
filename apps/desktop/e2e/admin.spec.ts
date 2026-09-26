@@ -235,7 +235,11 @@ test('admin logs in, views operational dashboard and navigates admin modules', a
   await expect(page.getByText('Colaboradores ativos')).toBeVisible();
   await expect(page.getByRole('table').getByText('Marina Souza')).toBeVisible();
 
-  // Navigate to Employees Page
+  // Navigate to Employees Page (expand accordion if collapsed)
+  const frequenciaBtn = page.getByRole('button', { name: /Ponto & Frequência/i });
+  if ((await frequenciaBtn.getAttribute('aria-expanded')) !== 'true') {
+    await frequenciaBtn.click();
+  }
   await page.getByRole('link', { name: 'Colaboradores' }).click();
   await expect(page.getByRole('heading', { name: 'Gestão de Funcionários' })).toBeVisible();
   await expect(page.getByRole('table')).toContainText('Marina Souza');

@@ -49,7 +49,7 @@ export function AcknowledgmentDocumentPage(): React.JSX.Element {
   // 2. Active Employees
   const { data: employeesData } = useQuery({
     queryKey: ['active-employees-for-ack'],
-    queryFn: ({ signal }) => api.getAdmins({ status: 'ACTIVE', limit: 100 }, signal),
+    queryFn: ({ signal }) => api.getEmployees({ status: 'ACTIVE', limit: 100 }, signal),
     enabled: Boolean(session),
   });
 

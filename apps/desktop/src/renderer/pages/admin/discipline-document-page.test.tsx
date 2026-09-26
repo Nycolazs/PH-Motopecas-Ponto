@@ -48,7 +48,7 @@ describe('DisciplineDocumentPage', () => {
   it('renders page header, mode selectors, employee picker and history table', async () => {
     const fetchMock = vi.fn().mockImplementation((input: string | URL | Request) => {
       const url = String(input);
-      if (url.includes('/admins')) {
+      if (url.includes('/employees') || url.includes('/admins')) {
         return Promise.resolve(
           jsonResponse({
             items: [
@@ -91,7 +91,7 @@ describe('DisciplineDocumentPage', () => {
   it('loads and displays progression summary when an employee is selected', async () => {
     const fetchMock = vi.fn().mockImplementation((input: string | URL | Request) => {
       const url = String(input);
-      if (url.includes('/admins')) {
+      if (url.match(/\/employees(\?|$)/) || url.includes('/admins')) {
         return Promise.resolve(
           jsonResponse({
             items: [
@@ -110,6 +110,24 @@ describe('DisciplineDocumentPage', () => {
             pagination: { page: 1, limit: 100, total: 1, totalPages: 1 },
           }),
         );
+      }
+      if (url.includes('/profile')) {
+        return Promise.resolve(
+          jsonResponse({
+            userId: mockEmployeeId,
+            cpf: '123.456.789-00',
+            rg: '1234567',
+            birthDate: '1990-01-01',
+            hireDate: '2026-01-01',
+            accessEnabled: true,
+            isActive: true,
+            createdAt: '2026-01-01T00:00:00.000Z',
+            updatedAt: '2026-01-01T00:00:00.000Z',
+          }),
+        );
+      }
+      if (url.includes('/roles')) {
+        return Promise.resolve(jsonResponse([]));
       }
       if (url.includes(`/discipline/employees/${mockEmployeeId}/summary`)) {
         return Promise.resolve(
@@ -155,7 +173,7 @@ describe('DisciplineDocumentPage', () => {
   it('switches between discipline types and renders specific form fields', async () => {
     const fetchMock = vi.fn().mockImplementation((input: string | URL | Request) => {
       const url = String(input);
-      if (url.includes('/admins')) {
+      if (url.includes('/employees') || url.includes('/admins')) {
         return Promise.resolve(
           jsonResponse({
             items: [
