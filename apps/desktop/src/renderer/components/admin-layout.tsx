@@ -1,13 +1,10 @@
 import { useEffect, useState } from 'react';
 import {
   AlertTriangle,
-  Award,
-  BookOpen,
   Briefcase,
   Building2,
   ChevronDown,
   Clock,
-  FileCheck2,
   FileText,
   FolderArchive,
   GitPullRequest,
@@ -16,10 +13,7 @@ import {
   MonitorDown,
   ScrollText,
   Settings,
-  ShieldAlert,
   ShieldCheck,
-  Sparkles,
-  UserCheck,
   Users,
   WifiOff,
 } from 'lucide-react';
@@ -122,56 +116,6 @@ export function AdminLayout(): React.JSX.Element {
   // Collapsible accordion groups
   const navGroups: NavGroup[] = [
     {
-      id: 'documentos',
-      title: 'Documentos & RH',
-      icon: FolderArchive,
-      items: [
-        {
-          to: '/admin/documentos/gerar',
-          label: 'Gerar Documento',
-          icon: Sparkles,
-          end: false,
-        },
-        {
-          to: '/admin/documentos',
-          label: 'Arquivo Geral',
-          icon: FolderArchive,
-          end: true,
-        },
-        { to: '/admin/documentos/cultura', label: 'Manual de Cultura', icon: Sparkles, end: false },
-        {
-          to: '/admin/documentos/regimento',
-          label: 'Regimento Interno',
-          icon: BookOpen,
-          end: false,
-        },
-        {
-          to: '/admin/documentos/entrevista',
-          label: 'Guia de Entrevista',
-          icon: UserCheck,
-          end: false,
-        },
-        {
-          to: '/admin/documentos/ciencia',
-          label: 'Termos de Ciência',
-          icon: FileCheck2,
-          end: false,
-        },
-        {
-          to: '/admin/documentos/disciplina',
-          label: 'Medidas Disciplinares',
-          icon: ShieldAlert,
-          end: false,
-        },
-        {
-          to: '/admin/documentos/avaliacao',
-          label: 'Avaliação de Desempenho',
-          icon: Award,
-          end: false,
-        },
-      ],
-    },
-    {
       id: 'frequencia',
       title: 'Ponto & Frequência',
       icon: Users,
@@ -214,13 +158,10 @@ export function AdminLayout(): React.JSX.Element {
   // Accordion state: by default, auto-expand the group that contains current active path
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
     const initial: Record<string, boolean> = {
-      documentos: false,
       frequencia: false,
       sistema: false,
     };
-    if (pathname.startsWith('/admin/documentos')) {
-      initial.documentos = true;
-    } else if (
+    if (
       pathname.startsWith('/admin/funcionarios') ||
       pathname.startsWith('/admin/pontos') ||
       pathname.startsWith('/admin/solicitacoes') ||
@@ -244,9 +185,7 @@ export function AdminLayout(): React.JSX.Element {
   // Ensure active group is opened on route changes
   useEffect(() => {
     let activeKey: string | null = null;
-    if (pathname.startsWith('/admin/documentos')) {
-      activeKey = 'documentos';
-    } else if (
+    if (
       pathname.startsWith('/admin/funcionarios') ||
       pathname.startsWith('/admin/pontos') ||
       pathname.startsWith('/admin/solicitacoes') ||
@@ -265,20 +204,16 @@ export function AdminLayout(): React.JSX.Element {
       activeKey = 'sistema';
     }
 
-    if (activeKey) {
-      setOpenGroups({
-        documentos: activeKey === 'documentos',
-        frequencia: activeKey === 'frequencia',
-        sistema: activeKey === 'sistema',
-      });
-    }
+    setOpenGroups({
+      frequencia: activeKey === 'frequencia',
+      sistema: activeKey === 'sistema',
+    });
   }, [pathname]);
 
   const toggleGroup = (id: string): void => {
     setOpenGroups((prev) => {
       const willBeOpen = !prev[id];
       return {
-        documentos: false,
         frequencia: false,
         sistema: false,
         [id]: willBeOpen,
@@ -328,10 +263,36 @@ export function AdminLayout(): React.JSX.Element {
           </div>
 
           {/* Collapsible Accordion Modules */}
-          <div className="space-y-2 pt-1 border-t border-slate-100 dark:border-slate-800/80">
+          <div className="space-y-1.5 pt-1 border-t border-slate-100 dark:border-slate-800/80">
             <div className="px-3 py-1 text-2xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
               Módulos do Sistema
             </div>
+
+            {/* Documentos & RH - Direct Module Link */}
+            <NavLink
+              to="/admin/documentos/gerar"
+              className={() => {
+                const isDocActive = pathname.startsWith('/admin/documentos');
+                return `w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
+                  isDocActive
+                    ? 'bg-blue-600 text-white shadow-xs'
+                    : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100/70 dark:hover:bg-slate-800/60'
+                }`;
+              }}
+            >
+              <div className="flex items-center min-w-0">
+                <div
+                  className={`w-6 h-6 rounded-lg flex items-center justify-center mr-2.5 shrink-0 transition-colors ${
+                    pathname.startsWith('/admin/documentos')
+                      ? 'bg-white/20 text-white'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
+                  }`}
+                >
+                  <FolderArchive className="w-3.5 h-3.5" />
+                </div>
+                <span className="truncate">Documentos & RH</span>
+              </div>
+            </NavLink>
 
             {navGroups.map((group) => {
               const GroupIcon = group.icon;

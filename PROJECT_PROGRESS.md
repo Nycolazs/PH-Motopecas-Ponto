@@ -17,6 +17,12 @@ COMPLETED — HR evolution in active local development on `feat/hr-evolution`. P
 - User approved the phase-based implementation plan. Refer to `docs/implementation/MASTER_PLAN.md`, `STATUS.md`, `TASKS.md`, `DECISIONS.md`, `HANDOFF.md`, and `TESTING.md`.
 - Single-company ADMIN-only HR; PDF/paper signatures; separate app access and employment; documentary suspensions; explicit manual termination. No production access, deployment, pushes or tags.
 - Authoritative source remains `apps/api`, `apps/desktop`, and `packages/shared`; submodules are not independent implementation targets.
+- **Admin Sidebar Documentos & RH Streamlining (2026-09-28)**:
+  - Removed all 8 individual document sub-items from the sidebar navigation (Gerar Documento, Arquivo Geral, Manual de Cultura, Regimento Interno, Guia de Entrevista, Termos de Ciência, Medidas Disciplinares, Avaliação de Desempenho) per user feedback.
+  - Replaced the former accordion group with a single direct "Documentos & RH" module link in `apps/desktop/src/renderer/components/admin-layout.tsx` pointing to `/admin/documentos/gerar`.
+  - The central hub (`/admin/documentos/gerar`) already features all 10 document cards and full archive access, eliminating redundancy while keeping the sidebar ultra-clean, minimal, and uncluttered.
+  - Retained route-aware highlighting across all `/admin/documentos/*` subpages and single-open accordion behavior for "Ponto & Frequência" and "Empresa & Sistema".
+  - Verified: `pnpm check` 100% passing (ESLint, Prettier, TypeScript strict, 383 unit/integration tests) and 5/5 Playwright E2E tests passing.
 - **Professional Collapsible Accordion Sidebar Redesign (2026-09-26)**:
   - Transformed the flat 21-item admin navigation into a professional, focused collapsible accordion structure in `apps/desktop/src/renderer/components/admin-layout.tsx`.
   - Widened the sidebar from `w-64` (256px) to `w-72` (288px) to eliminate text truncation (`Avaliação de Desempenho`).
