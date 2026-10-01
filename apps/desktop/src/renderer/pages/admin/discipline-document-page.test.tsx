@@ -79,7 +79,7 @@ describe('DisciplineDocumentPage', () => {
     renderWithProviders(<DisciplineDocumentPage />);
 
     expect(
-      await screen.findByRole('heading', { name: /Procedimento e Medidas Disciplinares/i }),
+      await screen.findByRole('heading', { level: 1, name: /Advertência Verbal/i }),
     ).toBeInTheDocument();
 
     expect(screen.getByText('Conversa / Verbal')).toBeInTheDocument();
@@ -204,7 +204,7 @@ describe('DisciplineDocumentPage', () => {
 
     renderWithProviders(<DisciplineDocumentPage />);
 
-    await screen.findByRole('heading', { name: /Procedimento e Medidas Disciplinares/i });
+    await screen.findByRole('heading', { level: 1, name: /Advertência Verbal/i });
 
     // Default is VERBAL: commitment textarea should be visible
     expect(screen.getByText(/Compromisso Assumido pelo Colaborador/i)).toBeInTheDocument();

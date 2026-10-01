@@ -424,9 +424,9 @@ export function PerformanceReviewPage(): React.JSX.Element {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center space-x-3">
           <Link
-            to="/admin/documentos"
+            to="/admin/documentos/gerar"
             className="p-2 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-            title="Voltar ao Arquivo de Documentos"
+            title="Voltar aos Modelos de Documentos"
           >
             <ArrowLeft className="w-5 h-5" />
           </Link>

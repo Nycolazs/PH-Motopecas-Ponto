@@ -14,7 +14,7 @@ import {
   Users,
   X,
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 
 import type {
   AcknowledgmentRegulationPayloadDto,
@@ -32,8 +32,19 @@ export function AcknowledgmentDocumentPage(): React.JSX.Element {
   const { session, api } = useAuth();
   const { success, error } = useToast();
   const queryClient = useQueryClient();
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const [acknowledgmentType, setAcknowledgmentType] = useState<AcknowledgmentTypeDto>('REGULATION');
+  const tipoParam = searchParams.get('tipo');
+  const initialType: AcknowledgmentTypeDto = tipoParam === 'ROLE' ? 'ROLE' : 'REGULATION';
+  const [acknowledgmentType, setAcknowledgmentType] = useState<AcknowledgmentTypeDto>(initialType);
+
+  useEffect(() => {
+    const tipo = searchParams.get('tipo');
+    if (tipo === 'ROLE' || tipo === 'REGULATION') {
+      setAcknowledgmentType(tipo);
+    }
+  }, [searchParams]);
+
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>('');
   const [previewBlobUrl, setPreviewBlobUrl] = useState<string | null>(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
@@ -217,31 +228,42 @@ export function AcknowledgmentDocumentPage(): React.JSX.Element {
     },
   });
 
+  const isRole = acknowledgmentType === 'ROLE';
+  const pageTitle = isRole
+    ? 'Termo de Ciência da Descrição de Cargo'
+    : 'Termo de Ciência do Regimento Interno';
+  const pageSubtitle = isRole
+    ? 'Formalize a ciência das atribuições e responsabilidades do cargo atribuído ao colaborador.'
+    : 'Formalize o recebimento e ciência integral do regulamento interno da PH Motopeças perante a equipe.';
+
+  const handleSelectType = (type: AcknowledgmentTypeDto): void => {
+    setAcknowledgmentType(type);
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.set('tipo', type);
+    setSearchParams(nextParams, { replace: true });
+    setFormErrors([]);
+  };
+
   return (
     <div className="p-8 max-w-5xl mx-auto space-y-8">
       {/* Top Breadcrumb & Title */}
       <div>
         <Link
-          to="/admin/documentos"
+          to="/admin/documentos/gerar"
           className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition-colors mb-2"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
-          Voltar ao Arquivo de Documentos
+          Voltar aos Modelos de Documentos
         </Link>
         <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-            Termos de Ciência de Documentos
-          </h1>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">{pageTitle}</h1>
           {complianceStatus?.isFullyCompliant && (
             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300">
               100% Conforme
             </span>
           )}
         </div>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-          Emita termos formais de ciência e concordância com o Regimento Interno ou com a Descrição
-          de Cargo.
-        </p>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{pageSubtitle}</p>
       </div>
 
       {/* Compliance Metrics Banner */}
@@ -312,10 +334,7 @@ export function AcknowledgmentDocumentPage(): React.JSX.Element {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <button
             type="button"
-            onClick={() => {
-              setAcknowledgmentType('REGULATION');
-              setFormErrors([]);
-            }}
+            onClick={() => handleSelectType('REGULATION')}
             className={`p-4 rounded-xl border text-left transition-all ${
               acknowledgmentType === 'REGULATION'
                 ? 'border-blue-600 bg-blue-50/70 dark:bg-blue-950/40 text-blue-900 dark:text-blue-200 ring-2 ring-blue-600'
@@ -333,10 +352,7 @@ export function AcknowledgmentDocumentPage(): React.JSX.Element {
 
           <button
             type="button"
-            onClick={() => {
-              setAcknowledgmentType('ROLE');
-              setFormErrors([]);
-            }}
+            onClick={() => handleSelectType('ROLE')}
             className={`p-4 rounded-xl border text-left transition-all ${
               acknowledgmentType === 'ROLE'
                 ? 'border-blue-600 bg-blue-50/70 dark:bg-blue-950/40 text-blue-900 dark:text-blue-200 ring-2 ring-blue-600'

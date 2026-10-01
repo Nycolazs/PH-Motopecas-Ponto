@@ -36,12 +36,28 @@ export function DisciplineDocumentPage(): React.JSX.Element {
   const { session, api } = useAuth();
   const { success, error } = useToast();
   const queryClient = useQueryClient();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   // Selected document type
+  const tipoParam = searchParams.get('tipo');
+  const initialDocType =
+    tipoParam === 'DISCIPLINE_WRITTEN' || tipoParam === 'DISCIPLINE_SUSPENSION'
+      ? tipoParam
+      : 'DISCIPLINE_VERBAL';
   const [documentType, setDocumentType] = useState<
     'DISCIPLINE_VERBAL' | 'DISCIPLINE_WRITTEN' | 'DISCIPLINE_SUSPENSION'
-  >('DISCIPLINE_VERBAL');
+  >(initialDocType);
+
+  useEffect(() => {
+    const tipo = searchParams.get('tipo');
+    if (
+      tipo === 'DISCIPLINE_VERBAL' ||
+      tipo === 'DISCIPLINE_WRITTEN' ||
+      tipo === 'DISCIPLINE_SUSPENSION'
+    ) {
+      setDocumentType(tipo);
+    }
+  }, [searchParams]);
 
   // Selected employee
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>(
@@ -411,6 +427,30 @@ export function DisciplineDocumentPage(): React.JSX.Element {
     }
   };
 
+  const pageTitle =
+    documentType === 'DISCIPLINE_SUSPENSION'
+      ? 'Aplicação de Suspensão Disciplinar'
+      : documentType === 'DISCIPLINE_WRITTEN'
+        ? 'Aplicação de Advertência Escrita'
+        : 'Registro de Advertência Verbal';
+
+  const pageSubtitle =
+    documentType === 'DISCIPLINE_SUSPENSION'
+      ? 'Emissão formal de suspensão disciplinar com afastamento temporário (Art. 474 da CLT).'
+      : documentType === 'DISCIPLINE_WRITTEN'
+        ? 'Notificação formal de advertência escrita para infrações reincidentes ou moderadas.'
+        : 'Registro comprobatório de advertência verbal aplicada em diálogo com o colaborador.';
+
+  const handleSelectType = (
+    type: 'DISCIPLINE_VERBAL' | 'DISCIPLINE_WRITTEN' | 'DISCIPLINE_SUSPENSION',
+  ): void => {
+    setDocumentType(type);
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set('tipo', type);
+    setSearchParams(newParams, { replace: true });
+    setFormErrors([]);
+  };
+
   return (
     <div className="space-y-6 pb-12 max-w-6xl mx-auto">
       {/* Top Breadcrumb & Title */}
@@ -418,24 +458,21 @@ export function DisciplineDocumentPage(): React.JSX.Element {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <Link
-              to="/admin/documentos"
+              to="/admin/documentos/gerar"
               className="inline-flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
-              Documentos
+              Modelos de Documentos
             </Link>
             <span className="text-slate-300 dark:text-slate-700">/</span>
             <span className="text-xs font-medium text-slate-800 dark:text-slate-200">
-              Procedimentos Disciplinares
+              Medidas Disciplinares
             </span>
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
-            Procedimento e Medidas Disciplinares
+            {pageTitle}
           </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            Aplicação estruturada de advertências e suspensões com progressão pedagógica, histórico
-            auditado e isolamento documental.
-          </p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{pageSubtitle}</p>
         </div>
       </div>
 
@@ -451,7 +488,7 @@ export function DisciplineDocumentPage(): React.JSX.Element {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <button
                 type="button"
-                onClick={() => setDocumentType('DISCIPLINE_VERBAL')}
+                onClick={() => handleSelectType('DISCIPLINE_VERBAL')}
                 className={`flex flex-col p-3 rounded-lg border text-left transition-all ${
                   documentType === 'DISCIPLINE_VERBAL'
                     ? 'border-blue-600 bg-blue-50/70 dark:bg-blue-950/40 text-blue-950 dark:text-blue-200 ring-2 ring-blue-500/20 shadow-xs'
@@ -469,7 +506,7 @@ export function DisciplineDocumentPage(): React.JSX.Element {
 
               <button
                 type="button"
-                onClick={() => setDocumentType('DISCIPLINE_WRITTEN')}
+                onClick={() => handleSelectType('DISCIPLINE_WRITTEN')}
                 className={`flex flex-col p-3 rounded-lg border text-left transition-all ${
                   documentType === 'DISCIPLINE_WRITTEN'
                     ? 'border-orange-600 bg-orange-50/70 dark:bg-orange-950/40 text-orange-950 dark:text-orange-200 ring-2 ring-orange-500/20 shadow-xs'
@@ -487,7 +524,7 @@ export function DisciplineDocumentPage(): React.JSX.Element {
 
               <button
                 type="button"
-                onClick={() => setDocumentType('DISCIPLINE_SUSPENSION')}
+                onClick={() => handleSelectType('DISCIPLINE_SUSPENSION')}
                 className={`flex flex-col p-3 rounded-lg border text-left transition-all ${
                   documentType === 'DISCIPLINE_SUSPENSION'
                     ? 'border-rose-600 bg-rose-50/70 dark:bg-rose-950/40 text-rose-950 dark:text-rose-200 ring-2 ring-rose-500/20 shadow-xs'

@@ -162,10 +162,10 @@ describe('AcknowledgmentDocumentPage', () => {
     renderWithProviders(<AcknowledgmentDocumentPage />);
 
     expect(
-      await screen.findByRole('heading', { name: /Termos de Ciência de Documentos/i }),
+      await screen.findByRole('heading', { level: 1, name: /Termo de Ciência/i }),
     ).toBeVisible();
     expect(await screen.findByText('Colaboradores Ativos')).toBeVisible();
-    expect(screen.getByText('Termo de Ciência do Regimento Interno')).toBeVisible();
+    expect(screen.getAllByText('Termo de Ciência do Regimento Interno')[0]).toBeVisible();
     expect(screen.getByText('Termo de Ciência da Descrição de Cargo')).toBeVisible();
     const user = userEvent.setup();
     const select = await screen.findByRole('combobox', { name: /Colaborador Ativo/i });

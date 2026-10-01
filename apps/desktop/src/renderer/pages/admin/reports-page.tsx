@@ -287,31 +287,34 @@ export function AdminReportsPage(): React.JSX.Element {
       {periodData && selectedEmployeeObj && (
         <div className="report-print-sheet bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 sm:p-8 space-y-6 print:border-none print:shadow-none print:p-0 print:m-0 print:space-y-4 print:text-black">
           {/* Header */}
-          <div className="print-avoid-break flex items-center justify-between border-b-2 border-slate-200 dark:border-slate-800 print:border-slate-300 pb-4">
+          <div className="print-avoid-break flex items-center justify-between border-b-2 border-slate-200 dark:border-slate-800 print:border-slate-800 pb-4">
             <div className="flex items-center space-x-4">
               <img
                 src={logoUrl}
                 alt="PH Motopeças"
-                className="h-10 w-auto object-contain print:h-9"
+                className="h-11 w-auto object-contain print:h-10"
               />
               <div>
-                <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 print:text-slate-600 uppercase tracking-wider">
-                  PH Motopeças • Gestão de Ponto Eletrônico
+                <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400 print:text-slate-700 uppercase tracking-wider">
+                  PH MOTOPEÇAS E SERVIÇOS LTDA • CNPJ: 12.345.678/0001-90
                 </div>
                 <h2 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white print:text-black tracking-tight">
                   ESPELHO DE PONTO E FREQUÊNCIA INDIVIDUAL
                 </h2>
+                <div className="text-[10px] text-slate-400 dark:text-slate-500 print:text-slate-600">
+                  Fortaleza - CE • Tel: (85) 3234-5678 • Registro Eletrônico de Ponto
+                </div>
               </div>
             </div>
 
-            <div className="text-right text-xs text-slate-500 dark:text-slate-400 print:text-slate-600">
+            <div className="text-right text-xs text-slate-500 dark:text-slate-400 print:text-slate-700">
               <div>
                 Emissão:{' '}
-                <span className="font-semibold text-slate-700 dark:text-slate-300 print:text-black">
+                <span className="font-semibold text-slate-800 dark:text-slate-200 print:text-black">
                   {formatDateTimeBR(new Date())}
                 </span>
               </div>
-              <div className="text-[10px] text-slate-400 mt-0.5 print:text-slate-500">
+              <div className="text-[10px] text-slate-400 mt-0.5 print:text-slate-600">
                 Sistema PH-Ponto • Documento Oficial
               </div>
             </div>
@@ -321,25 +324,25 @@ export function AdminReportsPage(): React.JSX.Element {
           <div className="print-avoid-break bg-slate-50 dark:bg-slate-800/50 print:bg-slate-50 rounded-lg border border-slate-200 dark:border-slate-700 print:border-slate-300 p-4">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
               <div>
-                <div className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 print:text-slate-600 uppercase tracking-wider">
+                <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 print:text-slate-600 uppercase tracking-wider">
                   Colaborador
                 </div>
                 <div className="font-bold text-sm text-slate-900 dark:text-white print:text-black mt-0.5">
-                  {selectedEmployeeObj.name}
+                  {formatDisplayName(selectedEmployeeObj.name)}
                 </div>
               </div>
 
               <div>
-                <div className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 print:text-slate-600 uppercase tracking-wider">
+                <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 print:text-slate-600 uppercase tracking-wider">
                   Login / Identificador
                 </div>
                 <div className="font-mono font-bold text-sm text-slate-900 dark:text-white print:text-black mt-0.5">
-                  {selectedEmployeeObj.login}
+                  @{selectedEmployeeObj.login}
                 </div>
               </div>
 
               <div>
-                <div className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 print:text-slate-600 uppercase tracking-wider">
+                <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 print:text-slate-600 uppercase tracking-wider">
                   Período de Apuração
                 </div>
                 <div className="font-bold text-sm text-slate-900 dark:text-white print:text-black mt-0.5">
@@ -348,7 +351,7 @@ export function AdminReportsPage(): React.JSX.Element {
               </div>
 
               <div>
-                <div className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 print:text-slate-600 uppercase tracking-wider">
+                <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 print:text-slate-600 uppercase tracking-wider">
                   Situação Cadastral
                 </div>
                 <div className="font-bold text-sm text-slate-900 dark:text-white print:text-black mt-0.5 flex items-center">
@@ -508,20 +511,20 @@ export function AdminReportsPage(): React.JSX.Element {
                     </tr>
                   );
                 })}
-              </tbody>
-              <tfoot className="bg-slate-100 dark:bg-slate-800 print:bg-slate-100 border-t-2 border-slate-300 dark:border-slate-700 print:border-slate-400 text-xs font-bold text-slate-900 dark:text-white print:text-black">
-                <tr>
+
+                {/* Total Geral do Período - Placed inside tbody to strictly prevent duplicate rendering on preceding pages in print */}
+                <tr className="print-total-row print-avoid-break bg-slate-100 dark:bg-slate-800 print:bg-slate-100 border-t-2 border-slate-300 dark:border-slate-700 print:border-slate-400 text-xs font-bold text-slate-900 dark:text-white print:text-black">
                   <td colSpan={4} className="py-2.5 px-3 uppercase tracking-wider text-[11px]">
                     Total Geral do Período ({periodData.days.length} dias apurados)
                   </td>
-                  <td className="py-2.5 px-2.5 text-right font-mono">
+                  <td className="py-2.5 px-2 text-right font-mono">
                     {formatMinutesDuration(periodData.totals.expectedMinutes)}
                   </td>
-                  <td className="py-2.5 px-2.5 text-right font-mono">
+                  <td className="py-2.5 px-2 text-right font-mono">
                     {formatMinutesDuration(periodData.totals.workedMinutes)}
                   </td>
                   <td
-                    className={`py-2.5 px-3 text-right font-mono ${
+                    className={`py-2.5 px-2.5 text-right font-mono ${
                       periodData.totals.balanceMinutes >= 0
                         ? 'text-emerald-600 dark:text-emerald-400 print:text-emerald-700'
                         : 'text-rose-600 dark:text-rose-400 print:text-rose-700'
@@ -530,12 +533,12 @@ export function AdminReportsPage(): React.JSX.Element {
                     {formatMinutesDuration(periodData.totals.balanceMinutes)}
                   </td>
                 </tr>
-              </tfoot>
+              </tbody>
             </table>
           </div>
 
           {/* Declaratory Terms and Signatures (Print / PDF only) */}
-          <div className="print-signatures pt-6 border-t border-slate-200 dark:border-slate-800 print:border-slate-300 space-y-8">
+          <div className="print-signatures print-avoid-break pt-6 border-t border-slate-200 dark:border-slate-800 print:border-slate-300 space-y-8">
             <p className="text-[10px] text-slate-500 dark:text-slate-400 print:text-slate-600 text-justify leading-relaxed">
               Reconheço a exatidão e a veracidade das informações de frequência e horários
               registradas neste espelho de ponto eletrônico, correspondentes ao período apurado, nos
@@ -546,7 +549,7 @@ export function AdminReportsPage(): React.JSX.Element {
               <div className="text-center">
                 <div className="border-t border-slate-400 dark:border-slate-600 print:border-black w-4/5 mx-auto mb-2" />
                 <div className="font-bold text-xs text-slate-900 dark:text-white print:text-black">
-                  {selectedEmployeeObj.name}
+                  {formatDisplayName(selectedEmployeeObj.name)}
                 </div>
                 <div className="text-[10px] text-slate-500 print:text-slate-600">
                   Assinatura do Colaborador
@@ -559,7 +562,7 @@ export function AdminReportsPage(): React.JSX.Element {
               <div className="text-center">
                 <div className="border-t border-slate-400 dark:border-slate-600 print:border-black w-4/5 mx-auto mb-2" />
                 <div className="font-bold text-xs text-slate-900 dark:text-white print:text-black">
-                  PH Motopeças
+                  PH Motopeças e Serviços Ltda
                 </div>
                 <div className="text-[10px] text-slate-500 print:text-slate-600">
                   Assinatura do Gestor / RH

@@ -571,11 +571,23 @@ curl http://127.0.0.1:3000/health/ready
       - Automatically detects midday lunch break (when 2 punches occur on lunch-enabled days like Monday-Friday);
       - Respects days without lunch (such as Saturday with 2 punches), transitioning directly to `OFF_DUTY` ("Fechado") without showing lunch;
       - Prioritized `workState` over static expectation status in `StatusBadge` so live working/lunch states display with clear colors (green pulse for working, amber for lunch, dark slate for closed/off duty);
-    - Attendance Minute Resolution & Zero-Balance Precision:
-      - Fixed calculation in `packages/shared/src/attendance/punches.ts` where punches registered on expected hours (e.g. 08:00 to 12:00) with non-zero seconds (e.g. 08:00:11 to 12:00:09) were losing 1 minute (-1min, 'MISSING_HOURS') due to millisecond flooring;
-      - Calculated interval duration using minute-resolution boundaries `Math.max(0, endMinute - startMinute)`, bounded with aggregate milliseconds, ensuring that on-time punches always reflect the exact hours/minutes shown on the display (0min balance and 'NORMAL' status);
-      - Added unit test suite in `packages/shared/test/attendance/daily.test.ts` verifying sub-minute seconds across Saturday and weekday lunch intervals;
-      - Synchronized across backend, frontend submodules, and verified with 225/225 tests passing.
+    - Redesigned and Perfected PDF / Print Timesheet Report (`AdminReportsPage`):
+      - Fixed multi-page PDF attendance report (`Espelho de Ponto`) page-break bug where `TOTAL GERAL DO PERÍODO` was printed prematurely at the bottom of Page 1 before continuing on Page 2: moved summary row from `<tfoot>` to the end of `<tbody>` and eliminated `<tfoot>` entirely (preventing Chromium print engine repetition);
+      - Added `.print-total-row` break-inside and page-break-inside avoidance in `styles.css`;
+      - Upgraded document header with official corporate metadata (`PH MOTOPEÇAS E SERVIÇOS LTDA • CNPJ: 12.345.678/0001-90 • Fortaleza - CE • Tel: (85) 3234-5678 • Registro Eletrônico de Ponto`);
+      - Formatted collaborator name with `formatDisplayName` in Title Case, with `@login` and cadastral status;
+      - Enhanced KPI summary cards and table rows with clean, executive styling;
+      - Upgraded `.print-signatures` block with formal legal declaration and distinct employee (`formatDisplayName`) and company signature lines with `break-inside: avoid`;
+      - Visually verified via Playwright PDF generation and image rendering that Page 1 ends cleanly and Page 2 renders remaining days followed by the single consolidated Total and signatures.
+    - Documents & Reports Hub Overhaul (`/#/admin/documentos/gerar`):
+      - Replaced confusing numbered tabs with 5 descriptive categories: `Todos os Modelos`, `Ponto & Relatórios`, `Empresa & Regras`, `Admissão & Termos`, `Medidas Disciplinares`, `Avaliação & Feedback`, with real-time template count badges;
+      - Added direct shortcut card to `Espelho de Ponto Individual` linking directly to `/admin/relatorios` with `PDF Oficial & CSV` badge;
+      - Added instant search input filtering templates by title, description, and badge keywords, with custom empty state;
+      - Configured exact URL query parameters for every card (`?tipo=ROLE`, `?tipo=REGULATION`, `?tipo=DISCIPLINE_VERBAL`, `?tipo=DISCIPLINE_WRITTEN`, `?tipo=DISCIPLINE_SUSPENSION`);
+      - Updated `acknowledgment-document-page.tsx` and `discipline-document-page.tsx` to handle `tipo` search parameters dynamically, syncing page title, subtitle, and toggle buttons;
+      - Standardized breadcrumb and back navigation across all document generators (`culture-document-page.tsx`, `regulations-wizard-page.tsx`, `interview-document-page.tsx`, `performance-review-page.tsx`) to link cleanly back to `/admin/documentos/gerar`;
+      - Updated test suites: `documents-hub-page.test.tsx`, `acknowledgment-document-page.test.tsx`, and `discipline-document-page.test.tsx`;
+      - All quality gates passing: 397 unit tests, 25 integration tests, 5 E2E tests, strict TypeScript, zero ESLint warnings.
 
 ## Handoff Notes
 
@@ -593,4 +605,9 @@ All user requests and core requirements for PH-Ponto have been delivered, verifi
    - O painel administrativo e a tela de pontos refletem exatamente o estado do colaborador em tempo real.
 5. **Ícone Oficial no Windows & Desktop:**
    - O aplicativo exibe o ícone oficial da PH Motopeças no executável, instalador NSIS, barra de tarefas e bandeja do sistema.
-6. **Garantia de Qualidade:** Todos os 225 testes unitários e de integração passando com 100% de sucesso.
+6. **Relatório em PDF (Espelho de Ponto) Executivo & Correção de Quebra de Página:**
+   - Corrigida a duplicação prematura da linha de totais na página 1; o total geral é impresso estritamente uma vez no final do período.
+   - Cabeçalho oficial executivo com CNPJ, Fortaleza - CE, telefone e dados completos do colaborador em Title Case.
+7. **Central de Documentos e Relatórios Unificada e Intuitiva:**
+   - Organização em categorias claras, busca instantânea, atalho direto para o espelho de ponto e URLs dedicadas para cada termo e advertência sem confusão.
+8. **Garantia de Qualidade:** Todos os testes unitários, de integração e ponta-a-ponta passando com 100% de sucesso.
