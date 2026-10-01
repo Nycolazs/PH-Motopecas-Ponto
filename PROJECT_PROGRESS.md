@@ -10,9 +10,35 @@ COMPLETED — HR evolution in active local development on `feat/hr-evolution`. P
 
 ## Last Updated
 
-2026-09-30 America/Sao_Paulo
+2026-10-01 America/Sao_Paulo
 
 ## Active HR Implementation
+
+- **Executive Strategic Dashboard Redesign: Início & Metas (2026-10-01)**:
+  - Redesigned and transformed the former setup onboarding checklist ("Progresso de Implantação 83%") in `apps/desktop/src/renderer/pages/admin/setup-dashboard-page.tsx` into a high-value Strategic Command, Business & Collaborator Goals Dashboard for PH Motopeças per user request.
+  - **Business Identity & Header**:
+    - Replaced onboarding progress bar with an executive header featuring dynamic greeting (`Bom dia, Administrador! Bem-vindo ao painel do PH Motopeças`), live operation pulse beacon, corporate cadastral chips (`PH MOTOPECAS E SERVICOS LTDA • CNPJ 12.345.678/0001-90`), localized date (`Quinta-feira, 01 de outubro de 2026`), and total headcount badge.
+  - **Top Executive KPI Cards**:
+    - **Quadro de Equipe**: 13 colaboradores ativos, contagem de cargos formais, link direto para `/admin/funcionarios`.
+    - **Presença Hoje**: taxa percentual de assiduidade em tempo real, colaboradores em jornada agora, link para `/admin/gestao`.
+    - **Saúde Operacional**: índice de regularidade 100%, solicitações pendentes e dias com batida ímpar, link para `/admin/solicitacoes`.
+    - **Conformidade CLT**: taxa de termos assinados da equipe ativa, respaldo legal da oficina e loja, link para `/admin/documentos/gerar`.
+  - **Metas & Indicadores Estratégicos de Gestão**:
+    - **Meta 1: Pontualidade & Assiduidade**: Alvo 95%, visualizando a presença da equipe no início do expediente.
+    - **Meta 2: Regularidade de Registros**: Alvo 100%, acompanhando ausência de pendências e espelhos ímpares.
+    - **Meta 3: Cobertura Documental CLT**: Alvo 100%, acompanhamento de termos de ciência do Regimento Interno.
+    - **Meta 4: Desenvolvimento & Feedback**: Ciclo semestral de avaliações de desempenho dos mecânicos e atendentes.
+  - **Estrutura Organizacional & Planejamento de Equipe (Grid 2 Colunas)**:
+    - **Estrutura do Negócio**: Agrupamento por departamentos reais da PH Motopeças (Comercial e Balcão, Gestão Geral, Oficina Mecânica) com contagem de funções e link para `/admin/cargos`.
+    - **Planejamento de Escalas & Férias**: Integração ao vivo com `api.getVacations()` exibindo colaboradores de férias programadas (período em formato BR, dias de descanso) para garantia de cobertura no balcão e oficina.
+  - **Ações Rápidas & Pulso da Equipe**:
+    - Atalhos diretos para Painel Operacional, Gerar Documento, Ajustes de Ponto e Relatórios & Espelho.
+    - Feed com os últimos registros de ponto em tempo real com nomes formatados em Title Case (`formatDisplayName`), hora de registro e origem.
+  - **Verification & QA Gates**:
+    - `pnpm check`: PASSED (ESLint clean, Prettier clean, TypeScript strict 100% clean, 389 unit tests passed, production builds passed).
+    - `pnpm test:integration`: PASSED (25/25 PostgreSQL integration tests passed).
+    - `pnpm test:e2e`: PASSED (5/5 Playwright tests passed).
+    - Visual inspection verified via high-fidelity screenshots (`01_inicio_e_metas_topo.png` and `02_inicio_e_metas_base.png`).
 
 - **Full Quality Gate Loop, Vulnerability Resolution & Electron Auto-Updater Hardening (2026-09-30 / 2026-10-01)**:
   - **Security Audit & High Vulnerability Zero-Tolerance Gate**:

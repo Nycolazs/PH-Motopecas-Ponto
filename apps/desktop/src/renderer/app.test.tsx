@@ -111,8 +111,39 @@ describe('PH-Ponto employee application', () => {
           }),
         );
       }
-      if (url.includes('/attendance/incomplete-days')) {
-        return Promise.resolve(jsonResponse({ totalIncompleteDays: 0, items: [] }));
+      if (url.includes('/attendance/incomplete-days') || url.includes('/attendance/incompletes')) {
+        return Promise.resolve(
+          jsonResponse({
+            month: '2026-10',
+            totalIncompleteDays: 0,
+            totalAffectedEmployees: 0,
+            items: [],
+          }),
+        );
+      }
+      if (url.includes('/job-roles')) {
+        return Promise.resolve(jsonResponse([]));
+      }
+      if (url.includes('/acknowledgments/status')) {
+        return Promise.resolve(
+          jsonResponse({
+            totalActiveEmployees: 0,
+            regulationAcknowledgedCount: 0,
+            roleAcknowledgedCount: 0,
+            isFullyCompliant: true,
+          }),
+        );
+      }
+      if (url.includes('/vacations')) {
+        return Promise.resolve(
+          jsonResponse({
+            items: [],
+            pagination: { page: 1, limit: 10, total: 0, totalPages: 1 },
+          }),
+        );
+      }
+      if (url.includes('/performance/reviews')) {
+        return Promise.resolve(jsonResponse([]));
       }
       throw new Error(`Unexpected request: ${url}`);
     });
@@ -120,7 +151,8 @@ describe('PH-Ponto employee application', () => {
 
     render(<App />);
 
-    expect(await screen.findByRole('heading', { name: 'Progresso de Implantação' })).toBeVisible();
+    expect(await screen.findByText(/Painel Executivo & Metas/i)).toBeVisible();
+    expect(screen.getByText('Metas & Indicadores de Gestão')).toBeVisible();
     expect(screen.getByText('Ana Admin')).toBeVisible();
     expect(screen.queryByRole('button', { name: 'Bater ponto' })).not.toBeInTheDocument();
   });

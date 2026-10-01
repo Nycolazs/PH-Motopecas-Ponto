@@ -22,22 +22,10 @@ import { AvatarImage } from '../../components/avatar-image.js';
 import { DateInput } from '../../components/date-input.js';
 import { ManualPunchModal } from '../../components/manual-punch-modal.js';
 import { StatusBadge } from '../../components/status-badge.js';
-import { formatDateBR } from '../../lib/format.js';
+import { formatDateBR, formatDisplayName } from '../../lib/format.js';
 import { formatMinutesDuration } from '@ph-ponto/shared';
 
-export function formatDisplayName(rawName: string): string {
-  if (!rawName) return '';
-  const lowerPrepositions = new Set(['de', 'da', 'do', 'das', 'dos', 'e']);
-  return rawName
-    .trim()
-    .toLowerCase()
-    .split(/\s+/)
-    .map((word, idx) => {
-      if (idx > 0 && lowerPrepositions.has(word)) return word;
-      return word.charAt(0).toUpperCase() + word.slice(1);
-    })
-    .join(' ');
-}
+export { formatDisplayName };
 
 function formatTime(isoString?: string | null): string {
   if (!isoString) return '--:--';

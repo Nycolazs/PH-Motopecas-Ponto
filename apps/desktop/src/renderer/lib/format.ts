@@ -108,3 +108,17 @@ export function getWeekdayShortBR(businessDateStr: string): string {
   }
   return '';
 }
+
+export function formatDisplayName(rawName: string): string {
+  if (!rawName) return '';
+  const lowerPrepositions = new Set(['de', 'da', 'do', 'das', 'dos', 'e']);
+  return rawName
+    .trim()
+    .toLowerCase()
+    .split(/\s+/)
+    .map((word, idx) => {
+      if (idx > 0 && lowerPrepositions.has(word)) return word;
+      return word.charAt(0).toUpperCase() + word.slice(1);
+    })
+    .join(' ');
+}

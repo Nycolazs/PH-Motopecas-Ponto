@@ -165,16 +165,48 @@ test('admin logs in, views operational dashboard and navigates admin modules', a
         body: JSON.stringify({
           id: 'c0000000-0000-4000-8000-000000000001',
           tradeName: 'PH Motopeças',
-          corporateName: 'PH Motopeças Ltda',
-          cnpj: '12.345.678/0001-90',
-          address: 'Rua Exemplo, 123',
-          city: 'São Paulo',
-          state: 'SP',
-          zipCode: '01000-000',
+          legalName: 'PH Motopeças Ltda',
+          cnpj: '12345678000190',
           phone: '(11) 99999-9999',
           email: 'contato@phmotos.com.br',
+          createdAt: '2026-08-01T10:00:00.000Z',
+          updatedAt: '2026-08-01T10:00:00.000Z',
         }),
       });
+      return;
+    }
+
+    if (url.pathname === '/job-roles') {
+      await route.fulfill({ contentType: 'application/json', body: JSON.stringify([]) });
+      return;
+    }
+
+    if (url.pathname === '/acknowledgments/status') {
+      await route.fulfill({
+        contentType: 'application/json',
+        body: JSON.stringify({
+          totalActiveEmployees: 5,
+          regulationAcknowledgedCount: 5,
+          roleAcknowledgedCount: 5,
+          isFullyCompliant: true,
+        }),
+      });
+      return;
+    }
+
+    if (url.pathname === '/vacations') {
+      await route.fulfill({
+        contentType: 'application/json',
+        body: JSON.stringify({
+          items: [],
+          pagination: { page: 1, limit: 10, total: 0, totalPages: 1 },
+        }),
+      });
+      return;
+    }
+
+    if (url.pathname === '/performance/reviews') {
+      await route.fulfill({ contentType: 'application/json', body: JSON.stringify([]) });
       return;
     }
 
@@ -228,7 +260,7 @@ test('admin logs in, views operational dashboard and navigates admin modules', a
   await expect(page.getByRole('heading', { name: /Bem-vindo ao painel/i })).toBeVisible();
 
   // Navigate to Operational Dashboard
-  await page.getByRole('link', { name: 'Painel Operacional' }).click();
+  await page.getByRole('link', { name: 'Painel Operacional', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Painel Operacional' })).toBeVisible();
 
   // Check metric card and table
