@@ -7,6 +7,21 @@ import type { ApiAuthResponse } from '../../main/auth-contract.js';
 
 const STORAGE_KEY = 'ph_ponto_admin_web_refresh_token';
 
+function isLocalOrDevEnvironment(): boolean {
+  if (typeof import.meta !== 'undefined' && import.meta.env?.DEV) return true;
+  if (typeof window !== 'undefined' && window.location?.hostname) {
+    const hostname = window.location.hostname;
+    return (
+      hostname === 'localhost' ||
+      hostname === '127.0.0.1' ||
+      hostname === '0.0.0.0' ||
+      hostname.endsWith('.local') ||
+      /^(\d{1,3}\.){3}\d{1,3}$/.test(hostname)
+    );
+  }
+  return false;
+}
+
 function getApiBaseUrl(): string {
   if (
     typeof import.meta.env.VITE_API_BASE_URL === 'string' &&
@@ -21,6 +36,7 @@ function getApiBaseUrl(): string {
       hostname === 'localhost' ||
       hostname === '127.0.0.1' ||
       hostname === '0.0.0.0' ||
+      hostname.endsWith('.local') ||
       /^(\d{1,3}\.){3}\d{1,3}$/.test(hostname)
     ) {
       return `${protocol}//${hostname}:3000`;
@@ -71,22 +87,26 @@ export class WebAuthBridge {
       body: JSON.stringify({
         login: input.login.trim(),
         password: input.password,
-        deviceName: 'Navegador Web (Admin)',
+        deviceName: 'Navegador Web',
       }),
     });
 
     const data = await handleApiResponse(response);
 
-    // Rule: Web interface is ADMIN ONLY.
-    if (data.user.role === 'EMPLOYEE') {
+    // In production web, restrict employees to the official Desktop client
+    if (data.user.role === 'EMPLOYEE' && !isLocalOrDevEnvironment()) {
       throw new Error(
         'Acesso restrito: Funcionários devem utilizar o aplicativo Desktop para bater ponto e acessar o histórico.',
       );
     }
 
-    // Admin sessions are persisted across browser sessions
+    // Persist refresh token (localStorage for admins, sessionStorage for employees in local web)
     try {
-      localStorage.setItem(STORAGE_KEY, data.refreshToken);
+      if (data.user.role === 'ADMIN') {
+        localStorage.setItem(STORAGE_KEY, data.refreshToken);
+      } else {
+        sessionStorage.setItem(STORAGE_KEY, data.refreshToken);
+      }
     } catch {
       // Ignore storage errors
     }
@@ -134,7 +154,7 @@ export class WebAuthBridge {
 
     const data = await handleApiResponse(response);
 
-    if (data.user.role === 'EMPLOYEE') {
+    if (data.user.role === 'EMPLOYEE' && !isLocalOrDevEnvironment()) {
       this.clearStoredRefreshToken();
       throw new Error(
         'Acesso restrito: Funcionários devem utilizar o aplicativo Desktop para bater ponto.',
@@ -183,7 +203,7 @@ export class WebAuthBridge {
 
   private getStoredRefreshToken(): string | null {
     try {
-      return localStorage.getItem(STORAGE_KEY);
+      return localStorage.getItem(STORAGE_KEY) || sessionStorage.getItem(STORAGE_KEY);
     } catch {
       return null;
     }
@@ -191,7 +211,11 @@ export class WebAuthBridge {
 
   private setStoredRefreshToken(token: string): void {
     try {
-      localStorage.setItem(STORAGE_KEY, token);
+      if (localStorage.getItem(STORAGE_KEY)) {
+        localStorage.setItem(STORAGE_KEY, token);
+      } else {
+        sessionStorage.setItem(STORAGE_KEY, token);
+      }
     } catch {
       // Ignore
     }
@@ -200,6 +224,7 @@ export class WebAuthBridge {
   private clearStoredRefreshToken(): void {
     try {
       localStorage.removeItem(STORAGE_KEY);
+      sessionStorage.removeItem(STORAGE_KEY);
     } catch {
       // Ignore
     }

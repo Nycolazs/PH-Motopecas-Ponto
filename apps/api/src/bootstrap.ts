@@ -6,13 +6,14 @@ import { PRODUCT_NAME } from '@ph-ponto/shared';
 import helmet from 'helmet';
 
 import type { EnvironmentVariables } from './config/environment.js';
-import { webAllowedOrigins } from './config/allowed-origins.js';
+import { isLocalOrPrivateNetworkOrigin, webAllowedOrigins } from './config/allowed-origins.js';
 import { ApiExceptionFilter } from './http/api-exception.filter.js';
 import { createValidationPipe } from './http/validation.js';
 
 export function configureApplication(app: NestExpressApplication): void {
   const config = app.get(ConfigService<EnvironmentVariables, true>);
   const allowedOrigins = new Set(['ph-ponto://app', ...webAllowedOrigins(config)]);
+  const isDev = config.get('NODE_ENV', { infer: true }) !== 'production';
 
   app.set('trust proxy', config.get('TRUST_PROXY_COUNT', { infer: true }));
   app.useBodyParser('json', { limit: '10mb' });
@@ -31,7 +32,11 @@ export function configureApplication(app: NestExpressApplication): void {
     exposedHeaders: ['Idempotency-Replayed', 'X-Request-Id'],
     maxAge: 600,
     origin: (origin, callback) => {
-      if (origin === undefined || allowedOrigins.has(origin)) {
+      if (
+        origin === undefined ||
+        allowedOrigins.has(origin) ||
+        (isDev && isLocalOrPrivateNetworkOrigin(origin))
+      ) {
         callback(null, true);
         return;
       }

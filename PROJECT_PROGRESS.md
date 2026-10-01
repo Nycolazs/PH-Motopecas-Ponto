@@ -14,6 +14,21 @@ COMPLETED — HR evolution in active local development on `feat/hr-evolution`. P
 
 ## Active HR Implementation
 
+- **LAN Access & Textarea Form Ergonomics (2026-10-01)**:
+  - **Local Area Network (LAN) IP Access & Dynamic CORS Support**:
+    - Resolved CORS preflight (`CORS_ORIGIN_FORBIDDEN` 403) and cross-origin authentication barriers when accessing PH-Ponto from other devices across the local network via host IP (e.g. `http://192.168.0.16:5173`).
+    - Implemented `isLocalOrPrivateNetworkOrigin(originStr)` in `apps/api/src/config/allowed-origins.ts` with unit tests (`apps/api/src/config/allowed-origins.spec.ts`), validating RFC 1918 IPv4 private networks (`10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`), loopbacks (`localhost`, `127.0.0.1`, `[::1]`), and `.local` mDNS hostnames.
+    - Updated NestJS CORS origin middleware in `apps/api/src/bootstrap.ts` to dynamically accept private network origins in non-production environments (`NODE_ENV !== 'production'`).
+    - Configured Vite dev server in `apps/desktop/vite.config.ts` to listen on all interfaces (`server.host: '0.0.0.0'`).
+    - Updated web authentication bridge in `apps/desktop/src/renderer/auth/web-auth.ts` and `apps/desktop/src/renderer/api/client.ts` to detect LAN hostnames, route API calls cleanly to `${protocol}//${hostname}:3000`, permit employee development logins on local networks, and store employee tokens in `sessionStorage` (preserving AGENTS.md rule against employee tokens in `localStorage`).
+    - Verified cross-network login via curl preflight/login and Playwright headless browser navigation to `http://192.168.0.16:5173`.
+  - **Textarea Ergonomics & Sizing on Disciplinary Documents Hub (`apps/desktop/src/renderer/pages/admin/discipline-document-page.tsx`)**:
+    - Decoupled `Advertência de Demissão por Justa Causa` from restrictive 50% grid constraint into a full-width container.
+    - Increased textareas row count to 4-5 rows, added generous min-heights (`min-h-[105px]`, `min-h-[130px]`), larger padding (`p-3.5 sm:p-4`), comfortable typography (`text-sm leading-relaxed`), and enabled vertical resizing (`resize-y`).
+    - Added contextual helper labels and legal guidance badges for drafting clearer disciplinary and termination warnings.
+  - **Quality Gates Verification**:
+    - `pnpm check`: PASSED (100% Prettier clean, 0 ESLint warnings, TypeScript strict clean across monorepo, 400 unit tests passed, all production packages built).
+
 - **Design System Polish: Dropdowns Standardization, Fortaleza Headquarters & Collaborator Greeting Scale (2026-10-01)**:
   - **Standardized Dropdowns Across Entire Application (`SelectInput`)**:
     - Replaced all 15 native `<select>` tags across 7 admin pages with the custom, dark/light theme aware `SelectInput` component (`apps/desktop/src/renderer/components/select-input.tsx`).
