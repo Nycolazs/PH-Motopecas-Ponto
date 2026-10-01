@@ -3,13 +3,16 @@ import { useQuery } from '@tanstack/react-query';
 import {
   AlertCircle,
   CheckCircle2,
+  ChevronRight,
   Clock,
   ExternalLink,
   Plus,
   RefreshCw,
+  Search,
   UserCheck,
   UserX,
   Users,
+  X,
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -22,11 +25,27 @@ import { StatusBadge } from '../../components/status-badge.js';
 import { formatDateBR } from '../../lib/format.js';
 import { formatMinutesDuration } from '@ph-ponto/shared';
 
+export function formatDisplayName(rawName: string): string {
+  if (!rawName) return '';
+  const lowerPrepositions = new Set(['de', 'da', 'do', 'das', 'dos', 'e']);
+  return rawName
+    .trim()
+    .toLowerCase()
+    .split(/\s+/)
+    .map((word, idx) => {
+      if (idx > 0 && lowerPrepositions.has(word)) return word;
+      return word.charAt(0).toUpperCase() + word.slice(1);
+    })
+    .join(' ');
+}
+
 function formatTime(isoString?: string | null): string {
   if (!isoString) return '--:--';
   const d = new Date(isoString);
   return d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 }
+
+type StatusFilterType = 'ALL' | 'WORKING' | 'LUNCH' | 'NOT_STARTED' | 'INCOMPLETE';
 
 export function AdminDashboardPage(): React.JSX.Element {
   const api = useApiClient();
@@ -39,6 +58,8 @@ export function AdminDashboardPage(): React.JSX.Element {
     return `${year}-${month}-${day}`;
   });
   const [manualPunchOpen, setManualPunchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<StatusFilterType>('ALL');
 
   const {
     data: overview,
@@ -64,6 +85,28 @@ export function AdminDashboardPage(): React.JSX.Element {
   });
 
   const pendingCount = pendingAdjustments?.pendingCount ?? 0;
+
+  const allEmployees = overview?.employees ?? [];
+  const workingCount = allEmployees.filter((e) => e.workState === 'WORKING').length;
+  const lunchCount = allEmployees.filter((e) => e.workState === 'LUNCH').length;
+  const notStartedCount = allEmployees.filter((e) => e.workState === 'NOT_STARTED').length;
+  const incompleteFilterCount = allEmployees.filter((e) => e.status === 'INCOMPLETE').length;
+
+  const filteredEmployees = allEmployees.filter((emp) => {
+    if (statusFilter === 'WORKING' && emp.workState !== 'WORKING') return false;
+    if (statusFilter === 'LUNCH' && emp.workState !== 'LUNCH') return false;
+    if (statusFilter === 'NOT_STARTED' && emp.workState !== 'NOT_STARTED') return false;
+    if (statusFilter === 'INCOMPLETE' && emp.status !== 'INCOMPLETE') return false;
+
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      const nameMatch = emp.name.toLowerCase().includes(query);
+      const loginMatch = emp.login.toLowerCase().includes(query);
+      if (!nameMatch && !loginMatch) return false;
+    }
+
+    return true;
+  });
 
   return (
     <div className="space-y-6">
@@ -202,116 +245,309 @@ export function AdminDashboardPage(): React.JSX.Element {
           </div>
 
           {/* Main Content Grid: Employee Status Table + Recent Activity */}
-          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_280px] 2xl:grid-cols-[minmax(0,1fr)_320px] gap-6">
             {/* Employee Daily Attendance Table */}
-            <div className="xl:col-span-2 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-xs">
-              <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
-                <div>
-                  <h2 className="text-base font-bold text-slate-900 dark:text-white">
-                    Quadro de Frequência do Dia
-                  </h2>
-                  <p className="text-xs text-slate-500">
-                    Status e saldo de horas de cada colaborador em {selectedDate}
-                  </p>
-                </div>
-                <Link
-                  to="/admin/funcionarios"
-                  className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline flex items-center"
-                >
-                  Gerenciar equipe <ExternalLink className="w-3 h-3 ml-1" />
-                </Link>
-              </div>
+            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-xs flex flex-col justify-between">
+              <div>
+                <div className="px-4 py-3.5 border-b border-slate-200 dark:border-slate-800 space-y-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-base font-bold text-slate-900 dark:text-white">
+                        Quadro de Frequência do Dia
+                      </h2>
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                        {allEmployees.length} colaboradores
+                      </span>
+                    </div>
+                    <Link
+                      to="/admin/funcionarios"
+                      className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 inline-flex items-center transition-colors"
+                    >
+                      Gerenciar equipe <ExternalLink className="w-3.5 h-3.5 ml-1" />
+                    </Link>
+                  </div>
 
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm">
-                  <thead className="bg-slate-50 dark:bg-slate-800/60 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200 dark:border-slate-800">
-                    <tr>
-                      <th className="py-3 px-4">Colaborador</th>
-                      <th className="py-3 px-3">Status</th>
-                      <th className="py-3 px-3">Trabalhado</th>
-                      <th className="py-3 px-3">Saldo</th>
-                      <th className="py-3 px-3">Última Batida</th>
-                      <th className="py-3 px-4 text-right">Ação</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
-                    {overview.employees.length === 0 && (
-                      <tr>
-                        <td colSpan={6} className="py-8 text-center text-slate-500 text-sm">
-                          Nenhum colaborador ativo cadastrado.
-                        </td>
-                      </tr>
-                    )}
-                    {overview.employees.map((emp: EmployeeTodayStatus) => {
-                      const balanceFormatted =
-                        emp.balanceMinutes !== null
-                          ? formatMinutesDuration(emp.balanceMinutes)
-                          : '--:--';
-                      const balanceClass =
-                        emp.balanceMinutes !== null && emp.balanceMinutes > 0
-                          ? 'text-emerald-600 dark:text-emerald-400 font-bold'
-                          : emp.balanceMinutes !== null && emp.balanceMinutes < 0
-                            ? 'text-rose-600 dark:text-rose-400 font-bold'
-                            : 'text-slate-600 dark:text-slate-400';
-
-                      return (
-                        <tr
-                          key={emp.id}
-                          className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors"
-                        >
-                          <td className="py-3 px-4">
-                            <div className="flex items-center space-x-3">
-                              <AvatarImage
-                                userId={emp.id}
-                                name={emp.name}
-                                hasAvatar={emp.hasAvatar}
-                                size="sm"
-                              />
-                              <div>
-                                <div className="font-semibold text-slate-900 dark:text-white">
-                                  {emp.name}
-                                </div>
-                                <div className="text-xs text-slate-500">{emp.login}</div>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="py-3 px-3">
-                            <StatusBadge status={emp.status} workState={emp.workState} />
-                          </td>
-                          <td className="py-3 px-3 font-mono text-xs font-medium text-slate-800 dark:text-slate-200">
-                            {formatMinutesDuration(emp.workedMinutes)} /{' '}
-                            {formatMinutesDuration(emp.expectedMinutes)}
-                          </td>
-                          <td className={`py-3 px-3 font-mono text-xs ${balanceClass}`}>
-                            {balanceFormatted}
-                          </td>
-                          <td className="py-3 px-3 text-xs text-slate-600 dark:text-slate-400 font-mono">
-                            {emp.lastPunchAt ? (
-                              <span>
-                                {formatTime(emp.lastPunchAt)}{' '}
-                                <span className="text-[10px] text-slate-500">
-                                  ({emp.lastPunchKind === 'CLOCK_IN' ? 'Entrada' : 'Saída'})
-                                </span>
-                              </span>
-                            ) : (
-                              '--:--'
-                            )}
-                          </td>
-                          <td className="py-3 px-4 text-right">
-                            <button
-                              type="button"
-                              onClick={() => navigate(`/admin/funcionarios/${emp.id}`)}
-                              className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
+                  {/* Search Bar + Quick Filter Tabs */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    {/* Quick Filter Tabs */}
+                    <div className="flex items-center gap-1 overflow-x-auto pb-0.5 scrollbar-none text-xs">
+                      {[
+                        { id: 'ALL' as const, label: 'Todos', count: allEmployees.length },
+                        { id: 'WORKING' as const, label: 'Em jornada', count: workingCount },
+                        { id: 'LUNCH' as const, label: 'Almoço', count: lunchCount },
+                        {
+                          id: 'NOT_STARTED' as const,
+                          label: 'Não iniciados',
+                          count: notStartedCount,
+                        },
+                        ...(incompleteFilterCount > 0
+                          ? [
+                              {
+                                id: 'INCOMPLETE' as const,
+                                label: 'Incompletos',
+                                count: incompleteFilterCount,
+                              },
+                            ]
+                          : []),
+                      ].map((tab) => {
+                        const isActive = statusFilter === tab.id;
+                        return (
+                          <button
+                            key={tab.id}
+                            type="button"
+                            onClick={() => setStatusFilter(tab.id)}
+                            className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
+                              isActive
+                                ? 'bg-blue-600 text-white shadow-xs'
+                                : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white'
+                            }`}
+                          >
+                            <span>{tab.label}</span>
+                            <span
+                              className={`text-[10px] px-1.5 py-0.2 rounded-full font-semibold ${
+                                isActive
+                                  ? 'bg-white/20 text-white'
+                                  : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
+                              }`}
                             >
-                              Ver Histórico
-                            </button>
+                              {tab.count}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Search Input */}
+                    <div className="relative w-full sm:w-44 lg:w-48 shrink-0">
+                      <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="Buscar colaborador..."
+                        className="w-full pl-8 pr-7 py-1 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 focus:outline-hidden focus:ring-1 focus:ring-blue-500 transition-colors"
+                      />
+                      {searchQuery && (
+                        <button
+                          type="button"
+                          onClick={() => setSearchQuery('')}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                          title="Limpar busca"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-sm">
+                    <thead className="bg-slate-50/80 dark:bg-slate-800/60 text-[11px] font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200 dark:border-slate-800">
+                      <tr>
+                        <th className="py-2.5 pl-4 pr-2 text-left">Colaborador</th>
+                        <th className="py-2.5 px-2 text-left">Status</th>
+                        <th className="py-2.5 px-2 text-left">Jornada</th>
+                        <th className="py-2.5 px-2 text-center">Saldo</th>
+                        <th className="py-2.5 px-2 text-center">Última Batida</th>
+                        <th className="py-2.5 pl-2 pr-4 text-right">Ação</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
+                      {allEmployees.length === 0 && (
+                        <tr>
+                          <td colSpan={6} className="py-12 text-center text-slate-500 text-sm">
+                            Nenhum colaborador ativo cadastrado.
                           </td>
                         </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                      )}
+                      {allEmployees.length > 0 && filteredEmployees.length === 0 && (
+                        <tr>
+                          <td colSpan={6} className="py-12 text-center">
+                            <div className="max-w-xs mx-auto space-y-2">
+                              <Users className="w-8 h-8 text-slate-300 dark:text-slate-600 mx-auto" />
+                              <p className="text-sm font-semibold text-slate-900 dark:text-white">
+                                Nenhum colaborador encontrado
+                              </p>
+                              <p className="text-xs text-slate-500">
+                                Não há colaboradores correspondentes aos critérios de busca ou
+                                filtro selecionados.
+                              </p>
+                              {(searchQuery || statusFilter !== 'ALL') && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setSearchQuery('');
+                                    setStatusFilter('ALL');
+                                  }}
+                                  className="mt-2 text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+                                >
+                                  Limpar filtros
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                      {filteredEmployees.map((emp: EmployeeTodayStatus) => {
+                        const percent =
+                          emp.expectedMinutes > 0
+                            ? Math.min(
+                                100,
+                                Math.round((emp.workedMinutes / emp.expectedMinutes) * 100),
+                              )
+                            : 0;
+
+                        let balanceContent: React.ReactNode = (
+                          <span className="text-slate-400 dark:text-slate-500 font-mono text-xs">
+                            —
+                          </span>
+                        );
+                        if (emp.balanceMinutes !== null && emp.balanceMinutes > 0) {
+                          balanceContent = (
+                            <span className="inline-flex items-center px-1.5 py-0.5 rounded-md font-mono text-xs font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60">
+                              +{formatMinutesDuration(emp.balanceMinutes)}
+                            </span>
+                          );
+                        } else if (emp.balanceMinutes !== null && emp.balanceMinutes < 0) {
+                          if (emp.workState === 'NOT_STARTED' || emp.workedMinutes === 0) {
+                            balanceContent = (
+                              <span
+                                className="text-slate-400 dark:text-slate-500 font-mono text-xs"
+                                title={`Previsto: ${formatMinutesDuration(emp.expectedMinutes)}`}
+                              >
+                                —
+                              </span>
+                            );
+                          } else {
+                            balanceContent = (
+                              <span className="inline-flex items-center px-1.5 py-0.5 rounded-md font-mono text-xs font-semibold bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60">
+                                -{formatMinutesDuration(Math.abs(emp.balanceMinutes))}
+                              </span>
+                            );
+                          }
+                        } else if (emp.balanceMinutes === 0 && emp.workedMinutes > 0) {
+                          balanceContent = (
+                            <span className="inline-flex items-center px-1.5 py-0.5 rounded-md font-mono text-xs font-medium bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                              0min
+                            </span>
+                          );
+                        }
+
+                        return (
+                          <tr
+                            key={emp.id}
+                            className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors group"
+                          >
+                            <td className="py-2.5 pl-4 pr-2">
+                              <div className="flex items-center space-x-2.5">
+                                <div className="relative shrink-0">
+                                  <AvatarImage
+                                    userId={emp.id}
+                                    name={emp.name}
+                                    hasAvatar={emp.hasAvatar}
+                                    size="sm"
+                                  />
+                                  {emp.workState === 'WORKING' && (
+                                    <span
+                                      className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-white dark:border-slate-900"
+                                      title="Em jornada agora"
+                                    />
+                                  )}
+                                </div>
+                                <div className="min-w-0">
+                                  <div className="font-semibold text-slate-900 dark:text-white truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors text-xs">
+                                    {formatDisplayName(emp.name)}
+                                  </div>
+                                  <div className="text-[11px] text-slate-500 truncate font-mono">
+                                    @{emp.login}
+                                  </div>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="py-2.5 px-2 whitespace-nowrap">
+                              <StatusBadge status={emp.status} workState={emp.workState} />
+                            </td>
+                            <td className="py-2.5 px-2 whitespace-nowrap">
+                              <div className="font-mono text-xs font-medium text-slate-900 dark:text-slate-100 flex items-center gap-1">
+                                <span>{formatMinutesDuration(emp.workedMinutes)}</span>
+                                <span className="text-slate-400 font-sans text-[11px]">
+                                  de {formatMinutesDuration(emp.expectedMinutes)}
+                                </span>
+                              </div>
+                              <div className="w-16 h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden mt-1">
+                                <div
+                                  className={`h-full rounded-full transition-all duration-500 ${
+                                    percent >= 100
+                                      ? 'bg-emerald-500'
+                                      : emp.workState === 'WORKING'
+                                        ? 'bg-blue-500'
+                                        : percent > 0
+                                          ? 'bg-slate-400 dark:bg-slate-500'
+                                          : 'bg-transparent'
+                                  }`}
+                                  style={{ width: `${percent}%` }}
+                                />
+                              </div>
+                            </td>
+                            <td className="py-2.5 px-2 text-center whitespace-nowrap">
+                              {balanceContent}
+                            </td>
+                            <td className="py-2.5 px-2 text-center whitespace-nowrap">
+                              {emp.lastPunchAt ? (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-50 dark:bg-slate-800/70 border border-slate-200/70 dark:border-slate-700/60 font-mono text-xs font-medium text-slate-700 dark:text-slate-300">
+                                  <Clock className="w-3 h-3 text-slate-400 shrink-0" />
+                                  <span>{formatTime(emp.lastPunchAt)}</span>
+                                  <span className="text-[10px] uppercase font-bold text-slate-400">
+                                    ({emp.lastPunchKind === 'CLOCK_IN' ? 'Entr' : 'Saíd'})
+                                  </span>
+                                </span>
+                              ) : (
+                                <span className="text-slate-400 dark:text-slate-500 font-mono text-xs">
+                                  —
+                                </span>
+                              )}
+                            </td>
+                            <td className="py-2.5 pl-2 pr-4 text-right whitespace-nowrap">
+                              <button
+                                type="button"
+                                onClick={() => navigate(`/admin/funcionarios/${emp.id}`)}
+                                className="inline-flex items-center justify-center px-2 py-1 text-xs font-medium text-slate-700 dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40 rounded-lg border border-slate-200 dark:border-slate-700 transition-all shadow-2xs group/btn cursor-pointer"
+                              >
+                                <span>Ver espelho</span>
+                                <ChevronRight className="w-3.5 h-3.5 ml-0.5 text-slate-400 group-hover/btn:text-blue-600 dark:group-hover/btn:text-blue-400 group-hover/btn:translate-x-0.5 transition-transform" />
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               </div>
+
+              {/* Table Footer Summary */}
+              {allEmployees.length > 0 && (
+                <div className="px-5 py-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs text-slate-500">
+                  <span>
+                    Exibindo {filteredEmployees.length} de {allEmployees.length} colaboradores
+                  </span>
+                  <div className="flex items-center gap-3">
+                    <span className="flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                      <span>{workingCount} em jornada</span>
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-amber-500" />
+                      <span>{lunchCount} em almoço</span>
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-slate-400" />
+                      <span>{notStartedCount} não iniciados</span>
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Sidebar Activity: Recent Punches & Adjustments */}
@@ -343,7 +579,7 @@ export function AdminDashboardPage(): React.JSX.Element {
                     >
                       <div>
                         <div className="font-semibold text-slate-900 dark:text-white">
-                          {punch.employeeName}
+                          {formatDisplayName(punch.employeeName)}
                         </div>
                         <div className="text-[11px] text-slate-500">
                           {formatDateBR(punch.effectiveOccurredAt)} às{' '}
@@ -385,7 +621,7 @@ export function AdminDashboardPage(): React.JSX.Element {
                     >
                       <div className="flex items-center justify-between">
                         <span className="font-bold text-slate-900 dark:text-white">
-                          {adj.employeeName}
+                          {formatDisplayName(adj.employeeName)}
                         </span>
                         <span className="text-[10px] text-slate-500">por {adj.adminName}</span>
                       </div>

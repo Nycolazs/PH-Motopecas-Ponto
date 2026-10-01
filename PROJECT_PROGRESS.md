@@ -10,13 +10,38 @@ COMPLETED — HR evolution in active local development on `feat/hr-evolution`. P
 
 ## Last Updated
 
-2026-09-26 America/Sao_Paulo
+2026-09-30 America/Sao_Paulo
 
 ## Active HR Implementation
 
 - User approved the phase-based implementation plan. Refer to `docs/implementation/MASTER_PLAN.md`, `STATUS.md`, `TASKS.md`, `DECISIONS.md`, `HANDOFF.md`, and `TESTING.md`.
 - Single-company ADMIN-only HR; PDF/paper signatures; separate app access and employment; documentary suspensions; explicit manual termination. No production access, deployment, pushes or tags.
 - Authoritative source remains `apps/api`, `apps/desktop`, and `packages/shared`; submodules are not independent implementation targets.
+- **Operational Dashboard Daily Attendance Table Redesign (2026-09-30)**:
+  - Redesigned and elevated the "Quadro de Frequência do Dia" table in `apps/desktop/src/renderer/pages/admin/dashboard-page.tsx` and `apps/desktop/src/renderer/components/status-badge.tsx` per user design feedback.
+  - **Header & Metrics**:
+    - Replaced raw ISO technical date (`2026-09-30`) with human-friendly Brazilian format (`formatDateBR(selectedDate)` -> `30/09/2026`).
+    - Added total active collaborator badge (`13 colaboradores`) in the card header.
+    - Added quick-filter status pill buttons with dynamic badge counts: "Todos", "Em jornada", "Almoço", "Não iniciados", and "Incompletos".
+    - Added instant real-time search box filtering collaborators by name and login handle with one-click clear button.
+  - **Executive Name Normalization**:
+    - Built `formatDisplayName(rawName)` with title-casing and lowercased Portuguese prepositions (`de`, `da`, `do`, `das`, `dos`, `e`), gracefully converting uppercase DB entries (`DIEGO PEREIRA DANTAS` -> `Diego Pereira Dantas`) across the table, recent punches, and recent adjustments.
+    - Rendered usernames as subtle `@handle` identifiers below the employee name.
+  - **Presence & Status Beacon Dots**:
+    - Upgraded `StatusBadge` across the entire application with colored beacon dots (`dotClass`): pulsing green ring for active workers (`WORKING`), amber for lunch (`LUNCH`), clean neutral for off-duty/not-started (`NOT_STARTED`), rose for incomplete (`INCOMPLETE`), and green for active (`ACTIVE`).
+    - Added online indicator badge on employee avatars for workers currently on duty.
+  - **Shift Progress & Time Visualizations**:
+    - Replaced raw text `0min / 8h` with readable `0min de 8h` accompanied by a micro-progress bar displaying completion percentage of the daily shift.
+    - Eliminated broken-looking repetitive `--:--` dashes: unstarted balances and punch times now display a clean, muted em-dash (`—`), positive balances render in emerald badges (`+Xh Ymin`), and debits render in rose badges.
+    - Punch times render with a dedicated clock icon and tag badge (`Entr` / `Saíd`).
+  - **Ergonomics & Action Column**:
+    - Replaced the multi-line plain text link `Ver Histórico` with a polished button `Ver espelho` with hover translation chevron (`ChevronRight`).
+    - Added a live summary footer showing total active count and breakdown of working/lunch/not-started counts.
+    - Restructured the dashboard grid layout to `xl:grid-cols-[minmax(0,1fr)_280px] 2xl:grid-cols-[minmax(0,1fr)_320px]`, guaranteeing zero horizontal scrollbars or clipping at 1366x768 and 1440x900 viewports.
+  - **Verification & QA**:
+    - 100% verified against local live API and cloned PostgreSQL production database.
+    - `pnpm check` passed (ESLint, Prettier, TypeScript strict, 383 unit/integration tests).
+    - 5/5 Playwright E2E tests passed (`test:e2e`).
 - **Admin Sidebar Documentos & RH Streamlining (2026-09-28)**:
   - Removed all 8 individual document sub-items from the sidebar navigation (Gerar Documento, Arquivo Geral, Manual de Cultura, Regimento Interno, Guia de Entrevista, Termos de Ciência, Medidas Disciplinares, Avaliação de Desempenho) per user feedback.
   - Replaced the former accordion group with a single direct "Documentos & RH" module link in `apps/desktop/src/renderer/components/admin-layout.tsx` pointing to `/admin/documentos/gerar`.
