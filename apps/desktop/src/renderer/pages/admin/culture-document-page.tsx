@@ -515,11 +515,11 @@ export function CultureDocumentPage(): React.JSX.Element {
                     </div>
 
                     <textarea
-                      rows={2}
+                      rows={3}
                       value={val.description}
                       onChange={(e) => handleValueChange(idx, 'description', e.target.value)}
                       placeholder="Descreva o que este valor significa na prática cotidiana..."
-                      className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 text-xs text-slate-700 dark:text-slate-300 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                      className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl p-3 text-sm leading-relaxed text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all resize-y min-h-[75px]"
                     />
                   </div>
                 ))}

@@ -637,7 +637,7 @@ export function DisciplineDocumentPage(): React.JSX.Element {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                 Motivo / Resumo do Fato *
               </label>
               <input
@@ -646,25 +646,34 @@ export function DisciplineDocumentPage(): React.JSX.Element {
                 onChange={(e) => setReason(e.target.value)}
                 maxLength={200}
                 placeholder="Ex: Atraso reiterado injustificado no início do expediente"
-                className="w-full text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                className="w-full text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 py-2.5 text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-                Relato Detalhado dos Fatos e Orientações *
-              </label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  Relato Detalhado dos Fatos e Orientações *
+                </label>
+                <span className="text-[11px] text-slate-400 dark:text-slate-500">
+                  Histórico circunstanciado
+                </span>
+              </div>
               <textarea
                 value={details}
                 onChange={(e) => setDetails(e.target.value)}
-                rows={4}
+                rows={5}
                 placeholder="Descreva de forma clara, objetiva e cronológica o fato ocorrido, horários e circunstâncias observadas..."
-                className="w-full text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 p-3 text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                className="w-full text-sm leading-relaxed rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 p-3.5 sm:p-4 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all resize-y min-h-[130px]"
               />
+              <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
+                Relate os acontecimentos em ordem cronológica com datas, locais, testemunhas ou
+                impactos operacionais.
+              </p>
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                 Referência ao Regimento Interno (Cláusula / Artigo)
               </label>
               <input
@@ -672,31 +681,36 @@ export function DisciplineDocumentPage(): React.JSX.Element {
                 value={internalClauseRef}
                 onChange={(e) => setInternalClauseRef(e.target.value)}
                 placeholder="Ex: Artigo 5.1 (Pontualidade) ou Artigo 8 (Uso de Celular)"
-                className="w-full text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                className="w-full text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 py-2.5 text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
               />
             </div>
 
             {/* Verbal-specific */}
             {documentType === 'DISCIPLINE_VERBAL' && (
               <div className="pt-2 border-t border-slate-100 dark:border-slate-800/80">
-                <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-                  Compromisso Assumido pelo Colaborador (Opcional)
-                </label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    Compromisso Assumido pelo Colaborador (Opcional)
+                  </label>
+                  <span className="text-[11px] text-slate-400 dark:text-slate-500">
+                    Plano de alinhamento
+                  </span>
+                </div>
                 <textarea
                   value={commitment}
                   onChange={(e) => setCommitment(e.target.value)}
-                  rows={2}
+                  rows={3}
                   placeholder="Ex: O colaborador comprometeu-se a ajustar seus horários de deslocamento a partir de amanhã..."
-                  className="w-full text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 p-3 text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                  className="w-full text-sm leading-relaxed rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 p-3.5 sm:p-4 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all resize-y min-h-[90px]"
                 />
               </div>
             )}
 
             {/* Written-specific */}
             {documentType === 'DISCIPLINE_WRITTEN' && (
-              <div className="pt-2 border-t border-slate-100 dark:border-slate-800/80 space-y-3">
+              <div className="pt-2 border-t border-slate-100 dark:border-slate-800/80 space-y-4">
                 <div>
-                  <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                     Fundamentação Legal (CLT)
                   </label>
                   <input
@@ -704,19 +718,29 @@ export function DisciplineDocumentPage(): React.JSX.Element {
                     value={legalBasisRefWritten}
                     onChange={(e) => setLegalBasisRefWritten(e.target.value)}
                     placeholder="Ex: Artigo 482, alínea 'e' da CLT (desídia)"
-                    className="w-full text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                    className="w-full text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 py-2.5 text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-                    Advertência sobre Reincidência
-                  </label>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                      Advertência sobre Reincidência
+                    </label>
+                    <span className="text-[11px] text-slate-400 dark:text-slate-500">
+                      Penalidades futuras
+                    </span>
+                  </div>
                   <textarea
                     value={consequencesNoteWritten}
                     onChange={(e) => setConsequencesNoteWritten(e.target.value)}
-                    rows={2}
-                    className="w-full text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 p-3 text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                    rows={4}
+                    placeholder="Descreva as sanções cabíveis em caso de reincidência..."
+                    className="w-full text-sm leading-relaxed rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 p-3.5 sm:p-4 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all resize-y min-h-[100px]"
                   />
+                  <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
+                    Este texto será impresso expressamente no termo de advertência escrita alertando
+                    sobre suspensão disciplinar ou rescisão por justa causa.
+                  </p>
                 </div>
               </div>
             )}
@@ -726,7 +750,7 @@ export function DisciplineDocumentPage(): React.JSX.Element {
               <div className="pt-2 border-t border-slate-100 dark:border-slate-800/80 space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
                   <div>
-                    <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                       Dias de Suspensão *
                     </label>
                     <input
@@ -735,71 +759,81 @@ export function DisciplineDocumentPage(): React.JSX.Element {
                       max={30}
                       value={suspensionDays}
                       onChange={(e) => setSuspensionDays(Number(e.target.value))}
-                      className="w-full text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                      className="w-full text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 py-2.5 text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                     />
                     <span className="text-[10px] text-slate-400">Máx. 30 dias (CLT)</span>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                       Início da Suspensão *
                     </label>
                     <input
                       type="date"
                       value={suspensionStartDate}
                       onChange={(e) => setSuspensionStartDate(e.target.value)}
-                      className="w-full text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                      className="w-full text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 py-2.5 text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                       Término da Suspensão *
                     </label>
                     <input
                       type="date"
                       value={suspensionEndDate}
                       onChange={(e) => setSuspensionEndDate(e.target.value)}
-                      className="w-full text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                      className="w-full text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 py-2.5 text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                       Retorno ao Trabalho *
                     </label>
                     <input
                       type="date"
                       value={returnDate}
                       onChange={(e) => setReturnDate(e.target.value)}
-                      className="w-full text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                      className="w-full text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 py-2.5 text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-                      Fundamentação Legal (CLT)
-                    </label>
-                    <input
-                      type="text"
-                      value={legalBasisRefSuspension}
-                      onChange={(e) => setLegalBasisRefSuspension(e.target.value)}
-                      className="w-full text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                    Fundamentação Legal (CLT)
+                  </label>
+                  <input
+                    type="text"
+                    value={legalBasisRefSuspension}
+                    onChange={(e) => setLegalBasisRefSuspension(e.target.value)}
+                    placeholder="Ex: Artigos 474 e 482 da CLT"
+                    className="w-full text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 py-2.5 text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                  />
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
                       Advertência de Demissão por Justa Causa
                     </label>
-                    <textarea
-                      value={consequencesNoteSuspension}
-                      onChange={(e) => setConsequencesNoteSuspension(e.target.value)}
-                      rows={2}
-                      className="w-full text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 p-3 text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
-                    />
+                    <span className="text-[11px] text-slate-400 dark:text-slate-500">
+                      Cláusula formal de rescisão
+                    </span>
                   </div>
+                  <textarea
+                    value={consequencesNoteSuspension}
+                    onChange={(e) => setConsequencesNoteSuspension(e.target.value)}
+                    rows={4}
+                    placeholder="Descreva a advertência legal que constará expressamente no termo sobre rescisão por justa causa..."
+                    className="w-full text-sm leading-relaxed rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 p-3.5 sm:p-4 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all resize-y min-h-[105px]"
+                  />
+                  <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
+                    Este texto será impresso em destaque no termo de suspensão disciplinar
+                    notificando o colaborador sobre a possibilidade de rescisão motivada.
+                  </p>
                 </div>
               </div>
             )}
@@ -1237,7 +1271,7 @@ export function DisciplineDocumentPage(): React.JSX.Element {
             </p>
 
             <div>
-              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                 Justificativa Obrigatória de Anulação *
               </label>
               <textarea
@@ -1245,7 +1279,7 @@ export function DisciplineDocumentPage(): React.JSX.Element {
                 onChange={(e) => setVoidReason(e.target.value)}
                 rows={3}
                 placeholder="Ex: Acordo em reconsideração, revisão fática ou cancelamento administrativo..."
-                className="w-full text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 p-2.5 text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-rose-500"
+                className="w-full text-sm leading-relaxed rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 p-3.5 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all resize-y min-h-[90px]"
               />
             </div>
 

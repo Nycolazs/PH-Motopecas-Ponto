@@ -586,8 +586,11 @@ curl http://127.0.0.1:3000/health/ready
       - Configured exact URL query parameters for every card (`?tipo=ROLE`, `?tipo=REGULATION`, `?tipo=DISCIPLINE_VERBAL`, `?tipo=DISCIPLINE_WRITTEN`, `?tipo=DISCIPLINE_SUSPENSION`);
       - Updated `acknowledgment-document-page.tsx` and `discipline-document-page.tsx` to handle `tipo` search parameters dynamically, syncing page title, subtitle, and toggle buttons;
       - Standardized breadcrumb and back navigation across all document generators (`culture-document-page.tsx`, `regulations-wizard-page.tsx`, `interview-document-page.tsx`, `performance-review-page.tsx`) to link cleanly back to `/admin/documentos/gerar`;
-      - Updated test suites: `documents-hub-page.test.tsx`, `acknowledgment-document-page.test.tsx`, and `discipline-document-page.test.tsx`;
-      - All quality gates passing: 397 unit tests, 25 integration tests, 5 E2E tests, strict TypeScript, zero ESLint warnings.
+    - Central de Documentos & Ergonomia de Escrita em Textareas:
+      - Redesenhada a área de escrita de advertências disciplinares (`Advertência de Demissão por Justa Causa` e `Advertência sobre Reincidência`) em `DisciplineDocumentPage`: desacoplada da grade lateral restritiva de 50%, expandida para largura total com tipografia ampliada (`text-sm leading-relaxed`), altura generosa (`min-h-[105px]`), padding confortável (`p-3.5 sm:p-4`), redimensionamento vertical (`resize-y`) e notas orientativas de suporte;
+      - Ampliadas as áreas de texto de `Relato Detalhado dos Fatos e Orientações` (`rows={5}`, `min-h-[130px]`), `Compromisso Assumido` e modal de anulação;
+      - Expandidas as áreas de digitação em `PerformanceReviewPage` e `CultureDocumentPage` para proporcionar uma experiência fluida e confortável de digitação;
+      - Validado visualmente via screenshots automatizados e testado com 100% de aprovação no gate de qualidade (`pnpm check`).
 
 ## Handoff Notes
 
@@ -610,4 +613,6 @@ All user requests and core requirements for PH-Ponto have been delivered, verifi
    - Cabeçalho oficial executivo com CNPJ, Fortaleza - CE, telefone e dados completos do colaborador em Title Case.
 7. **Central de Documentos e Relatórios Unificada e Intuitiva:**
    - Organização em categorias claras, busca instantânea, atalho direto para o espelho de ponto e URLs dedicadas para cada termo e advertência sem confusão.
-8. **Garantia de Qualidade:** Todos os testes unitários, de integração e ponta-a-ponta passando com 100% de sucesso.
+8. **Ergonomia e Conforto de Escrita nos Formulários de RH:**
+   - Textareas ampliados com largura total, fonte maior e mais legível (`text-sm leading-relaxed`), espaçamento respirável e redimensionamento suave.
+9. **Garantia de Qualidade:** Todos os testes unitários, de integração e ponta-a-ponta passando com 100% de sucesso.

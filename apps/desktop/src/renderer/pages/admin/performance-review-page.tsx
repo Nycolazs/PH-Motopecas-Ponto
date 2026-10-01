@@ -672,68 +672,68 @@ export function PerformanceReviewPage(): React.JSX.Element {
 
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                   Pontos Fortes e Destaques
                 </label>
                 <textarea
-                  rows={2}
+                  rows={3}
                   value={form.strengths}
                   onChange={(e) => setForm({ ...form, strengths: e.target.value })}
                   placeholder="Ex: Alta agilidade em diagnósticos de bancada, ótimo relacionamento com a equipe e clientes..."
-                  className="w-full text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 p-2.5 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                  className="w-full text-sm leading-relaxed rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 p-3.5 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all resize-y min-h-[85px]"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                   Oportunidades de Melhoria
                 </label>
                 <textarea
-                  rows={2}
+                  rows={3}
                   value={form.improvements}
                   onChange={(e) => setForm({ ...form, improvements: e.target.value })}
                   placeholder="Ex: Atenção ao registro detalhado no sistema e organização das ferramentas após o expediente..."
-                  className="w-full text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 p-2.5 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                  className="w-full text-sm leading-relaxed rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 p-3.5 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all resize-y min-h-[85px]"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                   Plano de Ação e Metas de Desenvolvimento
                 </label>
                 <textarea
-                  rows={2}
+                  rows={3}
                   value={form.actionPlan}
                   onChange={(e) => setForm({ ...form, actionPlan: e.target.value })}
                   placeholder="Ex: Treinamento interno de catálogo eletrônico até final do próximo mês..."
-                  className="w-full text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 p-2.5 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                  className="w-full text-sm leading-relaxed rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 p-3.5 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all resize-y min-h-[85px]"
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                     Comentários Gerais do Avaliador
                   </label>
                   <textarea
-                    rows={2}
+                    rows={3}
                     value={form.evaluatorComments}
                     onChange={(e) => setForm({ ...form, evaluatorComments: e.target.value })}
                     placeholder="Parecer final da gestão..."
-                    className="w-full text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 p-2.5 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                    className="w-full text-sm leading-relaxed rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 p-3.5 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all resize-y min-h-[85px]"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                     Comentários / Reação do Colaborador (Opcional)
                   </label>
                   <textarea
-                    rows={2}
+                    rows={3}
                     value={form.employeeComments}
                     onChange={(e) => setForm({ ...form, employeeComments: e.target.value })}
                     placeholder="Manifestação do colaborador durante a devolutiva..."
-                    className="w-full text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 p-2.5 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                    className="w-full text-sm leading-relaxed rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 p-3.5 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all resize-y min-h-[85px]"
                   />
                 </div>
               </div>
@@ -1108,7 +1108,7 @@ export function PerformanceReviewPage(): React.JSX.Element {
               <strong>{reviewToSupersede.evaluationPeriod}</strong> como substituída.
             </p>
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                 Motivo / Justificativa da Substituição *
               </label>
               <textarea
@@ -1116,7 +1116,7 @@ export function PerformanceReviewPage(): React.JSX.Element {
                 value={manualSupersedeReason}
                 onChange={(e) => setManualSupersedeReason(e.target.value)}
                 placeholder="Ex: Revisão solicitada após reavaliação de metas operacionais..."
-                className="w-full text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 p-2.5 text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500"
+                className="w-full text-sm leading-relaxed rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 p-3.5 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all resize-y min-h-[90px]"
               />
             </div>
             <div className="flex justify-end gap-2 pt-2">
