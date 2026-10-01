@@ -33,7 +33,8 @@ import {
 import { useAuth } from '../../auth/use-auth.js';
 import { useToast } from '../../components/toast-context.js';
 import { Modal } from '../../components/modal.js';
-import { formatDateBR } from '../../lib/format.js';
+import { SelectInput } from '../../components/select-input.js';
+import { formatDateBR, formatDisplayName } from '../../lib/format.js';
 
 interface PerformanceFormData {
   evaluationPeriod: string;
@@ -471,21 +472,20 @@ export function PerformanceReviewPage(): React.JSX.Element {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  Colaborador Avaliado *
-                </label>
-                <select
+                <SelectInput
+                  label="Colaborador Avaliado"
+                  required
+                  placeholder="Selecione um colaborador..."
                   value={selectedEmployeeId}
-                  onChange={(e) => setSelectedEmployeeId(e.target.value)}
-                  className="w-full text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 p-2.5 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Selecione um colaborador...</option>
-                  {activeEmployees.map((emp) => (
-                    <option key={emp.id} value={emp.id}>
-                      {emp.name} ({emp.login})
-                    </option>
-                  ))}
-                </select>
+                  onChange={setSelectedEmployeeId}
+                  options={activeEmployees.map((emp) => ({
+                    value: emp.id,
+                    label: formatDisplayName(emp.name),
+                    sublabel: `@${emp.login}`,
+                  }))}
+                  searchable
+                  className="w-full"
+                />
               </div>
 
               <div>
@@ -539,27 +539,25 @@ export function PerformanceReviewPage(): React.JSX.Element {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  Substituir Avaliação Anterior? (Opcional)
-                </label>
-                <select
+                <SelectInput
+                  label="Substituir Avaliação Anterior? (Opcional)"
+                  placeholder="Não substitui (Nova avaliação)"
                   value={form.supersedesReviewId ?? ''}
-                  onChange={(e) =>
+                  onChange={(val) =>
                     setForm({
                       ...form,
-                      supersedesReviewId: e.target.value ? e.target.value : null,
+                      supersedesReviewId: val ? val : null,
                     })
                   }
-                  className="w-full text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 p-2.5 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Não substitui (Nova avaliação)</option>
-                  {activeReviewsForEmployee.map((rev) => (
-                    <option key={rev.id} value={rev.id}>
-                      {rev.evaluationPeriod} - Nota {rev.meanScore.toFixed(2)} (
-                      {formatDateBR(rev.evaluationDate)})
-                    </option>
-                  ))}
-                </select>
+                  options={[
+                    { value: '', label: 'Não substitui (Nova avaliação)' },
+                    ...activeReviewsForEmployee.map((rev) => ({
+                      value: rev.id,
+                      label: `${rev.evaluationPeriod} - Nota ${rev.meanScore.toFixed(2)} (${formatDateBR(rev.evaluationDate)})`,
+                    })),
+                  ]}
+                  className="w-full"
+                />
               </div>
             </div>
 
@@ -868,19 +866,25 @@ export function PerformanceReviewPage(): React.JSX.Element {
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-500 font-semibold">Filtrar:</span>
-            <select
-              value={historyFilterEmployee}
-              onChange={(e) => setHistoryFilterEmployee(e.target.value)}
-              className="text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-2 text-slate-700 dark:text-slate-200"
-            >
-              <option value="ALL">Todos os colaboradores</option>
-              {activeEmployees.map((emp) => (
-                <option key={emp.id} value={emp.id}>
-                  {emp.name}
-                </option>
-              ))}
-            </select>
+            <span className="text-xs text-slate-500 font-semibold shrink-0">Filtrar:</span>
+            <div className="w-56">
+              <SelectInput
+                size="sm"
+                placeholder="Todos os colaboradores"
+                value={historyFilterEmployee}
+                onChange={setHistoryFilterEmployee}
+                options={[
+                  { value: 'ALL', label: 'Todos os colaboradores' },
+                  ...activeEmployees.map((emp) => ({
+                    value: emp.id,
+                    label: formatDisplayName(emp.name),
+                    sublabel: `@${emp.login}`,
+                  })),
+                ]}
+                searchable
+                className="w-full"
+              />
+            </div>
           </div>
         </div>
 

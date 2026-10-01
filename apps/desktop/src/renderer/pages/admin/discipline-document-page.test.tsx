@@ -156,11 +156,12 @@ describe('DisciplineDocumentPage', () => {
 
     renderWithProviders(<DisciplineDocumentPage />);
 
-    // Wait for employee option to appear in select
-    await screen.findByRole('option', { name: 'Carlos Alberto Souza (carlos.souza)' });
+    const user = userEvent.setup();
+    const select = await screen.findByRole('combobox', { name: /Colaborador Envolvido/i });
+    await user.click(select);
 
-    const select = screen.getByRole('combobox', { name: /Colaborador Envolvido/i });
-    await userEvent.selectOptions(select, mockEmployeeId);
+    const option = await screen.findByRole('option', { name: /Carlos Alberto Souza/i });
+    await user.click(option);
 
     // Progression summary cards should be rendered
     await waitFor(() => {

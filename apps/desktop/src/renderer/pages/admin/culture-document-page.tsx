@@ -456,7 +456,7 @@ export function CultureDocumentPage(): React.JSX.Element {
                   rows={4}
                   value={form.vision}
                   onChange={(e) => setForm({ ...form, vision: e.target.value })}
-                  placeholder="Ex: Ser a maior e mais confiável distribuidora e varejista de motopeças do interior de São Paulo, reconhecida pela velocidade de entrega e qualidade dos produtos."
+                  placeholder="Ex: Ser a maior e mais confiável distribuidora e varejista de motopeças de Fortaleza e região, reconhecida pela velocidade de entrega e qualidade dos produtos."
                   className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl p-3 text-sm text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                 />
               </div>

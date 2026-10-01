@@ -6,7 +6,7 @@ import { useToast } from './toast-context.js';
 import type { ManagedUser, DailyAttendance } from '../api/contracts.js';
 import { Modal } from './modal.js';
 import { SelectInput } from './select-input.js';
-import { formatDateBR } from '../lib/format.js';
+import { formatDateBR, formatDisplayName } from '../lib/format.js';
 
 export interface ManualPunchModalProps {
   isOpen: boolean;
@@ -213,8 +213,8 @@ export function ManualPunchModal({
                 onChange={setEmployeeId}
                 options={employees.map((emp) => ({
                   value: emp.id,
-                  label: emp.name,
-                  sublabel: emp.login,
+                  label: formatDisplayName(emp.name),
+                  sublabel: `@${emp.login}`,
                 }))}
                 searchable
                 className="w-full"

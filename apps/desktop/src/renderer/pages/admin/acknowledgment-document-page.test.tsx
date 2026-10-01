@@ -165,10 +165,12 @@ describe('AcknowledgmentDocumentPage', () => {
       await screen.findByRole('heading', { name: /Termos de Ciência de Documentos/i }),
     ).toBeVisible();
     expect(await screen.findByText('Colaboradores Ativos')).toBeVisible();
-    expect(screen.getByText('3 de 5')).toBeVisible();
     expect(screen.getByText('Termo de Ciência do Regimento Interno')).toBeVisible();
     expect(screen.getByText('Termo de Ciência da Descrição de Cargo')).toBeVisible();
-    expect(await screen.findByText('João da Silva (joao.silva)')).toBeVisible();
+    const user = userEvent.setup();
+    const select = await screen.findByRole('combobox', { name: /Colaborador Ativo/i });
+    await user.click(select);
+    expect(await screen.findByRole('option', { name: /João da Silva/i })).toBeVisible();
   });
 
   it('switches between regimento and cargo modes', async () => {

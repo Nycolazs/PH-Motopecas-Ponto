@@ -89,7 +89,7 @@ describe('DocumentsArchivePage', () => {
     ).toBeVisible();
     expect(screen.getByPlaceholderText(/Buscar por título ou colaborador/i)).toBeVisible();
     expect(await screen.findByText('Manual de Cultura Organizacional')).toBeVisible();
-    expect(screen.getAllByText('Cultura Organizacional').length).toBeGreaterThanOrEqual(2);
+    expect(screen.getByText('Cultura Organizacional')).toBeVisible();
     expect(screen.getByText('Ativo')).toBeVisible();
   });
 
@@ -155,8 +155,10 @@ describe('DocumentsArchivePage', () => {
 
     renderWithProviders(<DocumentsArchivePage />);
 
-    expect(await screen.findByText('Todos os Colaboradores')).toBeVisible();
-    expect(await screen.findByText('Carlos Mecânico')).toBeVisible();
+    const employeeSelect = await screen.findByRole('combobox', { name: /Todos os Colaboradores/i });
+    expect(employeeSelect).toBeVisible();
+    await user.click(employeeSelect);
+    expect(await screen.findByRole('option', { name: /Carlos Mecânico/i })).toBeVisible();
 
     const searchInput = screen.getByPlaceholderText(/Buscar por título ou colaborador/i);
     await user.type(searchInput, 'Manual');

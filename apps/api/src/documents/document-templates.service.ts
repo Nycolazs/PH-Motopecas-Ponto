@@ -690,8 +690,8 @@ export class DocumentTemplatesService {
     publishedAt: Date = new Date(),
   ): string {
     const formattedDate = formatDateBR(publishedAt);
-    const city = company.addressCity ?? 'São Paulo';
-    const state = company.addressState ?? 'SP';
+    const city = company.addressCity ?? 'Fortaleza';
+    const state = company.addressState ?? 'CE';
 
     return `<!DOCTYPE html>
 <html lang="pt-BR">
@@ -749,8 +749,8 @@ export class DocumentTemplatesService {
     publishedAt: Date = new Date(),
   ): string {
     const formattedDate = formatDateBR(publishedAt);
-    const city = company.addressCity ?? 'São Paulo';
-    const state = company.addressState ?? 'SP';
+    const city = company.addressCity ?? 'Fortaleza';
+    const state = company.addressState ?? 'CE';
 
     return `<!DOCTYPE html>
 <html lang="pt-BR">
@@ -809,8 +809,8 @@ export class DocumentTemplatesService {
   ): string {
     const formattedPubDate = formatDateBR(publishedAt);
     const formattedIncidentDate = formatDateBR(payload.incidentDate);
-    const city = company.addressCity ?? 'São Paulo';
-    const state = company.addressState ?? 'SP';
+    const city = company.addressCity ?? 'Fortaleza';
+    const state = company.addressState ?? 'CE';
 
     const witnessesHtml =
       payload.witnesses && payload.witnesses.length > 0
@@ -960,8 +960,8 @@ export class DocumentTemplatesService {
   ): string {
     const formattedPubDate = formatDateBR(publishedAt);
     const formattedIncidentDate = formatDateBR(payload.incidentDate);
-    const city = company.addressCity ?? 'São Paulo';
-    const state = company.addressState ?? 'SP';
+    const city = company.addressCity ?? 'Fortaleza';
+    const state = company.addressState ?? 'CE';
 
     const witnessesHtml =
       payload.witnesses && payload.witnesses.length > 0
@@ -1111,8 +1111,8 @@ export class DocumentTemplatesService {
     const formattedStartDate = formatDateBR(payload.suspensionStartDate);
     const formattedEndDate = formatDateBR(payload.suspensionEndDate);
     const formattedReturnDate = formatDateBR(payload.returnDate);
-    const city = company.addressCity ?? 'São Paulo';
-    const state = company.addressState ?? 'SP';
+    const city = company.addressCity ?? 'Fortaleza';
+    const state = company.addressState ?? 'CE';
 
     const witnessesHtml =
       payload.witnesses && payload.witnesses.length > 0
@@ -1268,8 +1268,8 @@ export class DocumentTemplatesService {
     const formattedEvalDate = formatDateBR(payload.evaluationDate);
     const pubDate = new Date();
     const formattedPubDate = formatDateBR(pubDate);
-    const city = company.addressCity || 'São Paulo';
-    const state = company.addressState || 'SP';
+    const city = company.addressCity || 'Fortaleza';
+    const state = company.addressState || 'CE';
 
     const evalResult = calculatePerformanceMean(payload.criteriaScores);
     const classInfo = PERFORMANCE_CLASSIFICATION_LABELS[evalResult.classification];

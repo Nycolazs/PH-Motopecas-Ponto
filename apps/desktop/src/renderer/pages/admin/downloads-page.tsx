@@ -259,7 +259,7 @@ export function AdminDownloadsPage(): React.JSX.Element {
               Segurança & Confiabilidade
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              Horário com autoridade do servidor de São Paulo, criptografia de dados e bloqueio de
+              Horário com autoridade do servidor de Fortaleza, criptografia de dados e bloqueio de
               adulterações locais.
             </p>
           </div>

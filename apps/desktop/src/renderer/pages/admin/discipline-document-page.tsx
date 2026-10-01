@@ -29,6 +29,8 @@ import type {
 } from '../../api/contracts.js';
 import { useAuth } from '../../auth/use-auth.js';
 import { useToast } from '../../components/toast-context.js';
+import { SelectInput } from '../../components/select-input.js';
+import { formatDisplayName } from '../../lib/format.js';
 
 export function DisciplineDocumentPage(): React.JSX.Element {
   const { session, api } = useAuth();
@@ -511,60 +513,51 @@ export function DisciplineDocumentPage(): React.JSX.Element {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label
-                  htmlFor="employee-select"
-                  className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1"
-                >
-                  Colaborador Envolvido *
-                </label>
-                <select
+                <SelectInput
                   id="employee-select"
-                  aria-label="Colaborador Envolvido"
+                  label="Colaborador Envolvido"
+                  required
+                  placeholder="Selecione um colaborador ativo..."
                   value={selectedEmployeeId}
-                  onChange={(e) => {
-                    setSelectedEmployeeId(e.target.value);
+                  onChange={(val) => {
+                    setSelectedEmployeeId(val);
                     setPriorActionId('');
                   }}
-                  className="w-full text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Selecione um colaborador ativo...</option>
-                  {activeEmployees.map((emp) => (
-                    <option key={emp.id} value={emp.id}>
-                      {emp.name} ({emp.login})
-                    </option>
-                  ))}
-                </select>
+                  options={activeEmployees.map((emp) => ({
+                    value: emp.id,
+                    label: formatDisplayName(emp.name),
+                    sublabel: `@${emp.login}`,
+                  }))}
+                  searchable
+                  className="w-full"
+                />
               </div>
 
               <div>
-                <label
-                  htmlFor="prior-action-select"
-                  className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1"
-                >
-                  Medida Anterior de Referência (Opcional)
-                </label>
-                <select
+                <SelectInput
                   id="prior-action-select"
-                  aria-label="Medida Anterior de Referência"
+                  label="Medida Anterior de Referência (Opcional)"
+                  placeholder="Nenhuma (ocorrência inicial ou independente)"
                   value={priorActionId}
-                  onChange={(e) => setPriorActionId(e.target.value)}
-                  disabled={
-                    !selectedEmployeeId || (priorActionsData && priorActionsData.length === 0)
-                  }
-                  className="w-full text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
-                >
-                  <option value="">Nenhuma (ocorrência inicial ou independente)</option>
-                  {priorActionsData?.map((act) => (
-                    <option key={act.id} value={act.id}>
-                      {act.actionType === 'VERBAL_WARNING'
-                        ? 'Advertência Verbal'
-                        : act.actionType === 'WRITTEN_WARNING'
-                          ? 'Advertência Escrita'
-                          : 'Suspensão'}{' '}
-                      - {act.incidentDate}: {act.reason.slice(0, 35)}...
-                    </option>
-                  ))}
-                </select>
+                  onChange={setPriorActionId}
+                  disabled={Boolean(
+                    !selectedEmployeeId || (priorActionsData && priorActionsData.length === 0),
+                  )}
+                  options={[
+                    { value: '', label: 'Nenhuma (ocorrência inicial ou independente)' },
+                    ...(priorActionsData ?? []).map((act) => ({
+                      value: act.id,
+                      label: `${
+                        act.actionType === 'VERBAL_WARNING'
+                          ? 'Advertência Verbal'
+                          : act.actionType === 'WRITTEN_WARNING'
+                            ? 'Advertência Escrita'
+                            : 'Suspensão'
+                      } - ${act.incidentDate}: ${act.reason.slice(0, 35)}...`,
+                    })),
+                  ]}
+                  className="w-full"
+                />
                 <p className="text-[11px] text-slate-500 mt-1">
                   Vincula esta penalidade ao registro prévio do mesmo colaborador para comprovar
                   progressão disciplinar.
@@ -992,19 +985,25 @@ export function DisciplineDocumentPage(): React.JSX.Element {
           </div>
 
           <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-slate-400" />
-            <select
-              value={historyFilterEmployee}
-              onChange={(e) => setHistoryFilterEmployee(e.target.value)}
-              className="text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-slate-700 dark:text-slate-300"
-            >
-              <option value="ALL">Todos os colaboradores</option>
-              {activeEmployees.map((emp) => (
-                <option key={emp.id} value={emp.id}>
-                  {emp.name}
-                </option>
-              ))}
-            </select>
+            <Filter className="w-4 h-4 text-slate-400 shrink-0" />
+            <div className="w-56">
+              <SelectInput
+                size="sm"
+                placeholder="Todos os colaboradores"
+                value={historyFilterEmployee}
+                onChange={setHistoryFilterEmployee}
+                options={[
+                  { value: 'ALL', label: 'Todos os colaboradores' },
+                  ...activeEmployees.map((emp) => ({
+                    value: emp.id,
+                    label: formatDisplayName(emp.name),
+                    sublabel: `@${emp.login}`,
+                  })),
+                ]}
+                searchable
+                className="w-full"
+              />
+            </div>
           </div>
         </div>
 

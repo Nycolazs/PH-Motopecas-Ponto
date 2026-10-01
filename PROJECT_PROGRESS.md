@@ -14,6 +14,33 @@ COMPLETED — HR evolution in active local development on `feat/hr-evolution`. P
 
 ## Active HR Implementation
 
+- **Design System Polish: Dropdowns Standardization, Fortaleza Headquarters & Collaborator Greeting Scale (2026-10-01)**:
+  - **Standardized Dropdowns Across Entire Application (`SelectInput`)**:
+    - Replaced all 15 native `<select>` tags across 7 admin pages with the custom, dark/light theme aware `SelectInput` component (`apps/desktop/src/renderer/components/select-input.tsx`).
+    - Verified that **0 native `<select>` and 0 native `<option>` tags remain** in the entire codebase.
+    - Added `size?: 'sm' | 'md'` variant support: `md` (`h-[42px]`) for primary forms and modals, and compact `sm` (`h-9 text-xs`) for table filter toolbars.
+    - Added smart viewport collision detection (`placement: 'top' | 'bottom'`) to automatically flip dropdown menus open upward when near screen/modal bounds.
+    - Added keyboard navigation (`Escape` closes, `ArrowDown` opens, accessible `role="combobox"` / `role="listbox"` / `role="option"`).
+    - Normalized employee names in all dropdown options using `formatDisplayName(emp.name)` in Title Case with subtle `@login` sublabels.
+    - Authored unit test suite `apps/desktop/src/renderer/components/select-input.test.tsx` (7/7 tests passing).
+  - **Fortaleza Headquarters & Server Clock Localization**:
+    - Replaced hardcoded "São Paulo" server clock badge with "Fortaleza" in `apps/desktop/src/renderer/components/admin-layout.tsx` (`Fortaleza: {businessClock}`).
+    - Localized the employee home page clock (`apps/desktop/src/renderer/pages/employee-home-page.tsx`) with explicit `Fortaleza • {formatDateBR(now)}` and accessibility labels.
+    - Updated server location in desktop downloads page feature card (`apps/desktop/src/renderer/pages/admin/downloads-page.tsx`).
+    - Updated document template service fallbacks in `apps/api/src/documents/document-templates.service.ts` to `Fortaleza` and `CE` matching PH Motopeças corporate headquarters.
+  - **Prominent Collaborator Name Greeting**:
+    - Transformed the tiny 11px uppercase eyebrow greeting on the desktop employee home screen into a prominent 26px bold heading (`<strong className="text-xl sm:text-2xl md:text-[26px] font-black ...">`) with Title Case name formatting (`formatDisplayName`).
+    - Enlarged the collaborator avatar to 56px (`w-14 h-14`) with balanced 16px gap to match the elevated typography.
+    - Preserved `<h1>Seu ponto de hoje</h1>` heading to ensure 100% compliance with E2E Playwright test assertions.
+  - **Comprehensive Loop Verification**:
+    - `pnpm format:check`: PASSED (100% Prettier compliant).
+    - `pnpm lint`: PASSED (0 ESLint errors, 0 warnings).
+    - `pnpm typecheck`: PASSED (strict TypeScript clean across all 3 workspace packages).
+    - `pnpm test`: PASSED (396 unit tests passed: 91 shared, 186 api, 107 desktop, 12 scripts).
+    - `pnpm test:integration`: PASSED (25/25 PostgreSQL integration tests passed).
+    - `pnpm test:e2e`: PASSED (5/5 Playwright tests passed).
+    - `pnpm build`: PASSED (API, Electron main/preload, and React renderer production builds passed).
+
 - **Executive Strategic Dashboard Redesign: Início & Metas (2026-10-01)**:
   - Redesigned and transformed the former setup onboarding checklist ("Progresso de Implantação 83%") in `apps/desktop/src/renderer/pages/admin/setup-dashboard-page.tsx` into a high-value Strategic Command, Business & Collaborator Goals Dashboard for PH Motopeças per user request.
   - **Business Identity & Header**:

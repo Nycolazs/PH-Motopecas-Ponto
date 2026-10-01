@@ -10,7 +10,7 @@ import { SelectInput } from '../../components/select-input.js';
 import { ManualPunchModal } from '../../components/manual-punch-modal.js';
 import { PunchCorrectionModal } from '../../components/punch-correction-modal.js';
 import { StatusBadge } from '../../components/status-badge.js';
-import { formatDateBR } from '../../lib/format.js';
+import { formatDateBR, formatDisplayName } from '../../lib/format.js';
 import { formatMinutesDuration } from '@ph-ponto/shared';
 
 function formatTime(isoString?: string | null): string {
@@ -105,8 +105,8 @@ export function AdminPunchesPage(): React.JSX.Element {
               { value: '', label: 'Todos os colaboradores' },
               ...(employeesList?.items ?? []).map((emp: ManagedUser) => ({
                 value: emp.id,
-                label: emp.name,
-                sublabel: emp.login,
+                label: formatDisplayName(emp.name),
+                sublabel: `@${emp.login}`,
               })),
             ]}
             icon={<User className="w-4 h-4" />}

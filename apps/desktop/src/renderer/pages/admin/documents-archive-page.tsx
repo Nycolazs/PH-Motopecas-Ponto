@@ -24,6 +24,8 @@ import { Link } from 'react-router-dom';
 
 import { useAuth } from '../../auth/use-auth.js';
 import { useToast } from '../../components/toast-context.js';
+import { SelectInput } from '../../components/select-input.js';
+import { formatDisplayName } from '../../lib/format.js';
 import type { DocumentTypeDto, GeneratedDocumentDto } from '../../api/contracts.js';
 
 const DOCUMENT_TYPE_LABELS: Record<DocumentTypeDto, string> = {
@@ -234,42 +236,52 @@ export function DocumentsArchivePage(): React.JSX.Element {
 
         {/* Document Type Filter */}
         <div className="flex items-center gap-2">
-          <Filter className="w-4 h-4 text-slate-400" />
-          <select
-            value={selectedType}
-            onChange={(e) => {
-              setSelectedType(e.target.value as DocumentTypeDto | '');
-              setPage(1);
-            }}
-            className="text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white py-2 px-3 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">Todos os Tipos</option>
-            {Object.entries(DOCUMENT_TYPE_LABELS).map(([k, label]) => (
-              <option key={k} value={k}>
-                {label}
-              </option>
-            ))}
-          </select>
+          <Filter className="w-4 h-4 text-slate-400 shrink-0" />
+          <div className="w-52">
+            <SelectInput
+              size="sm"
+              placeholder="Todos os Tipos"
+              value={selectedType}
+              onChange={(val) => {
+                setSelectedType(val as DocumentTypeDto | '');
+                setPage(1);
+              }}
+              options={[
+                { value: '', label: 'Todos os Tipos' },
+                ...Object.entries(DOCUMENT_TYPE_LABELS).map(([k, label]) => ({
+                  value: k,
+                  label,
+                })),
+              ]}
+              className="w-full"
+            />
+          </div>
         </div>
 
         {/* Employee Filter */}
         <div className="flex items-center gap-2">
-          <User className="w-4 h-4 text-slate-400" />
-          <select
-            value={selectedEmployeeId}
-            onChange={(e) => {
-              setSelectedEmployeeId(e.target.value);
-              setPage(1);
-            }}
-            className="text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white py-2 px-3 focus:outline-hidden focus:ring-2 focus:ring-blue-500 max-w-[200px] truncate"
-          >
-            <option value="">Todos os Colaboradores</option>
-            {employeesData?.items.map((emp) => (
-              <option key={emp.id} value={emp.id}>
-                {emp.name}
-              </option>
-            ))}
-          </select>
+          <User className="w-4 h-4 text-slate-400 shrink-0" />
+          <div className="w-56">
+            <SelectInput
+              size="sm"
+              placeholder="Todos os Colaboradores"
+              value={selectedEmployeeId}
+              onChange={(val) => {
+                setSelectedEmployeeId(val);
+                setPage(1);
+              }}
+              options={[
+                { value: '', label: 'Todos os Colaboradores' },
+                ...(employeesData?.items ?? []).map((emp) => ({
+                  value: emp.id,
+                  label: formatDisplayName(emp.name),
+                  sublabel: `@${emp.login}`,
+                })),
+              ]}
+              searchable
+              className="w-full"
+            />
+          </div>
         </div>
 
         {/* Status Filter */}

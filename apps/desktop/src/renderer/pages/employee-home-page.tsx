@@ -18,7 +18,12 @@ import { dailyStateLabel, dailyStateTone } from '../attendance/presentation.js';
 import { useAuth } from '../auth/use-auth.js';
 import { FeedbackPanel } from '../components/feedback-panel.js';
 import { currentBusinessMonth } from '../lib/business-date.js';
-import { formatDateBR, formatInstantTime, formatMinutes } from '../lib/format.js';
+import {
+  formatDateBR,
+  formatDisplayName,
+  formatInstantTime,
+  formatMinutes,
+} from '../lib/format.js';
 
 const clockFormatter = new Intl.DateTimeFormat(DISPLAY_LOCALE, {
   timeZone: BUSINESS_TIME_ZONE,
@@ -220,20 +225,30 @@ export function EmployeeHomePage(): React.JSX.Element {
               name={session?.user.name ?? ''}
               size="lg"
               cacheKey={avatarVersion}
-              className="w-[49px] h-[49px] rounded-full text-sm font-bold shadow-xs ring-1 ring-blue-500/20 group-hover:opacity-90 group-hover:ring-blue-500/60 transition"
+              className="w-14 h-14 rounded-full text-base font-bold shadow-xs ring-2 ring-blue-500/20 group-hover:opacity-90 group-hover:ring-blue-500/60 transition"
             />
           </button>
-          <span>
-            <p className="eyebrow">Olá, {session?.user.name.split(' ')[0]}</p>
-            <h1>Seu ponto de hoje</h1>
-          </span>
+          <div className="flex flex-col justify-center min-w-0">
+            <div className="flex items-baseline gap-1.5 leading-snug">
+              <span className="text-xs sm:text-sm font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">
+                Olá,
+              </span>
+              <strong className="text-xl sm:text-2xl md:text-[26px] font-black text-slate-900 dark:text-white tracking-tight">
+                {formatDisplayName(session?.user.name ?? '') || 'Colaborador'}
+              </strong>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight mt-0.5">
+              Seu ponto de hoje
+            </h1>
+          </div>
         </div>
         <div
           className="business-clock"
-          aria-label={`Horário de São Paulo: ${clockFormatter.format(now)}`}
+          aria-label={`Horário de Fortaleza: ${clockFormatter.format(now)}`}
+          title={`Horário de Fortaleza: ${clockFormatter.format(now)}`}
         >
           <time dateTime={now.toISOString()}>{clockFormatter.format(now)}</time>
-          <span>{formatDateBR(now)}</span>
+          <span>Fortaleza • {formatDateBR(now)}</span>
         </div>
       </header>
 

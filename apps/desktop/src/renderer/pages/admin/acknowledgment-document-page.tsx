@@ -25,6 +25,8 @@ import type {
 } from '../../api/contracts.js';
 import { useAuth } from '../../auth/use-auth.js';
 import { useToast } from '../../components/toast-context.js';
+import { SelectInput } from '../../components/select-input.js';
+import { formatDisplayName } from '../../lib/format.js';
 
 export function AcknowledgmentDocumentPage(): React.JSX.Element {
   const { session, api } = useAuth();
@@ -355,24 +357,23 @@ export function AcknowledgmentDocumentPage(): React.JSX.Element {
         {/* Employee Selection */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              Colaborador Ativo *
-            </label>
-            <select
+            <SelectInput
+              label="Colaborador Ativo"
+              required
+              placeholder="Selecione o colaborador..."
               value={selectedEmployeeId}
-              onChange={(e) => {
-                setSelectedEmployeeId(e.target.value);
+              onChange={(val) => {
+                setSelectedEmployeeId(val);
                 setFormErrors([]);
               }}
-              className="w-full text-sm px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">-- Selecione o colaborador --</option>
-              {activeEmployees.map((emp) => (
-                <option key={emp.id} value={emp.id}>
-                  {emp.name} ({emp.login})
-                </option>
-              ))}
-            </select>
+              options={activeEmployees.map((emp) => ({
+                value: emp.id,
+                label: formatDisplayName(emp.name),
+                sublabel: `@${emp.login}`,
+              }))}
+              searchable
+              className="w-full"
+            />
           </div>
 
           <div>
@@ -494,16 +495,21 @@ export function AcknowledgmentDocumentPage(): React.JSX.Element {
           </h2>
 
           <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-slate-400" />
-            <select
-              value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value as 'ALL' | 'REGULATION' | 'ROLE')}
-              className="text-xs px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200"
-            >
-              <option value="ALL">Todos os Tipos</option>
-              <option value="REGULATION">Regimento Interno</option>
-              <option value="ROLE">Descrição de Cargo</option>
-            </select>
+            <Filter className="w-4 h-4 text-slate-400 shrink-0" />
+            <div className="w-48">
+              <SelectInput
+                size="sm"
+                placeholder="Todos os Tipos"
+                value={typeFilter}
+                onChange={(val) => setTypeFilter(val as 'ALL' | 'REGULATION' | 'ROLE')}
+                options={[
+                  { value: 'ALL', label: 'Todos os Tipos' },
+                  { value: 'REGULATION', label: 'Regimento Interno' },
+                  { value: 'ROLE', label: 'Descrição de Cargo' },
+                ]}
+                className="w-full"
+              />
+            </div>
           </div>
         </div>
 

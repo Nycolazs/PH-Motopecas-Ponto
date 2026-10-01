@@ -26,7 +26,7 @@ import { Modal } from '../../components/modal.js';
 import { SelectInput } from '../../components/select-input.js';
 import { StatusBadge } from '../../components/status-badge.js';
 import { useToast } from '../../components/toast-context.js';
-import { formatDateBR } from '../../lib/format.js';
+import { formatDateBR, formatDisplayName } from '../../lib/format.js';
 
 const WEEKDAYS = [
   { key: 'MONDAY', label: 'Segunda-feira' },
@@ -1248,24 +1248,20 @@ export function AdminSettingsPage(): React.JSX.Element {
           )}
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              Colaborador *
-            </label>
-            <select
+            <SelectInput
+              label="Colaborador"
               required
+              placeholder="Selecione o colaborador..."
               value={vacationEmployeeId}
-              onChange={(e) => setVacationEmployeeId(e.target.value)}
-              className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="" disabled>
-                Selecione o colaborador...
-              </option>
-              {employeesData?.items?.map((emp: ManagedUser) => (
-                <option key={emp.id} value={emp.id}>
-                  {emp.name} (@{emp.login})
-                </option>
-              ))}
-            </select>
+              onChange={setVacationEmployeeId}
+              options={(employeesData?.items ?? []).map((emp: ManagedUser) => ({
+                value: emp.id,
+                label: formatDisplayName(emp.name),
+                sublabel: `@${emp.login}`,
+              }))}
+              searchable
+              className="w-full"
+            />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

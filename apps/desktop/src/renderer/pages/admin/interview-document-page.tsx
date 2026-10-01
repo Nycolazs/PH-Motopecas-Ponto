@@ -29,6 +29,7 @@ import type {
 } from '../../api/contracts.js';
 import { useAuth } from '../../auth/use-auth.js';
 import { useToast } from '../../components/toast-context.js';
+import { SelectInput } from '../../components/select-input.js';
 
 interface InterviewFormData {
   title: string;
@@ -413,28 +414,30 @@ export function InterviewDocumentPage(): React.JSX.Element {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  Cargo Pretendido no Catálogo
-                </label>
-                <select
+                <SelectInput
+                  label="Cargo Pretendido no Catálogo"
+                  placeholder="Selecione ou digite abaixo..."
                   value={form.jobRoleId}
-                  onChange={(e) => {
-                    const selectedRole = jobRoles?.find((r) => r.id === e.target.value);
+                  onChange={(val) => {
+                    const selectedRole = jobRoles?.find((r) => r.id === val);
                     setForm({
                       ...form,
-                      jobRoleId: e.target.value,
+                      jobRoleId: val,
                       roleTitle: selectedRole?.title ?? form.roleTitle,
                     });
                   }}
-                  className="w-full text-sm px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">-- Selecione ou digite abaixo --</option>
-                  {jobRoles?.map((r) => (
-                    <option key={r.id} value={r.id}>
-                      {r.title} {r.department ? `(${r.department})` : ''}
-                    </option>
-                  ))}
-                </select>
+                  options={[
+                    { value: '', label: 'Selecione ou digite abaixo...' },
+                    ...(jobRoles ?? []).map((r) => ({
+                      value: r.id,
+                      label: r.title,
+                      sublabel: r.department ?? undefined,
+                    })),
+                  ]}
+                  clearable
+                  searchable
+                  className="w-full"
+                />
               </div>
 
               <div>

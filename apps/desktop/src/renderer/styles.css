@@ -547,7 +547,7 @@ button:disabled {
 .employee-identity {
   display: flex;
   align-items: center;
-  gap: 13px;
+  gap: 16px;
 }
 .avatar {
   display: grid;

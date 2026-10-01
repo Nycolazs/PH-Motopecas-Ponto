@@ -53,6 +53,7 @@ import { MonthPicker } from '../../components/month-picker.js';
 import { PunchCorrectionModal } from '../../components/punch-correction-modal.js';
 import { StatusBadge } from '../../components/status-badge.js';
 import { Modal } from '../../components/modal.js';
+import { SelectInput } from '../../components/select-input.js';
 import { formatDateBR } from '../../lib/format.js';
 import { formatMinutesDuration } from '@ph-ponto/shared';
 
@@ -2442,7 +2443,7 @@ function EditProfileModal({
                 type="text"
                 value={addressCity}
                 onChange={(e) => setAddressCity(e.target.value)}
-                placeholder="São Paulo"
+                placeholder="Fortaleza"
                 className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-2 text-slate-900 dark:text-white"
               />
             </div>
@@ -2569,20 +2570,18 @@ function TerminateEmployeeModal({
         </div>
 
         <div>
-          <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
-            Motivo da Rescisão / Desligamento *
-          </label>
-          <select
+          <SelectInput
+            label="Motivo da Rescisão / Desligamento"
+            required
+            placeholder="Selecione o motivo..."
             value={reason}
-            onChange={(e) => setReason(e.target.value as TerminationReasonDto)}
-            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-2 text-slate-900 dark:text-white"
-          >
-            {TERMINATION_REASONS.map((r) => (
-              <option key={r.value} value={r.value}>
-                {r.label}
-              </option>
-            ))}
-          </select>
+            onChange={(val) => setReason(val as TerminationReasonDto)}
+            options={TERMINATION_REASONS.map((r) => ({
+              value: r.value,
+              label: r.label,
+            }))}
+            className="w-full"
+          />
         </div>
 
         <div>
@@ -2762,22 +2761,20 @@ function AssignRoleModal({
         className="p-6 space-y-4 text-xs"
       >
         <div>
-          <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
-            Selecione o Cargo *
-          </label>
-          <select
+          <SelectInput
+            label="Selecione o Cargo"
             required
+            placeholder="Selecione o cargo..."
             value={jobRoleId}
-            onChange={(e) => setJobRoleId(e.target.value)}
-            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-2 text-slate-900 dark:text-white"
-          >
-            {roles.map((r) => (
-              <option key={r.id} value={r.id}>
-                {r.title} {r.department ? `(${r.department})` : ''} - v
-                {r.currentVersion?.versionNumber ?? 1}
-              </option>
-            ))}
-          </select>
+            onChange={setJobRoleId}
+            options={roles.map((r) => ({
+              value: r.id,
+              label: r.title,
+              sublabel: `${r.department ? `${r.department} • ` : ''}v${r.currentVersion?.versionNumber ?? 1}`,
+            }))}
+            searchable
+            className="w-full"
+          />
         </div>
 
         <div>
@@ -2873,20 +2870,18 @@ function CreateEmploymentEventModal({
         className="p-6 space-y-4 text-xs"
       >
         <div>
-          <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
-            Tipo de Registro *
-          </label>
-          <select
+          <SelectInput
+            label="Tipo de Registro"
+            required
+            placeholder="Selecione o tipo..."
             value={eventType}
-            onChange={(e) => setEventType(e.target.value as EmploymentEventTypeDto)}
-            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-2 text-slate-900 dark:text-white"
-          >
-            {EVENT_TYPE_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
+            onChange={(val) => setEventType(val as EmploymentEventTypeDto)}
+            options={EVENT_TYPE_OPTIONS.map((opt) => ({
+              value: opt.value,
+              label: opt.label,
+            }))}
+            className="w-full"
+          />
         </div>
 
         <div>

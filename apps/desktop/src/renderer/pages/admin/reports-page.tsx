@@ -7,7 +7,12 @@ import { useApiClient } from '../../auth/use-auth.js';
 import { DateInput } from '../../components/date-input.js';
 import { SelectInput } from '../../components/select-input.js';
 import { useToast } from '../../components/toast-context.js';
-import { formatDateBR, formatDateTimeBR, getWeekdayShortBR } from '../../lib/format.js';
+import {
+  formatDateBR,
+  formatDateTimeBR,
+  formatDisplayName,
+  getWeekdayShortBR,
+} from '../../lib/format.js';
 import { formatMinutesDuration } from '@ph-ponto/shared';
 import logoUrl from '../../assets/phmotos-logo.png';
 
@@ -234,8 +239,8 @@ export function AdminReportsPage(): React.JSX.Element {
               onChange={setSelectedEmployeeId}
               options={(employeesList?.items ?? []).map((emp: ManagedUser) => ({
                 value: emp.id,
-                label: emp.name,
-                sublabel: emp.login,
+                label: formatDisplayName(emp.name),
+                sublabel: `@${emp.login}`,
               }))}
               searchable
               className="w-full"
