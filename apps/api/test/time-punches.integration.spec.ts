@@ -130,16 +130,14 @@ describe('authoritative and idempotent time punches with real PostgreSQL', () =>
       },
     });
 
-    const [adminLogin, employeeLogin] = await Promise.all([
-      request(app.getHttpServer())
-        .post('/auth/login')
-        .send({ login: 'admin.punches', password: ADMIN_PASSWORD })
-        .expect(200),
-      request(app.getHttpServer())
-        .post('/auth/login')
-        .send({ login: 'employee.punches', password: EMPLOYEE_PASSWORD })
-        .expect(200),
-    ]);
+    const adminLogin = await request(app.getHttpServer())
+      .post('/auth/login')
+      .send({ login: 'admin.punches', password: ADMIN_PASSWORD })
+      .expect(200);
+    const employeeLogin = await request(app.getHttpServer())
+      .post('/auth/login')
+      .send({ login: 'employee.punches', password: EMPLOYEE_PASSWORD })
+      .expect(200);
     adminAccessToken = adminLogin.body.accessToken as string;
     employeeAccessToken = employeeLogin.body.accessToken as string;
   });

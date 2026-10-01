@@ -14,6 +14,29 @@ COMPLETED — HR evolution in active local development on `feat/hr-evolution`. P
 
 ## Active HR Implementation
 
+- **Full Quality Gate Loop, Vulnerability Resolution & Electron Auto-Updater Hardening (2026-09-30 / 2026-10-01)**:
+  - **Security Audit & High Vulnerability Zero-Tolerance Gate**:
+    - Resolved all initial security advisories down to 0 high and 0 critical vulnerabilities for `pnpm audit --audit-level=high` (passing GitHub Actions CI requirements).
+    - Patched vulnerable transitive dependencies in `pnpm-workspace.yaml` overrides and `apps/desktop/package.json`:
+      - `axios` (<1.20.0 -> `1.20.0`, GHSA-8hc4-vh64-cxmj)
+      - `brace-expansion` (<1.1.20 -> `1.1.21`, >=2.0.0 <2.1.6 -> `2.1.7`, >=4.0.0 <5.0.10 -> `5.0.12`, GHSA-6j4f-fj2g-mc7p, GHSA-qhr7-859c-m2p7)
+      - `fast-uri` (=3.1.6 -> `3.1.8`, GHSA-58mr-gqgx-xq4g)
+      - `undici` (>=6.7.0 <6.28.1 -> `6.29.0`, >=7.0.0 <7.29.1 -> `7.30.0`, GHSA-rfgv-xxqx-mfg5, GHSA-w293-vg96-wgc3)
+      - `joi` (>=18.0.0 <18.2.6 -> `18.2.9`, GHSA-6h2x-m376-mqjq)
+      - `electron` (^43.4.0 -> `^43.7.7`, GHSA-gr2m-v5gq-v685, GHSA-j84w-jfhq-vhvj, GHSA-9qh4-3jw8-366w, GHSA-qmv3-fv6v-rmhq)
+  - **Electron Auto-Updater Hardening**:
+    - Upgraded `apps/desktop/src/main/auto-updater.ts` with robust CJS loader via `createRequire(import.meta.url)` with safe fallback and error handling for packaged ESM desktop execution.
+    - Configured background auto-update behavior: `autoDownload = true`, `autoInstallOnAppQuit = true`, `allowPrerelease = false`, `allowDowngrade = false`, and tagged console logging.
+    - Integrated native desktop notification via Electron's `Notification` API: when `update-downloaded` fires, alerts the user with an actionable notification that restarts and installs the update on click (`updater.quitAndInstall(false, true)`).
+    - Added force option to `triggerBackgroundUpdateCheck({ force: true })` to support manual checks while keeping the default 5-minute background throttle.
+    - Authored unit test suite `apps/desktop/src/main/auto-updater.test.ts` covering packaged vs unpackaged behavior, configuration, throttling, error resilience, and click-to-restart notification triggers (6/6 tests passing).
+  - **Integration Test Race Condition Elimination**:
+    - In `apps/api/test/time-punches.integration.spec.ts`, converted concurrent `Promise.all([adminLogin, employeeLogin])` in `beforeEach` to sequential awaits, eliminating transient connection pool and serialization collisions on PostgreSQL test setup.
+  - **Loop Verification Suite**:
+    - `pnpm audit --audit-level=high`: PASSED (0 high/critical vulnerabilities).
+    - `pnpm check`: PASSED (ESLint clean, Prettier clean, TypeScript strict 100% clean, 389 unit tests passed across shared, api, and desktop, builds passing).
+    - `pnpm test:integration`: PASSED (25/25 PostgreSQL integration tests passed).
+    - `pnpm test:e2e`: PASSED (5/5 Playwright tests passed).
 - User approved the phase-based implementation plan. Refer to `docs/implementation/MASTER_PLAN.md`, `STATUS.md`, `TASKS.md`, `DECISIONS.md`, `HANDOFF.md`, and `TESTING.md`.
 - Single-company ADMIN-only HR; PDF/paper signatures; separate app access and employment; documentary suspensions; explicit manual termination. No production access, deployment, pushes or tags.
 - Authoritative source remains `apps/api`, `apps/desktop`, and `packages/shared`; submodules are not independent implementation targets.
