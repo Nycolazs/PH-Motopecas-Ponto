@@ -537,47 +537,51 @@ export function RegulationsWizardPage(): React.JSX.Element {
   });
 
   return (
-    <div className="p-8 max-w-5xl mx-auto space-y-8">
+    <div className="p-6 sm:p-8 max-w-6xl mx-auto space-y-8">
       {/* Top Breadcrumb & Actions */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
+      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 pb-2 border-b border-slate-200/80 dark:border-slate-800/80">
+        <div className="min-w-0">
           <Link
             to="/admin/documentos/gerar"
-            className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition-colors mb-2"
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition-colors mb-2.5"
           >
-            <ArrowLeft className="w-3.5 h-3.5" />
+            <ArrowLeft className="w-3.5 h-3.5 shrink-0" />
             Voltar aos Modelos de Documentos
           </Link>
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+          <div className="flex flex-wrap items-center gap-3">
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100 whitespace-nowrap">
               Regimento Interno de Trabalho
             </h1>
-            {activeDraft && (
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
-                Rascunho ativo (Rev. {activeDraft.revision})
-              </span>
-            )}
-            {regulationData?.currentVersion && (
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300">
-                Versão vigente: v{regulationData.currentVersion.versionNumber}
-              </span>
-            )}
+            <div className="flex flex-wrap items-center gap-2">
+              {activeDraft && (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap bg-amber-50 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/60 shadow-2xs">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                  Rascunho ativo (Rev. {activeDraft.revision})
+                </span>
+              )}
+              {regulationData?.currentVersion && (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap bg-emerald-50 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/60 shadow-2xs">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                  Versão vigente: v{regulationData.currentVersion.versionNumber}
+                </span>
+              )}
+            </div>
           </div>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1.5">
             Configure as regras institucionais, políticas de conduta e normas disciplinares em 6
             etapas.
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5 shrink-0 self-start xl:self-center">
           {regulationData && regulationData.versions.length > 0 && (
             <button
               type="button"
               onClick={() => setIsHistoryOpen(true)}
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition-colors"
+              className="inline-flex items-center justify-center gap-2 h-9 px-3.5 text-xs font-semibold rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition-colors whitespace-nowrap shadow-xs cursor-pointer"
             >
-              <History className="w-4 h-4 text-slate-500" />
-              Histórico ({regulationData.versions.length})
+              <History className="w-4 h-4 text-slate-500 dark:text-slate-400 shrink-0" />
+              <span>Histórico ({regulationData.versions.length})</span>
             </button>
           )}
 
@@ -586,10 +590,10 @@ export function RegulationsWizardPage(): React.JSX.Element {
               type="button"
               onClick={() => setIsDiscardConfirmOpen(true)}
               disabled={discardMutation.isPending}
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg border border-red-200 dark:border-red-900/50 hover:bg-red-50 dark:hover:bg-red-950/30 text-red-600 dark:text-red-400 transition-colors"
+              className="inline-flex items-center justify-center gap-2 h-9 px-3.5 text-xs font-semibold rounded-lg border border-red-200 dark:border-red-900/50 bg-red-50/60 dark:bg-red-950/30 hover:bg-red-100/70 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 transition-colors whitespace-nowrap shadow-xs cursor-pointer disabled:opacity-50"
             >
-              <Trash2 className="w-4 h-4" />
-              Descartar
+              <Trash2 className="w-4 h-4 shrink-0" />
+              <span>Descartar</span>
             </button>
           )}
 
@@ -597,21 +601,21 @@ export function RegulationsWizardPage(): React.JSX.Element {
             type="button"
             onClick={() => void saveMutation.mutate(true)}
             disabled={saveMutation.isPending}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium rounded-lg bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-white transition-colors"
+            className="inline-flex items-center justify-center gap-2 h-9 px-4 text-xs font-semibold rounded-lg bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500 text-white transition-colors whitespace-nowrap shadow-xs cursor-pointer disabled:opacity-50"
           >
             {saveMutation.isPending ? (
-              <RefreshCw className="w-4 h-4 animate-spin" />
+              <RefreshCw className="w-4 h-4 animate-spin shrink-0" />
             ) : (
-              <Save className="w-4 h-4" />
+              <Save className="w-4 h-4 shrink-0" />
             )}
-            Salvar Rascunho
+            <span>Salvar Rascunho</span>
           </button>
         </div>
       </div>
 
       {/* Step Indicator Header */}
-      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-3 shadow-xs">
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
+      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-2.5 shadow-xs">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
           {WIZARD_STEPS.map((step) => {
             const Icon = step.icon;
             const isCurrent = currentStep === step.id;
@@ -621,16 +625,16 @@ export function RegulationsWizardPage(): React.JSX.Element {
                 key={step.id}
                 type="button"
                 onClick={() => setCurrentStep(step.id)}
-                className={`flex items-center gap-2 p-2.5 rounded-lg text-left text-xs font-medium transition-all ${
+                className={`flex items-center gap-2 px-2.5 py-2 rounded-lg text-left text-xs font-semibold transition-all cursor-pointer ${
                   isCurrent
-                    ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300 border border-blue-200 dark:border-blue-800 shadow-xs'
+                    ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200 dark:border-blue-800 shadow-xs'
                     : isCompleted
                       ? 'text-emerald-700 dark:text-emerald-400 hover:bg-slate-50 dark:hover:bg-slate-800/60'
                       : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/60'
                 }`}
               >
                 <div
-                  className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-xs font-bold ${
+                  className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-xs font-bold ${
                     isCurrent
                       ? 'bg-blue-600 text-white'
                       : isCompleted
@@ -639,12 +643,12 @@ export function RegulationsWizardPage(): React.JSX.Element {
                   }`}
                 >
                   {isCompleted ? (
-                    <CheckCircle2 className="w-4 h-4" />
+                    <CheckCircle2 className="w-3.5 h-3.5" />
                   ) : (
-                    <Icon className="w-3.5 h-3.5" />
+                    <Icon className="w-3 h-3" />
                   )}
                 </div>
-                <span className="truncate">{step.label}</span>
+                <span className="truncate whitespace-nowrap">{step.label}</span>
               </button>
             );
           })}

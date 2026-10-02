@@ -255,10 +255,13 @@ export function AcknowledgmentDocumentPage(): React.JSX.Element {
           <ArrowLeft className="w-3.5 h-3.5" />
           Voltar aos Modelos de Documentos
         </Link>
-        <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">{pageTitle}</h1>
+        <div className="flex flex-wrap items-center gap-3">
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
+            {pageTitle}
+          </h1>
           {complianceStatus?.isFullyCompliant && (
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap bg-emerald-50 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/60 shadow-2xs">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
               100% Conforme
             </span>
           )}

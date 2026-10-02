@@ -282,43 +282,44 @@ export function InterviewDocumentPage(): React.JSX.Element {
   });
 
   return (
-    <div className="p-8 max-w-5xl mx-auto space-y-8">
+    <div className="p-6 sm:p-8 max-w-6xl mx-auto space-y-8">
       {/* Top Breadcrumb & Actions */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
+      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 pb-2 border-b border-slate-200/80 dark:border-slate-800/80">
+        <div className="min-w-0">
           <Link
             to="/admin/documentos/gerar"
-            className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition-colors mb-2"
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition-colors mb-2.5"
           >
-            <ArrowLeft className="w-3.5 h-3.5" />
+            <ArrowLeft className="w-3.5 h-3.5 shrink-0" />
             Voltar aos Modelos de Documentos
           </Link>
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+          <div className="flex flex-wrap items-center gap-3">
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100 whitespace-nowrap">
               Guia de Entrevista e Seleção
             </h1>
             {activeDraft && (
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap bg-amber-50 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/60 shadow-2xs">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
                 Rascunho ativo
               </span>
             )}
           </div>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1.5">
             Avalie competências técnicas, postura e alinhamento cultural de candidatos sem criar
             vínculo empregatício automático.
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5 shrink-0 self-start xl:self-center">
           {activeDraft && (
             <button
               type="button"
               onClick={() => setIsDiscardConfirmOpen(true)}
               disabled={discardMutation.isPending}
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg border border-red-200 dark:border-red-900/50 hover:bg-red-50 dark:hover:bg-red-950/30 text-red-600 dark:text-red-400 transition-colors"
+              className="inline-flex items-center justify-center gap-2 h-9 px-3.5 text-xs font-semibold rounded-lg border border-red-200 dark:border-red-900/50 bg-red-50/60 dark:bg-red-950/30 hover:bg-red-100/70 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 transition-colors whitespace-nowrap shadow-xs cursor-pointer disabled:opacity-50"
             >
-              <Trash2 className="w-4 h-4" />
-              Descartar
+              <Trash2 className="w-4 h-4 shrink-0" />
+              <span>Descartar</span>
             </button>
           )}
 
@@ -326,24 +327,24 @@ export function InterviewDocumentPage(): React.JSX.Element {
             type="button"
             onClick={() => void saveMutation.mutate(true)}
             disabled={saveMutation.isPending}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium rounded-lg border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition-colors"
+            className="inline-flex items-center justify-center gap-2 h-9 px-3.5 text-xs font-semibold rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition-colors whitespace-nowrap shadow-xs cursor-pointer disabled:opacity-50"
           >
-            <Save className="w-4 h-4" />
-            Salvar Rascunho
+            <Save className="w-4 h-4 shrink-0" />
+            <span>Salvar Rascunho</span>
           </button>
 
           <button
             type="button"
             onClick={() => void previewMutation.mutate()}
             disabled={previewMutation.isPending}
-            className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow-xs transition-colors"
+            className="inline-flex items-center justify-center gap-2 h-9 px-4 text-xs font-semibold rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow-xs transition-colors whitespace-nowrap cursor-pointer disabled:opacity-50"
           >
             {previewMutation.isPending ? (
-              <RefreshCw className="w-4 h-4 animate-spin" />
+              <RefreshCw className="w-4 h-4 animate-spin shrink-0" />
             ) : (
-              <Eye className="w-4 h-4" />
+              <Eye className="w-4 h-4 shrink-0" />
             )}
-            Visualizar PDF
+            <span>Visualizar PDF</span>
           </button>
         </div>
       </div>

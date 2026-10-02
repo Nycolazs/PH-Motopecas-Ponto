@@ -48,6 +48,24 @@ function getApiBaseUrl(): string {
   return 'https://ponto-api.phmotopecas.com';
 }
 
+export interface WebAuthError extends Error {
+  status?: number;
+  code?: string;
+}
+
+function isAuthRevocationError(error: unknown): boolean {
+  if (error instanceof Error) {
+    const err = error as WebAuthError;
+    if (err.status === 401 || err.status === 403) return true;
+    if (err.code === 'AUTHENTICATION_REQUIRED' || err.code === 'INVALID_CREDENTIALS') return true;
+    if (err.message === 'AUTHENTICATION_REQUIRED' || err.message === 'Login ou senha inválidos.') {
+      return true;
+    }
+    if (err.message.includes('Acesso restrito')) return true;
+  }
+  return false;
+}
+
 async function handleApiResponse(response: Response): Promise<ApiAuthResponse> {
   if (!response.ok) {
     let errorData: { code?: string; message?: string } | null = null;
@@ -57,27 +75,35 @@ async function handleApiResponse(response: Response): Promise<ApiAuthResponse> {
       // Ignore JSON parse failure
     }
 
-    if (response.status === 401 || errorData?.code === 'INVALID_CREDENTIALS') {
-      throw new Error('Login ou senha inválidos.');
-    }
-    if (
+    const isAuth = response.status === 401 || errorData?.code === 'INVALID_CREDENTIALS';
+    const isRate =
       response.status === 429 ||
       errorData?.code === 'RATE_LIMITED' ||
-      errorData?.code === 'LOGIN_RATE_LIMITED'
-    ) {
-      throw new Error('Muitas tentativas. Aguarde alguns instantes e tente novamente.');
+      errorData?.code === 'LOGIN_RATE_LIMITED';
+
+    const message = isAuth
+      ? 'Login ou senha inválidos.'
+      : isRate
+        ? 'Muitas tentativas. Aguarde alguns instantes e tente novamente.'
+        : errorData?.message || 'Não foi possível entrar. Verifique os dados e tente novamente.';
+
+    const error = new Error(message) as WebAuthError;
+    error.status = response.status;
+    const resolvedCode = errorData?.code || (isAuth ? 'INVALID_CREDENTIALS' : undefined);
+    if (resolvedCode) {
+      error.code = resolvedCode;
     }
-    if (errorData?.message) {
-      throw new Error(errorData.message);
-    }
-    throw new Error('Não foi possível entrar. Verifique os dados e tente novamente.');
+    throw error;
   }
 
   return (await response.json()) as ApiAuthResponse;
 }
 
 export class WebAuthBridge {
+  private refreshPromise: Promise<DesktopAuthState> | null = null;
+
   public async login(input: DesktopLoginInput): Promise<DesktopAuthState> {
+    this.refreshPromise = null;
     const baseUrl = getApiBaseUrl();
     const response = await fetch(`${baseUrl}/auth/login`, {
       method: 'POST',
@@ -124,6 +150,18 @@ export class WebAuthBridge {
   }
 
   public async restore(): Promise<DesktopAuthState> {
+    // If a refresh is already in-flight (e.g. StrictMode double-mount or concurrent request), share it
+    if (this.refreshPromise !== null) {
+      try {
+        return await this.refreshPromise;
+      } catch (error) {
+        if (isAuthRevocationError(error)) {
+          return { session: null, persistence: 'ENCRYPTED' };
+        }
+        throw error;
+      }
+    }
+
     const refreshToken = this.getStoredRefreshToken();
     if (!refreshToken) {
       return { session: null, persistence: 'ENCRYPTED' };
@@ -131,51 +169,77 @@ export class WebAuthBridge {
 
     try {
       return await this.refresh();
-    } catch {
-      this.clearStoredRefreshToken();
-      return { session: null, persistence: 'ENCRYPTED' };
+    } catch (error) {
+      if (isAuthRevocationError(error)) {
+        this.clearStoredRefreshToken();
+        return { session: null, persistence: 'ENCRYPTED' };
+      }
+      throw error;
     }
   }
 
-  public async refresh(): Promise<DesktopAuthState> {
+  public refresh(): Promise<DesktopAuthState> {
+    if (this.refreshPromise !== null) {
+      return this.refreshPromise;
+    }
+
     const refreshToken = this.getStoredRefreshToken();
     if (!refreshToken) {
-      throw new Error('AUTHENTICATION_REQUIRED');
+      return Promise.reject(new Error('AUTHENTICATION_REQUIRED'));
     }
 
-    const baseUrl = getApiBaseUrl();
-    const response = await fetch(`${baseUrl}/auth/refresh`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ refreshToken }),
+    const pending = this.performRefresh(refreshToken).finally(() => {
+      if (this.refreshPromise === pending) {
+        this.refreshPromise = null;
+      }
     });
 
-    const data = await handleApiResponse(response);
+    this.refreshPromise = pending;
+    return pending;
+  }
 
-    if (data.user.role === 'EMPLOYEE' && !isLocalOrDevEnvironment()) {
-      this.clearStoredRefreshToken();
-      throw new Error(
-        'Acesso restrito: Funcionários devem utilizar o aplicativo Desktop para bater ponto.',
-      );
+  private async performRefresh(refreshToken: string): Promise<DesktopAuthState> {
+    try {
+      const baseUrl = getApiBaseUrl();
+      const response = await fetch(`${baseUrl}/auth/refresh`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ refreshToken }),
+      });
+
+      const data = await handleApiResponse(response);
+
+      if (data.user.role === 'EMPLOYEE' && !isLocalOrDevEnvironment()) {
+        this.clearStoredRefreshToken();
+        throw new Error(
+          'Acesso restrito: Funcionários devem utilizar o aplicativo Desktop para bater ponto.',
+        );
+      }
+
+      this.setStoredRefreshToken(data.refreshToken);
+
+      return {
+        session: {
+          accessToken: data.accessToken,
+          accessTokenExpiresAt: new Date(
+            Date.now() + data.accessTokenExpiresInSeconds * 1000,
+          ).toISOString(),
+          user: data.user,
+        },
+        persistence: 'ENCRYPTED',
+      };
+    } catch (error) {
+      if (isAuthRevocationError(error)) {
+        this.clearStoredRefreshToken();
+      }
+      throw error;
     }
-
-    this.setStoredRefreshToken(data.refreshToken);
-
-    return {
-      session: {
-        accessToken: data.accessToken,
-        accessTokenExpiresAt: new Date(
-          Date.now() + data.accessTokenExpiresInSeconds * 1000,
-        ).toISOString(),
-        user: data.user,
-      },
-      persistence: 'ENCRYPTED',
-    };
   }
 
   public async logout(): Promise<DesktopLogoutState> {
+    this.refreshPromise = null;
     const refreshToken = this.getStoredRefreshToken();
     this.clearStoredRefreshToken();
 

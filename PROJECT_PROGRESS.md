@@ -14,6 +14,30 @@ COMPLETED — HR evolution in active local development on `feat/hr-evolution`. P
 
 ## Active HR Implementation
 
+- **Session Persistence on Page Reload & Header Visual Alignment (2026-10-01)**:
+  - **Single-Flight Token Refresh & Session Persistence on Reload (`apps/desktop/src/renderer/auth/web-auth.ts`)**:
+    - Resolved the session termination issue where reloading the admin panel (browser refresh, F5, or Cmd+R) logged the user out to `/#/login`.
+    - **Root Cause**: In React development with `<StrictMode>` (and concurrent tab/API access), `AuthProvider` mounted, unmounted, and remounted immediately. `WebAuthBridge` had no single-flight deduplication, firing two concurrent `POST /auth/refresh` HTTP calls with the same initial token. Request 1 rotated the token on the backend; request 2 arrived with the already-used token, triggering server-side refresh reuse protection (`REFRESH_REUSED` 401). `WebAuthBridge.restore()` then caught the 401, cleared `localStorage`, and booted the user.
+    - **Resolution**: Implemented single-flight concurrency lock (`private refreshPromise: Promise<DesktopAuthState> | null = null`) in `WebAuthBridge`. Concurrent calls to `refresh()` or `restore()` share the exact same in-flight HTTP request.
+    - Added resilient error handling (`isAuthRevocationError`): only explicit 401 / unauthorized errors clear stored tokens, preventing accidental logouts on transient network hiccups or server startup delays.
+    - Authored unit test suite `apps/desktop/src/renderer/auth/web-auth.test.ts` (6/6 tests passing) verifying single-flight locking, restore deduplication, offline network resilience, 401 token cleanup, login persistence, and remote logout.
+    - Verified via automated Playwright reload script across multiple sequential reloads on `localhost:5173` and LAN host IP `http://192.168.0.16:5173`.
+  - **Header Alignment, Badges & Button Ergonomics (`apps/desktop/src/renderer/pages/admin/regulations-wizard-page.tsx`)**:
+    - Fixed severe layout cramping and misalignments in the Regimento Interno de Trabalho header:
+      - Resolved multi-line awkward wrapping of title ("Regimento Interno de \n Trabalho"), badges ("Rascunho ativo \n (Rev. 1)" / "Versão vigente: \n v1"), and buttons ("Salvar \n Rascunho" / "Histórico \n (1)").
+      - Standardized all header action buttons to an identical 36px height (`h-9`), crisp single-line typography (`whitespace-nowrap`), unified padding, and consistent icons.
+      - Applied PH-Ponto canonical primary brand blue (`bg-blue-600 hover:bg-blue-700 text-white`) to "Salvar Rascunho", replacing the jarring white inverted box in dark mode.
+      - Upgraded badges into pill badges with status dot indicators (amber pulsing dot for active draft, emerald dot for effective published version).
+      - Expanded wizard container to `max-w-6xl` and adjusted 6-step indicator buttons so all 6 step labels ("1. Empresa", "2. Jornada", "3. Conduta", "4. Tecnologia", "5. Disciplina", "6. Revisão") render with zero truncation.
+      - Also polished `interview-document-page.tsx` and `acknowledgment-document-page.tsx` for consistent document module hierarchy.
+  - **Quality Gates Verification**:
+    - `pnpm format:check`: PASSED (100% Prettier clean).
+    - `pnpm lint`: PASSED (0 ESLint errors, 0 warnings).
+    - `pnpm typecheck`: PASSED (TypeScript strict clean across all packages).
+    - `pnpm test`: PASSED (408 unit tests passed: 91 shared, 189 api, 116 desktop, 12 scripts).
+    - `pnpm test:integration`: PASSED (25/25 PostgreSQL integration tests passed).
+    - `pnpm test:e2e`: PASSED (5/5 Playwright E2E tests passed).
+
 - **Smooth System-Wide Screen & Tab Transition Animations (2026-10-01)**:
   - **Screen Transitions Across the Entire System**:
     - Created a hardware-accelerated, fluid screen transition animation (`.page-transition`) running `pageEnter` keyframes (`opacity: 0 -> 1` and `translateY: 8px -> 0` in `0.22s cubic-bezier(0.16, 1, 0.3, 1)` with `will-change: opacity, transform`).
