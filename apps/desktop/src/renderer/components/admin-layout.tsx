@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   AlertTriangle,
   Briefcase,
@@ -88,6 +88,13 @@ export function AdminLayout(): React.JSX.Element {
   const businessClock = useBusinessClock();
   const location = useLocation();
   const pathname = location.pathname;
+  const mainScrollRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (typeof mainScrollRef.current?.scrollTo === 'function') {
+      mainScrollRef.current.scrollTo({ top: 0, behavior: 'instant' });
+    }
+  }, [pathname]);
 
   const { data: pendingData } = useQuery({
     queryKey: ['pending-adjustments-count'],
@@ -447,8 +454,11 @@ export function AdminLayout(): React.JSX.Element {
         )}
 
         {/* Dynamic Page View */}
-        <main className="flex-1 p-6 overflow-y-auto min-w-0 bg-slate-50 dark:bg-slate-950">
-          <div className="max-w-7xl mx-auto space-y-6">
+        <main
+          ref={mainScrollRef}
+          className="flex-1 p-6 overflow-y-auto min-w-0 bg-slate-50 dark:bg-slate-950"
+        >
+          <div key={pathname} className="max-w-7xl mx-auto space-y-6 page-transition">
             <Outlet />
           </div>
         </main>

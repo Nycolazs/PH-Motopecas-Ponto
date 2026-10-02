@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Clock3, History, KeyRound, LogOut, RotateCw, WifiOff } from 'lucide-react';
-import { NavLink, Outlet } from 'react-router-dom';
+import { NavLink, Outlet, useLocation } from 'react-router-dom';
 
 import { useAuth } from '../auth/use-auth.js';
 import { usePostPunchIdleLogout } from '../auth/use-post-punch-idle-logout.js';
@@ -27,6 +27,7 @@ function useOnline(): boolean {
 
 export function EmployeeLayout(): React.JSX.Element {
   const { logout, session } = useAuth();
+  const location = useLocation();
   const onPunchSuccess = usePostPunchIdleLogout(
     window.phPonto?.auth !== undefined && session?.user.role === 'EMPLOYEE',
     logout,
@@ -106,7 +107,9 @@ export function EmployeeLayout(): React.JSX.Element {
         </div>
       )}
       <main className="employee-content">
-        <Outlet context={{ employeeName: session?.user.name ?? '', onPunchSuccess }} />
+        <div key={location.pathname} className="page-transition w-full">
+          <Outlet context={{ employeeName: session?.user.name ?? '', onPunchSuccess }} />
+        </div>
       </main>
 
       <ChangePasswordModal

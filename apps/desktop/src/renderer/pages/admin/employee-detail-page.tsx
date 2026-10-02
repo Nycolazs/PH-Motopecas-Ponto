@@ -540,7 +540,7 @@ export function AdminEmployeeDetailPage(): React.JSX.Element {
       {/* TAB 1: RESUMO                                                             */}
       {/* ========================================================================= */}
       {activeTab === 'RESUMO' && (
-        <div className="space-y-6">
+        <div key="RESUMO" className="space-y-6 tab-transition">
           {/* Quick Actions: Gerar para [Nome] */}
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 mb-4">
@@ -1000,7 +1000,7 @@ export function AdminEmployeeDetailPage(): React.JSX.Element {
       {/* TAB 2: HISTÓRICO (UNIFIED TIMELINE)                                       */}
       {/* ========================================================================= */}
       {activeTab === 'HISTORICO' && (
-        <div className="space-y-6">
+        <div key="HISTORICO" className="space-y-6 tab-transition">
           {/* Timeline Header & Filter Pills */}
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-xs flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div className="flex flex-wrap items-center gap-2">
@@ -1194,7 +1194,7 @@ export function AdminEmployeeDetailPage(): React.JSX.Element {
       {/* TAB 3: DOCUMENTOS                                                         */}
       {/* ========================================================================= */}
       {activeTab === 'DOCUMENTOS' && (
-        <div className="space-y-4">
+        <div key="DOCUMENTOS" className="space-y-4 tab-transition">
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-xs">
             <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
               <div>
@@ -1319,7 +1319,7 @@ export function AdminEmployeeDetailPage(): React.JSX.Element {
       {/* TAB 4: AVALIAÇÕES (FASE HR-7)                                             */}
       {/* ========================================================================= */}
       {activeTab === 'AVALIACOES' && (
-        <div className="space-y-6">
+        <div key="AVALIACOES" className="space-y-6 tab-transition">
           {/* Header & Quick Action */}
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
@@ -1609,7 +1609,7 @@ export function AdminEmployeeDetailPage(): React.JSX.Element {
       {/* TAB 5: PONTO (ATTENDANCE & TIME TRACKING)                                  */}
       {/* ========================================================================= */}
       {activeTab === 'PONTO' && (
-        <div className="space-y-6">
+        <div key="PONTO" className="space-y-6 tab-transition">
           {/* Month Navigator & Summary Cards */}
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs flex flex-col md:flex-row md:items-center md:justify-between gap-6">
             <div className="flex items-center space-x-3">
@@ -1930,7 +1930,7 @@ export function AdminEmployeeDetailPage(): React.JSX.Element {
       {/* TAB 6: ACESSO AO APLICATIVO                                               */}
       {/* ========================================================================= */}
       {activeTab === 'ACESSO' && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div key="ACESSO" className="grid grid-cols-1 lg:grid-cols-2 gap-6 tab-transition">
           {/* Card: Status do Acesso */}
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs space-y-4">
             <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center">

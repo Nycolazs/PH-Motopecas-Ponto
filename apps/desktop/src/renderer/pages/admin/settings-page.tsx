@@ -555,7 +555,7 @@ export function AdminSettingsPage(): React.JSX.Element {
 
       {/* Tab 1: Schedules */}
       {activeTab === 'SCHEDULES' && (
-        <div className="space-y-6">
+        <div key="SCHEDULES" className="space-y-6 tab-transition">
           {latestSchedule && (
             <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs space-y-4">
               <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
@@ -665,7 +665,10 @@ export function AdminSettingsPage(): React.JSX.Element {
 
       {/* Tab 2: Calendar Exceptions */}
       {activeTab === 'EXCEPTIONS' && (
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-xs">
+        <div
+          key="EXCEPTIONS"
+          className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-xs tab-transition"
+        >
           <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-800">
             <h2 className="text-base font-bold text-slate-900 dark:text-white">
               Feriados e Exceções Cadastradas
@@ -742,7 +745,10 @@ export function AdminSettingsPage(): React.JSX.Element {
 
       {/* Tab 3: Vacations */}
       {activeTab === 'VACATIONS' && (
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-xs">
+        <div
+          key="VACATIONS"
+          className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-xs tab-transition"
+        >
           <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
             <div>
               <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center">

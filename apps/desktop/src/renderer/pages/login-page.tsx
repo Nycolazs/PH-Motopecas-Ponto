@@ -49,7 +49,7 @@ export function LoginPage(): React.JSX.Element {
   };
 
   return (
-    <main className="login-page">
+    <main className="login-page page-transition">
       <section className="login-brand-panel" aria-label="PH-Ponto">
         <Brand />
         <div>

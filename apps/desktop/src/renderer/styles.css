@@ -1253,11 +1253,22 @@ button:disabled {
 
 /* Modern Smooth Page Animations & Transitions */
 @keyframes pageEnter {
-  from {
+  0% {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(8px);
   }
-  to {
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes tabEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  100% {
     opacity: 1;
     transform: translateY(0);
   }
@@ -1284,11 +1295,35 @@ button:disabled {
   }
 }
 
+.page-transition {
+  animation: pageEnter 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: opacity, transform;
+}
+
+.tab-transition {
+  animation: tabEnter 0.18s cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: opacity, transform;
+}
+
 .employee-page,
 .home-page,
-.history-page,
-main {
-  animation: pageEnter 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+.history-page {
+  animation: pageEnter 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: opacity, transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-transition,
+  .tab-transition,
+  .employee-page,
+  .home-page,
+  .history-page,
+  main {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
 }
 
 /* Micro-interactions & Card Hover */

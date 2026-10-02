@@ -14,6 +14,25 @@ COMPLETED — HR evolution in active local development on `feat/hr-evolution`. P
 
 ## Active HR Implementation
 
+- **Smooth System-Wide Screen & Tab Transition Animations (2026-10-01)**:
+  - **Screen Transitions Across the Entire System**:
+    - Created a hardware-accelerated, fluid screen transition animation (`.page-transition`) running `pageEnter` keyframes (`opacity: 0 -> 1` and `translateY: 8px -> 0` in `0.22s cubic-bezier(0.16, 1, 0.3, 1)` with `will-change: opacity, transform`).
+    - Configured `AdminLayout` ([`apps/desktop/src/renderer/components/admin-layout.tsx`](file:///Users/nycolazs/Documents/GitHub/PH-Motopecas-Ponto/apps/desktop/src/renderer/components/admin-layout.tsx)) with dynamic route key (`key={pathname}`) on the main outlet container and automatic scroll-to-top reset on route changes (`mainScrollRef.current.scrollTo`).
+    - Configured `EmployeeLayout` ([`apps/desktop/src/renderer/components/employee-layout.tsx`](file:///Users/nycolazs/Documents/GitHub/PH-Motopecas-Ponto/apps/desktop/src/renderer/components/employee-layout.tsx)) with dynamic route key (`key={location.pathname}`) on the outlet container for seamless transitions between Início and Histórico.
+    - Added `.page-transition` to the login screen ([`apps/desktop/src/renderer/pages/login-page.tsx`](file:///Users/nycolazs/Documents/GitHub/PH-Motopecas-Ponto/apps/desktop/src/renderer/pages/login-page.tsx)) for smooth arrival upon app launch and logout.
+  - **Internal Sub-Tab & Wizard Step Motion**:
+    - Implemented `.tab-transition` (`tabEnter` keyframes `0.18s` subtle slide and fade) for internal subtab switching in collaborator profile ([`apps/desktop/src/renderer/pages/admin/employee-detail-page.tsx`](file:///Users/nycolazs/Documents/GitHub/PH-Motopecas-Ponto/apps/desktop/src/renderer/pages/admin/employee-detail-page.tsx)) and settings tabs ([`apps/desktop/src/renderer/pages/admin/settings-page.tsx`](file:///Users/nycolazs/Documents/GitHub/PH-Motopecas-Ponto/apps/desktop/src/renderer/pages/admin/settings-page.tsx)).
+    - Added step transition motion to the Regimento Interno wizard ([`apps/desktop/src/renderer/pages/admin/regulations-wizard-page.tsx`](file:///Users/nycolazs/Documents/GitHub/PH-Motopecas-Ponto/apps/desktop/src/renderer/pages/admin/regulations-wizard-page.tsx)) keyed by `currentStep`.
+  - **Accessibility & Performance**:
+    - Maintained full adherence to `@media (prefers-reduced-motion: reduce)` to disable transitions immediately for users with motion sensitivity.
+    - Zero layout jumps, keeping navigation bars, clocks, and sidebars fixed and stable without flickering.
+  - **Verification & QA Gates**:
+    - Authored unit test suite [`apps/desktop/src/renderer/components/page-transition.test.tsx`](file:///Users/nycolazs/Documents/GitHub/PH-Motopecas-Ponto/apps/desktop/src/renderer/components/page-transition.test.tsx) (2/2 tests passing).
+    - `pnpm check`: PASSED (Prettier 100%, ESLint 0 warnings, TypeScript strict, 402 unit tests passing, production builds passed).
+    - `pnpm test:integration`: PASSED (25/25 PostgreSQL integration tests passed).
+    - `pnpm test:e2e`: PASSED (5/5 Playwright E2E tests passed).
+    - Playwright automated visual walkthrough captured and verified transition states across admin and employee workflows.
+
 - **LAN Access & Textarea Form Ergonomics (2026-10-01)**:
   - **Local Area Network (LAN) IP Access & Dynamic CORS Support**:
     - Resolved CORS preflight (`CORS_ORIGIN_FORBIDDEN` 403) and cross-origin authentication barriers when accessing PH-Ponto from other devices across the local network via host IP (e.g. `http://192.168.0.16:5173`).

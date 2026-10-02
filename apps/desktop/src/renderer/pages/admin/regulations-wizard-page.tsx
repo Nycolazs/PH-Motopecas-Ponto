@@ -667,7 +667,10 @@ export function RegulationsWizardPage(): React.JSX.Element {
       )}
 
       {/* Wizard Steps Content */}
-      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs space-y-6">
+      <div
+        key={currentStep}
+        className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs space-y-6 tab-transition"
+      >
         {/* Step 1: Informações da Empresa */}
         {currentStep === 1 && (
           <div className="space-y-6">
