@@ -20,6 +20,6 @@ RUN pnpm --filter @ph-ponto/shared build \
 
 FROM nginx:alpine AS runtime
 COPY apps/desktop/nginx.conf /etc/nginx/conf.d/default.conf
-COPY --from=build /app/apps/desktop/dist /usr/share/nginx/html
+COPY --from=build /app/apps/desktop/dist/renderer /usr/share/nginx/html
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
