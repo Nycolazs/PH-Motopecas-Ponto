@@ -10,6 +10,11 @@ function addSeconds(date: Date, seconds: number): Date {
   return new Date(date.getTime() + seconds * 1_000);
 }
 
+export interface LoginThrottleBucket {
+  keyHash: string;
+  maxAttempts: number;
+}
+
 @Injectable()
 export class LoginRateLimiterService {
   public constructor(
@@ -22,13 +27,15 @@ export class LoginRateLimiterService {
    * Atomically reserves one login attempt for every supplied privacy-preserving bucket.
    * The current attempt is allowed when it reaches the threshold; later attempts are blocked.
    */
-  public async consume(bucketHashes: readonly string[]): Promise<void> {
-    const uniqueBuckets = [...new Set(bucketHashes)].sort();
+  public async consume(buckets: readonly LoginThrottleBucket[]): Promise<void> {
+    const uniqueBuckets = [
+      ...new Map(buckets.map((bucket) => [bucket.keyHash, bucket.maxAttempts])).entries(),
+    ].sort(([left], [right]) => left.localeCompare(right));
     const now = this.clock();
     const allowed = await withSerializableRetry(() =>
       this.prisma.$transaction(
         async (transaction) => {
-          for (const keyHash of uniqueBuckets) {
+          for (const [keyHash, maxAttempts] of uniqueBuckets) {
             const existing = await transaction.loginThrottle.findUnique({ where: { keyHash } });
 
             if (existing?.blockedUntil !== null && existing?.blockedUntil !== undefined) {
@@ -43,7 +50,7 @@ export class LoginRateLimiterService {
                 this.configuration.loginWindowSeconds * 1_000;
             const attempts = windowExpired ? 1 : existing.attempts + 1;
             const blockedUntil =
-              attempts >= this.configuration.loginMaxAttempts
+              attempts >= maxAttempts
                 ? addSeconds(now, this.configuration.loginBlockSeconds)
                 : null;
 

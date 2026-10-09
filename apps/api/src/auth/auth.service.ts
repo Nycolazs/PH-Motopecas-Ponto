@@ -113,8 +113,12 @@ export class AuthService {
   ): Promise<AuthResponse> {
     const normalizedLogin = normalizeLogin(input.login);
     const loginBucket = this.clientContexts.hashLoginBucket(normalizedLogin);
-    const bucketHashes = [loginBucket, this.clientContexts.hashIpBucket(context.ipHash)];
-    await this.rateLimiter.consume(bucketHashes);
+    const ipBucket = this.clientContexts.hashIpBucket(context.ipHash);
+    const bucketHashes = [loginBucket, ipBucket];
+    await this.rateLimiter.consume([
+      { keyHash: loginBucket, maxAttempts: this.configuration.loginMaxAttempts },
+      { keyHash: ipBucket, maxAttempts: this.configuration.loginIpMaxAttempts },
+    ]);
 
     const user = await this.prisma.user.findUnique({
       where: { normalizedLogin },

@@ -15,7 +15,18 @@ export function configureApplication(app: NestExpressApplication): void {
   const allowedOrigins = new Set(['ph-ponto://app', ...webAllowedOrigins(config)]);
   const isDev = config.get('NODE_ENV', { infer: true }) !== 'production';
 
-  app.set('trust proxy', config.get('TRUST_PROXY_COUNT', { infer: true }));
+  // Behind the Cloudflare Tunnel every request reaches the API from the Docker
+  // gateway; trusting only that hop lets rate limiting see each user's real IP.
+  const trustedProxies = config.get('TRUST_PROXY_ADDRESSES', { infer: true });
+  app.set(
+    'trust proxy',
+    trustedProxies !== undefined
+      ? trustedProxies
+          .split(',')
+          .map((entry) => entry.trim())
+          .filter((entry) => entry.length > 0)
+      : config.get('TRUST_PROXY_COUNT', { infer: true }),
+  );
   app.useBodyParser('json', { limit: '10mb' });
   app.useBodyParser('urlencoded', { extended: true, limit: '10mb' });
   app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));

@@ -116,12 +116,29 @@ const rawEnvironmentSchema = z
       .default(2_592_000),
     AUTH_LOGIN_WINDOW_SECONDS: z.coerce.number().int().min(60).max(3_600).default(900),
     AUTH_LOGIN_MAX_ATTEMPTS: z.coerce.number().int().min(3).max(20).default(5),
+    AUTH_LOGIN_IP_MAX_ATTEMPTS: z.coerce.number().int().min(5).max(500).default(30),
     AUTH_LOGIN_BLOCK_SECONDS: z.coerce.number().int().min(60).max(86_400).default(900),
     INITIAL_ADMIN_USERNAME: z.string().trim().min(3).max(64).optional(),
     INITIAL_ADMIN_PASSWORD: z.string().min(12).max(256).optional(),
     UPLOAD_DIR: z.string().trim().min(1).max(1_024),
     SWAGGER_ENABLED: booleanSchema.optional(),
     TRUST_PROXY_COUNT: z.coerce.number().int().min(0).max(10).default(0),
+    /**
+     * Comma-separated proxy addresses/subnets allowed to report the client IP through
+     * X-Forwarded-For (e.g. the Cloudflare Tunnel reaching the API through Docker).
+     * Takes precedence over TRUST_PROXY_COUNT. Direct LAN clients are never trusted.
+     */
+    TRUST_PROXY_ADDRESSES: z.preprocess(
+      emptyToUndefined,
+      z
+        .string()
+        .trim()
+        .regex(/^[A-Za-z0-9.:/,\s]+$/, {
+          message:
+            'TRUST_PROXY_ADDRESSES deve listar endereços ou sub-redes separados por vírgula.',
+        })
+        .optional(),
+    ),
     DATABASE_CONNECTION_TIMEOUT_MS: z.coerce.number().int().min(100).max(30_000).default(2_000),
     DATABASE_POOL_MAX: z.coerce.number().int().min(1).max(100).default(10),
     READINESS_TIMEOUT_MS: z.coerce.number().int().min(100).max(30_000).default(3_000),
