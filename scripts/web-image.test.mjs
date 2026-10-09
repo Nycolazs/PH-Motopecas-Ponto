@@ -11,6 +11,8 @@ test('the web image serves the renderer build output, not the nginx placeholder'
   assert.ok(outDir, 'vite outDir must be declared');
   assert.match(
     dockerfile,
-    new RegExp(`COPY --from=build /app/apps/desktop/${outDir.replace(/\//g, '\\/')} /usr/share/nginx/html`),
+    new RegExp(
+      `COPY --from=build /app/apps/desktop/${outDir.replace(/\//g, '\\/')} /usr/share/nginx/html`,
+    ),
   );
 });
