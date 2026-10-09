@@ -20,6 +20,7 @@ import {
   scheduleVersionSchema,
   timePunchAdjustmentHistorySchema,
   timePunchMutationSchema,
+  timesheetReportSchema,
   userListSchema,
   vacationListSchema,
   vacationSchema,
@@ -41,6 +42,7 @@ import {
   type ScheduleVersion,
   type TimePunchAdjustmentHistory,
   type TimePunchMutation,
+  type TimesheetReport,
   type UserList,
   type Vacation,
   type VacationList,
@@ -385,6 +387,25 @@ export class ApiClient {
       monthlyAttendanceSchema,
       { ...(signal === undefined ? {} : { signal }) },
     );
+  }
+
+  public getTimesheetReport(
+    params: {
+      from: string;
+      to: string;
+      employeeId?: string | undefined;
+      includeInactive?: boolean | undefined;
+      includeDays?: boolean | undefined;
+    },
+    signal?: AbortSignal,
+  ): Promise<TimesheetReport> {
+    const q = new URLSearchParams({ from: params.from, to: params.to });
+    if (params.employeeId) q.set('employeeId', params.employeeId);
+    if (params.includeInactive) q.set('includeInactive', 'true');
+    if (params.includeDays) q.set('includeDays', 'true');
+    return this.request(`/attendance/reports/timesheets?${q.toString()}`, timesheetReportSchema, {
+      ...(signal === undefined ? {} : { signal }),
+    });
   }
 
   // Punch insertions and corrections
@@ -1526,13 +1547,27 @@ export class ApiClient {
       );
     }
 
+    let body: unknown;
     try {
-      return schema.parse(await response.json());
+      body = await response.json();
     } catch {
       throw new ApiClientError(
         'INVALID_RESPONSE',
         'O servidor retornou uma resposta inesperada. Tente novamente.',
       );
     }
+    const parsed = schema.safeParse(body);
+    if (!parsed.success) {
+      // Contract drift between API and renderer must never fail silently.
+      console.error(
+        `[api] Resposta fora do contrato em ${path}:`,
+        parsed.error.issues.map((issue) => `${issue.path.join('.')}: ${issue.message}`),
+      );
+      throw new ApiClientError(
+        'INVALID_RESPONSE',
+        'O servidor retornou uma resposta inesperada. Tente novamente.',
+      );
+    }
+    return parsed.data;
   }
 }

@@ -79,9 +79,7 @@ describe('RegulationsWizardPage', () => {
 
     renderWithProviders(<RegulationsWizardPage />);
 
-    expect(
-      await screen.findByRole('heading', { name: /Regimento Interno de Trabalho/i }),
-    ).toBeVisible();
+    expect(await screen.findByRole('heading', { name: /Regimento Interno/i })).toBeVisible();
     expect(screen.getByText('Etapa 1: Informações da Empresa e Princípios')).toBeVisible();
     expect(screen.getByPlaceholderText('Ex: PH Motopeças')).toBeVisible();
     expect(screen.getByRole('button', { name: /Salvar Rascunho/i })).toBeVisible();

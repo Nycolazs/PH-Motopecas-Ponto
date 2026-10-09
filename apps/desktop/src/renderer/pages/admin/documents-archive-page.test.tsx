@@ -84,13 +84,11 @@ describe('DocumentsArchivePage', () => {
 
     renderWithProviders(<DocumentsArchivePage />);
 
-    expect(
-      await screen.findByRole('heading', { name: /Arquivo de Documentos Oficiais/i }),
-    ).toBeVisible();
-    expect(screen.getByPlaceholderText(/Buscar por título ou colaborador/i)).toBeVisible();
+    expect(await screen.findByRole('heading', { name: /Documentos emitidos/i })).toBeVisible();
+    expect(screen.getByPlaceholderText(/Buscar título ou colaborador/i)).toBeVisible();
     expect(await screen.findByText('Manual de Cultura Organizacional')).toBeVisible();
     expect(screen.getByText('Cultura Organizacional')).toBeVisible();
-    expect(screen.getByText('Ativo')).toBeVisible();
+    expect(screen.getByText('Válido')).toBeVisible();
   });
 
   it('opens void modal when clicking void button', async () => {
@@ -108,7 +106,7 @@ describe('DocumentsArchivePage', () => {
 
     expect(await screen.findByText('Manual de Cultura Organizacional')).toBeVisible();
 
-    const voidButton = screen.getByTitle('Anular Documento');
+    const voidButton = screen.getByRole('button', { name: /^Anular / });
     await user.click(voidButton);
 
     expect(await screen.findByRole('heading', { name: /Anular Documento Oficial/i })).toBeVisible();
@@ -160,7 +158,7 @@ describe('DocumentsArchivePage', () => {
     await user.click(employeeSelect);
     expect(await screen.findByRole('option', { name: /Carlos Mecânico/i })).toBeVisible();
 
-    const searchInput = screen.getByPlaceholderText(/Buscar por título ou colaborador/i);
+    const searchInput = screen.getByPlaceholderText(/Buscar título ou colaborador/i);
     await user.type(searchInput, 'Manual');
 
     const clearButton = await screen.findByRole('button', { name: /Limpar filtros/i });

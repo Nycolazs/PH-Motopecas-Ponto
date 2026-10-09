@@ -93,6 +93,9 @@ function createFixture() {
         employeeProfile: null,
       }),
     },
+    employeeRoleAssignment: {
+      findFirst: vi.fn().mockResolvedValue(null),
+    },
     $transaction: vi.fn(async (operation: unknown) => {
       if (typeof operation !== 'function') {
         throw new Error('Unexpected array transaction in this test.');
@@ -315,6 +318,35 @@ describe('UserManagementService', () => {
     expect(profile.userId).toBe('30000000-0000-4000-8000-000000000001');
     expect(profile.accessEnabled).toBe(true);
     expect(profile.isActive).toBe(true);
+    expect(profile.roleAssignment).toBeNull();
+  });
+
+  it('includes the current principal role assignment in the employee profile', async () => {
+    const fixture = createFixture();
+    fixture.prisma.employeeRoleAssignment.findFirst.mockResolvedValue({
+      id: '50000000-0000-4000-8000-000000000001',
+      employeeId: '30000000-0000-4000-8000-000000000001',
+      jobRoleId: '50000000-0000-4000-8000-000000000002',
+      jobRoleVersionId: '50000000-0000-4000-8000-000000000003',
+      startDate: new Date('2026-01-15T00:00:00.000Z'),
+      endDate: null,
+      isPrincipal: true,
+      notes: null,
+      createdAt: new Date('2026-01-15T12:00:00.000Z'),
+      jobRole: { title: 'Mecânico Geral de Motocicletas' },
+      jobRoleVersion: { versionNumber: 2 },
+    });
+
+    const profile = await fixture.service.getEmployeeProfile(
+      '30000000-0000-4000-8000-000000000001',
+    );
+
+    expect(profile.roleAssignment).toMatchObject({
+      roleTitle: 'Mecânico Geral de Motocicletas',
+      versionNumber: 2,
+      startDate: '2026-01-15',
+      endDate: null,
+    });
   });
 
   it('updates employee profile with upsert and logs audit event', async () => {

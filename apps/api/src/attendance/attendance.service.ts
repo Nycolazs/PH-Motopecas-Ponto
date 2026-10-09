@@ -42,6 +42,8 @@ import {
   type EmployeeTodayStatusViewDto,
   type IncompleteAttendanceDayItemDto,
   type IncompleteAttendanceViewDto,
+  type TimesheetReportEmployeeViewDto,
+  type TimesheetReportViewDto,
 } from './attendance.view.js';
 import { ATTENDANCE_CLOCK, type AttendanceClock } from './attendance-clock.js';
 import { effectiveChronology } from './effective-chronology.js';
@@ -51,6 +53,14 @@ const MAXIMUM_HISTORY_DAYS = 366;
 export interface AttendancePeriodResult {
   days: DailyAttendanceViewDto[];
   totals: AttendancePeriodSummary;
+}
+
+export interface TimesheetReportOptions {
+  from: string;
+  to: string;
+  employeeId?: string | undefined;
+  includeInactive?: boolean | undefined;
+  includeDays?: boolean | undefined;
 }
 
 export interface MonthlyAttendanceResult {
@@ -448,6 +458,111 @@ export class AttendanceService implements AttendanceSummaryResolver {
       totalIncompleteDays: items.length,
       totalAffectedEmployees: uniqueEmployees.size,
       items,
+    };
+  }
+
+  public async getTimesheetReport(
+    options: TimesheetReportOptions,
+    evaluationInstant = this.clock(),
+  ): Promise<TimesheetReportViewDto> {
+    const dates = this.validatedDates(options.from, options.to, evaluationInstant);
+    const { employeeId } = options;
+    const singleEmployee = employeeId !== undefined;
+    const where: Prisma.UserWhereInput = { role: UserRole.EMPLOYEE };
+    if (employeeId !== undefined) {
+      where.id = employeeId;
+    } else if (options.includeInactive !== true) {
+      where.isActive = true;
+    }
+
+    const employees = await this.prisma.user.findMany({
+      where,
+      orderBy: [{ name: 'asc' }, { login: 'asc' }],
+      select: {
+        id: true,
+        name: true,
+        login: true,
+        isActive: true,
+        avatar: { select: { id: true } },
+        employeeProfile: { select: { cpf: true, hireDate: true } },
+      },
+    });
+
+    if (singleEmployee && employees.length === 0) {
+      throw new NotFoundException({
+        code: 'RESOURCE_NOT_FOUND',
+        message: 'Funcionário não encontrado.',
+      });
+    }
+
+    const employeeIds = employees.map((employee) => employee.id);
+    const assignments =
+      employeeIds.length === 0
+        ? []
+        : await this.prisma.employeeRoleAssignment.findMany({
+            where: {
+              employeeId: { in: employeeIds },
+              isPrincipal: true,
+              startDate: { lte: businessDateToDatabaseDate(options.to) },
+              OR: [
+                { endDate: null },
+                { endDate: { gte: businessDateToDatabaseDate(options.from) } },
+              ],
+            },
+            orderBy: [{ startDate: 'desc' }, { createdAt: 'desc' }],
+            select: {
+              employeeId: true,
+              jobRole: { select: { department: true } },
+              jobRoleVersion: { select: { title: true } },
+            },
+          });
+    const roleByEmployee = new Map<string, (typeof assignments)[number]>();
+    for (const assignment of assignments) {
+      if (!roleByEmployee.has(assignment.employeeId)) {
+        roleByEmployee.set(assignment.employeeId, assignment);
+      }
+    }
+
+    const rows: TimesheetReportEmployeeViewDto[] = [];
+    const allSummaries: DailyAttendanceSummary[] = [];
+    for (const employee of employees) {
+      const summaries = await this.loadPeriodSummaries(employee.id, dates, evaluationInstant);
+      // Team reports skip collaborators who had no applicable day in the period
+      // (for example, hired after the period ended).
+      if (!singleEmployee && summaries.length === 0) {
+        continue;
+      }
+      allSummaries.push(...summaries);
+      const role = roleByEmployee.get(employee.id);
+      const hireDate = employee.employeeProfile?.hireDate;
+      rows.push({
+        employeeId: employee.id,
+        name: employee.name,
+        login: employee.login,
+        isActive: employee.isActive,
+        hasAvatar: employee.avatar !== null,
+        cpf: employee.employeeProfile?.cpf ?? null,
+        hireDate: hireDate ? databaseDateToBusinessDate(hireDate) : null,
+        roleTitle: role?.jobRoleVersion.title ?? null,
+        department: role?.jobRole.department ?? null,
+        totals: aggregateAttendancePeriod(summaries),
+        days: options.includeDays === true ? summaries.map(toDailyAttendanceView) : null,
+      });
+    }
+
+    // PostgreSQL orders by byte value; sort accented names the way people read them.
+    rows.sort(
+      (left, right) =>
+        left.name.localeCompare(right.name, 'pt-BR', { sensitivity: 'base' }) ||
+        left.login.localeCompare(right.login, 'pt-BR'),
+    );
+
+    return {
+      from: options.from,
+      to: options.to,
+      generatedAt: evaluationInstant.toISOString(),
+      employees: rows,
+      totals: aggregateAttendancePeriod(allSummaries),
     };
   }
 

@@ -15,6 +15,8 @@ import { useForm } from 'react-hook-form';
 
 import { useAuth } from '../../auth/use-auth.js';
 import type { UpdateCompanyDto } from '../../api/contracts.js';
+import { PageHeader } from '../../components/page-header.js';
+import { formatDateBR } from '../../lib/format.js';
 
 export function CompanyPage(): React.JSX.Element {
   const { api } = useAuth();
@@ -117,25 +119,19 @@ export function CompanyPage(): React.JSX.Element {
   }
 
   return (
-    <div className="p-6 max-w-5xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
-        <div>
-          <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white flex items-center gap-2.5">
-            <Building2 className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-            <span>Dados da Empresa</span>
-          </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Informações cadastrais e endereço oficial utilizados em documentos e relatórios
-          </p>
-        </div>
-
-        {company?.updatedAt ? (
-          <span className="text-xs text-slate-400 dark:text-slate-500 self-start sm:self-auto">
-            Última atualização: {new Date(company.updatedAt).toLocaleDateString('pt-BR')}
-          </span>
-        ) : null}
-      </div>
+    <div className="space-y-5">
+      <PageHeader
+        title="Minha Empresa"
+        icon={Building2}
+        description="Dados cadastrais usados nos cabeçalhos de documentos e relatórios."
+        badges={
+          company?.updatedAt ? (
+            <span className="text-[11px] text-slate-400 dark:text-slate-500">
+              Atualizado em {formatDateBR(company.updatedAt)}
+            </span>
+          ) : null
+        }
+      />
 
       {successMessage ? (
         <div className="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200 flex items-center gap-3 animate-in fade-in duration-300">

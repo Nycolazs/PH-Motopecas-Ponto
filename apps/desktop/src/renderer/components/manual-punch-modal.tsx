@@ -151,7 +151,10 @@ export function ManualPunchModal({
               <p className="text-xs text-amber-800 dark:text-amber-300 leading-relaxed">
                 O dia <strong>{formatDateBR(punchDate)}</strong> já possui{' '}
                 <strong>{targetDay?.punchCount} batidas registradas</strong> (jornada completa) para{' '}
-                <strong>{selectedEmployee?.name ?? 'o colaborador'}</strong>.
+                <strong>
+                  {selectedEmployee ? formatDisplayName(selectedEmployee.name) : 'o colaborador'}
+                </strong>
+                .
               </p>
               <p className="text-xs text-amber-700 dark:text-amber-300/90 leading-relaxed mt-1">
                 Deseja realmente adicionar uma nova batida às <strong>{punchTime}</strong> neste

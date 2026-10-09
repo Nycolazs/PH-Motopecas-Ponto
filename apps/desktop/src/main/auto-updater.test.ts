@@ -71,6 +71,9 @@ vi.mock('electron-updater', () => ({
 
 import {
   getUpdater,
+  IDLE_SECONDS_BEFORE_INSTALL,
+  INSTALL_POLL_INTERVAL_MS,
+  isSafeMomentToInstall,
   resetUpdaterInstanceForTesting,
   setupAutoUpdater,
   triggerBackgroundUpdateCheck,
@@ -142,28 +145,59 @@ describe('Electron Auto-Updater', () => {
     await Promise.resolve();
   });
 
-  it('displays a native notification on update-downloaded and restarts on click', () => {
-    setupAutoUpdater();
+  it('notifies when an update is downloaded and installs immediately on click', () => {
+    setupAutoUpdater({ canInstallNow: () => false });
 
-    // Trigger update-downloaded event
     updaterMock.emit('update-downloaded', { version: '0.1.7' });
 
     expect(notificationSpy.spy).toHaveBeenCalledWith(
       expect.objectContaining({
-        title: 'PH-Ponto - Atualização Disponível',
+        title: 'PH-Ponto - Atualização pronta',
         body: expect.stringContaining('0.1.7'),
       }),
     );
     expect(notificationSpy.instance.show).toHaveBeenCalled();
+    expect(updaterMock.quitAndInstall).not.toHaveBeenCalled();
 
-    // Trigger click on notification
     const clickHandler = notificationSpy.instance.on.mock.calls.find(
       ([event]) => event === 'click',
     )?.[1];
     expect(clickHandler).toBeDefined();
     clickHandler();
 
-    expect(updaterMock.quitAndInstall).toHaveBeenCalledWith(false, true);
+    expect(updaterMock.quitAndInstall).toHaveBeenCalledWith(true, true);
+  });
+
+  it('installs silently and relaunches as soon as the app is idle', () => {
+    let busy = true;
+    setupAutoUpdater({ canInstallNow: () => !busy });
+
+    updaterMock.emit('update-downloaded', { version: '0.1.7' });
+    expect(updaterMock.quitAndInstall).not.toHaveBeenCalled();
+
+    vi.advanceTimersByTime(INSTALL_POLL_INTERVAL_MS * 3);
+    expect(updaterMock.quitAndInstall).not.toHaveBeenCalled();
+
+    busy = false;
+    vi.advanceTimersByTime(INSTALL_POLL_INTERVAL_MS);
+    expect(updaterMock.quitAndInstall).toHaveBeenCalledTimes(1);
+    expect(updaterMock.quitAndInstall).toHaveBeenCalledWith(true, true);
+
+    // Never triggers a second installation.
+    vi.advanceTimersByTime(INSTALL_POLL_INTERVAL_MS * 5);
+    expect(updaterMock.quitAndInstall).toHaveBeenCalledTimes(1);
+  });
+
+  it('installs right away when the update finishes while the app sits in the tray', () => {
+    setupAutoUpdater({ canInstallNow: () => true });
+    updaterMock.emit('update-downloaded', { version: '0.1.7' });
+    expect(updaterMock.quitAndInstall).toHaveBeenCalledWith(true, true);
+  });
+
+  it('treats a hidden window or a long-idle machine as a safe moment to install', () => {
+    expect(isSafeMomentToInstall(false, 0)).toBe(true);
+    expect(isSafeMomentToInstall(true, 10)).toBe(false);
+    expect(isSafeMomentToInstall(true, IDLE_SECONDS_BEFORE_INSTALL)).toBe(true);
   });
 
   it('safely obtains updater instance through getUpdater', () => {

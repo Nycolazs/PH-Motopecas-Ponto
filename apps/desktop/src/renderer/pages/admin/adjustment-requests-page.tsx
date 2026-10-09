@@ -8,7 +8,12 @@ import { AvatarImage } from '../../components/avatar-image.js';
 import { Modal } from '../../components/modal.js';
 import { Pagination } from '../../components/pagination.js';
 import { useToast } from '../../components/toast-context.js';
-import { formatDateBR, formatInstantDateTime, formatInstantTime } from '../../lib/format.js';
+import {
+  formatDateBR,
+  formatDisplayName,
+  formatInstantDateTime,
+  formatInstantTime,
+} from '../../lib/format.js';
 
 export function AdjustmentRequestsPage(): React.JSX.Element {
   const api = useApiClient();
@@ -107,13 +112,13 @@ export function AdjustmentRequestsPage(): React.JSX.Element {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+          <h1 className="text-xl font-bold text-slate-900 dark:text-white">
             Solicitações de Ajuste de Ponto
           </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Gerencie e avalie pedidos de correção de ponto enviados pelos funcionários.
+          <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+            Pedidos de correção de ponto enviados pelos colaboradores.
           </p>
         </div>
 
@@ -222,12 +227,12 @@ export function AdjustmentRequestsPage(): React.JSX.Element {
                     <div className="flex items-center gap-3">
                       <AvatarImage
                         userId={request.employee.id}
-                        name={request.employee.name}
+                        name={formatDisplayName(request.employee.name)}
                         size="md"
                       />
                       <div>
                         <div className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                          <span>{request.employee.name}</span>
+                          <span>{formatDisplayName(request.employee.name)}</span>
                           <span className="text-xs text-slate-400 font-normal">
                             (@{request.employee.login})
                           </span>
@@ -269,7 +274,8 @@ export function AdjustmentRequestsPage(): React.JSX.Element {
                       <div className="pl-12">
                         <div className="p-2.5 bg-slate-50 dark:bg-slate-800/80 rounded-lg border border-slate-200 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-300 max-w-2xl">
                           <span className="font-bold block text-[11px] text-slate-500 dark:text-slate-400">
-                            Parecer Administrativo ({request.reviewedBy?.name ?? 'Admin'} em{' '}
+                            Parecer Administrativo (
+                            {formatDisplayName(request.reviewedBy?.name ?? 'Admin')} em{' '}
                             {request.reviewedAt ? formatInstantDateTime(request.reviewedAt) : ''}):
                           </span>
                           {request.reviewComment}
@@ -342,8 +348,8 @@ export function AdjustmentRequestsPage(): React.JSX.Element {
           <form onSubmit={handleActionSubmit} className="space-y-4">
             <p className="text-xs text-slate-500 dark:text-slate-400">
               {actionType === 'APPROVE'
-                ? `Confirme a aprovação para alterar o ponto de ${selectedRequest.employee.name} de ${formatInstantTime(selectedRequest.currentOccurredAt)} para ${formatInstantTime(selectedRequest.requestedOccurredAt)}.`
-                : `Você está recusando o pedido de ajuste de ${selectedRequest.employee.name}. O ponto original não será alterado.`}
+                ? `Confirme a aprovação para alterar o ponto de ${formatDisplayName(selectedRequest.employee.name)} de ${formatInstantTime(selectedRequest.currentOccurredAt)} para ${formatInstantTime(selectedRequest.requestedOccurredAt)}.`
+                : `Você está recusando o pedido de ajuste de ${formatDisplayName(selectedRequest.employee.name)}. O ponto original não será alterado.`}
             </p>
 
             <div>

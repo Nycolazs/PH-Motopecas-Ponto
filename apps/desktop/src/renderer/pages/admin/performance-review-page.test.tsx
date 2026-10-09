@@ -78,7 +78,7 @@ describe('PerformanceReviewPage', () => {
     renderWithProviders(<PerformanceReviewPage />);
 
     expect(
-      await screen.findByRole('heading', { name: /Avaliação de Desempenho e Competências/i }),
+      await screen.findByRole('heading', { name: /Avaliação de Desempenho/i }),
     ).toBeInTheDocument();
 
     // Check all 8 canonical criteria are present
@@ -92,7 +92,7 @@ describe('PerformanceReviewPage', () => {
     expect(screen.getByText('Segurança do Trabalho')).toBeInTheDocument();
 
     // Live score card shows initial 3.00 Regular
-    expect(screen.getByText('3.00')).toBeInTheDocument();
+    expect(screen.getByText('3,00')).toBeInTheDocument();
     expect(screen.getByText('Regular')).toBeInTheDocument();
   });
 
@@ -170,7 +170,7 @@ describe('PerformanceReviewPage', () => {
     renderWithProviders(<PerformanceReviewPage />);
 
     expect(await screen.findByText('1º Trimestre / 2026')).toBeInTheDocument();
-    expect(screen.getByText('4.25')).toBeInTheDocument();
+    expect(screen.getByText('4,25')).toBeInTheDocument();
     expect(screen.getByText('Bom')).toBeInTheDocument();
     expect(screen.getByText('Vigente')).toBeInTheDocument();
   });

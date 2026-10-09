@@ -28,6 +28,7 @@ export const employeeProfileSchema = z
       .optional(),
     notes: z.string().nullable().optional(),
     accessEnabled: z.boolean(),
+    isActive: z.boolean().optional(),
     roleAssignment: employeeRoleAssignmentSchema.nullable().optional(),
     createdAt: z.string().datetime({ offset: true }),
     updatedAt: z.string().datetime({ offset: true }),

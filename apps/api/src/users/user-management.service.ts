@@ -438,6 +438,16 @@ export class UserManagementService {
     }
 
     const profile = user.employeeProfile;
+    const today = new Date();
+    const principal = await this.prisma.employeeRoleAssignment.findFirst({
+      where: {
+        employeeId: user.id,
+        isPrincipal: true,
+        OR: [{ endDate: null }, { endDate: { gte: today } }],
+      },
+      include: { jobRole: true, jobRoleVersion: true },
+      orderBy: [{ startDate: 'desc' }, { createdAt: 'desc' }],
+    });
 
     return {
       userId: user.id,
@@ -457,6 +467,21 @@ export class UserManagementService {
       notes: profile?.notes ?? null,
       accessEnabled: user.accessEnabled,
       isActive: user.isActive,
+      roleAssignment: principal
+        ? {
+            id: principal.id,
+            employeeId: principal.employeeId,
+            jobRoleId: principal.jobRoleId,
+            jobRoleVersionId: principal.jobRoleVersionId,
+            roleTitle: principal.jobRole.title,
+            versionNumber: principal.jobRoleVersion.versionNumber,
+            startDate: formatDateOnly(principal.startDate)!,
+            endDate: formatDateOnly(principal.endDate),
+            isPrincipal: principal.isPrincipal,
+            notes: principal.notes,
+            createdAt: principal.createdAt.toISOString(),
+          }
+        : null,
       createdAt: (profile?.createdAt ?? user.createdAt).toISOString(),
       updatedAt: (profile?.updatedAt ?? user.updatedAt).toISOString(),
     };

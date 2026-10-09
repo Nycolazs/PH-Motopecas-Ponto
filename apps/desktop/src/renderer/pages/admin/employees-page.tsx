@@ -22,7 +22,7 @@ import { Modal } from '../../components/modal.js';
 import { Pagination } from '../../components/pagination.js';
 import { StatusBadge } from '../../components/status-badge.js';
 import { useToast } from '../../components/toast-context.js';
-import { formatDateBR } from '../../lib/format.js';
+import { formatDateBR, formatDisplayName } from '../../lib/format.js';
 
 export function AdminEmployeesPage(): React.JSX.Element {
   const api = useApiClient();
@@ -118,7 +118,8 @@ export function AdminEmployeesPage(): React.JSX.Element {
 
   const handleToggleStatus = async (user: ManagedUser): Promise<void> => {
     const action = user.isActive ? 'desativar' : 'ativar';
-    if (!confirm(`Deseja realmente ${action} o colaborador ${user.name}?`)) return;
+    if (!confirm(`Deseja realmente ${action} o colaborador ${formatDisplayName(user.name)}?`))
+      return;
     try {
       await api.updateEmployeeStatus(user.id, !user.isActive);
       toast.success(`Colaborador ${user.isActive ? 'desativado' : 'ativado'} com sucesso!`);
@@ -298,11 +299,11 @@ export function AdminEmployeesPage(): React.JSX.Element {
                               onClick={() => navigate(`/admin/funcionarios/${user.id}`)}
                               className="font-bold text-slate-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 text-left"
                             >
-                              {user.name}
+                              {formatDisplayName(user.name)}
                             </button>
-                            <div className="text-xs text-slate-500">
-                              ID: {user.id.substring(0, 8)}
-                            </div>
+                            {!user.accessEnabled && (
+                              <div className="text-xs text-slate-500">Sem acesso ao aplicativo</div>
+                            )}
                           </div>
                         </div>
                       </td>
@@ -464,7 +465,7 @@ export function AdminEmployeesPage(): React.JSX.Element {
         <Modal
           isOpen={true}
           onClose={() => setEditUser(null)}
-          title={`Editar Funcionário — ${editUser.name}`}
+          title={`Editar Funcionário — ${formatDisplayName(editUser.name)}`}
         >
           <form onSubmit={(e) => void handleEditSubmit(e)} className="space-y-4">
             {formError && (
@@ -525,7 +526,7 @@ export function AdminEmployeesPage(): React.JSX.Element {
         <Modal
           isOpen={true}
           onClose={() => setPasswordUser(null)}
-          title={`Redefinir Senha — ${passwordUser.name}`}
+          title={`Redefinir Senha — ${formatDisplayName(passwordUser.name)}`}
         >
           <form onSubmit={(e) => void handlePasswordSubmit(e)} className="space-y-4">
             {formError && (

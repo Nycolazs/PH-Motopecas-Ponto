@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   AlertCircle,
-  ArrowLeft,
   CheckCircle2,
   Clock,
   Download,
@@ -21,6 +20,7 @@ import {
 import { Link, useNavigate } from 'react-router-dom';
 
 import { useAuth } from '../../auth/use-auth.js';
+import { PageHeader, headerButton } from '../../components/page-header.js';
 import { useToast } from '../../components/toast-context.js';
 import type {
   CulturePayloadDto,
@@ -302,60 +302,49 @@ export function CultureDocumentPage(): React.JSX.Element {
   const isLoading = isDraftLoading || isCultureLoading;
 
   return (
-    <div className="p-6 max-w-5xl mx-auto space-y-6">
-      {/* Header & Back Link */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="space-y-1">
-          <Link
-            to="/admin/documentos/gerar"
-            className="inline-flex items-center text-xs font-semibold text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition-colors mb-1"
-          >
-            <ArrowLeft className="w-3.5 h-3.5 mr-1" />
-            Voltar aos Modelos de Documentos
-          </Link>
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-              <Sparkles className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-              Manual de Cultura Organizacional
-            </h1>
-            {cultureProfile?.currentVersion ? (
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-300/40">
-                Versão {cultureProfile.currentVersion.versionNumber} Publicada
-              </span>
-            ) : (
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 border border-amber-300/40">
-                Não publicado
-              </span>
-            )}
-          </div>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
-            Cadastre a Missão, Visão e Valores da PH Motopeças para geração do documento oficial e
-            alinhamento da equipe.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          {cultureProfile?.versions && cultureProfile.versions.length > 0 ? (
-            <button
-              onClick={() => setIsHistoryOpen(true)}
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
-            >
-              <History className="w-4 h-4" />
-              Histórico ({cultureProfile.versions.length})
-            </button>
-          ) : null}
-
-          {activeDraft ? (
-            <button
-              onClick={() => setIsDiscardConfirmOpen(true)}
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors border border-rose-200 dark:border-rose-900"
-            >
-              <Trash2 className="w-4 h-4" />
-              Descartar Rascunho
-            </button>
-          ) : null}
-        </div>
-      </div>
+    <div className="space-y-5">
+      <PageHeader
+        title="Manual de Cultura"
+        icon={Sparkles}
+        backTo="/admin/documentos/gerar"
+        backLabel="Documentos & RH"
+        description="Missão, visão e valores da PH Motopeças. Ao publicar, uma nova versão do documento é gerada."
+        badges={
+          cultureProfile?.currentVersion ? (
+            <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300">
+              Versão {cultureProfile.currentVersion.versionNumber} publicada
+            </span>
+          ) : (
+            <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700 dark:bg-amber-950/60 dark:text-amber-300">
+              Não publicado
+            </span>
+          )
+        }
+        actions={
+          <>
+            {cultureProfile?.versions && cultureProfile.versions.length > 0 ? (
+              <button
+                type="button"
+                onClick={() => setIsHistoryOpen(true)}
+                className={headerButton.secondary}
+              >
+                <History className="h-4 w-4" aria-hidden="true" />
+                Histórico ({cultureProfile.versions.length})
+              </button>
+            ) : null}
+            {activeDraft ? (
+              <button
+                type="button"
+                onClick={() => setIsDiscardConfirmOpen(true)}
+                className={headerButton.danger}
+              >
+                <Trash2 className="h-4 w-4" aria-hidden="true" />
+                Descartar rascunho
+              </button>
+            ) : null}
+          </>
+        }
+      />
 
       {/* Draft Notification Badge */}
       {activeDraft ? (

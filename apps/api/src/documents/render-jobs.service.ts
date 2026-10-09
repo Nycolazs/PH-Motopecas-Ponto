@@ -21,7 +21,7 @@ import {
 } from '../generated/prisma/client.js';
 import { MAXIMUM_RENDER_JOB_ATTEMPTS, RENDER_JOB_LEASE_SECONDS } from './documents.constants.js';
 import { DocumentStorageService } from './document-storage.service.js';
-import { DocumentTemplatesService } from './document-templates.service.js';
+import { DocumentTemplatesService, renumberSectionTitles } from './document-templates.service.js';
 import { PdfRendererService } from './pdf-renderer.service.js';
 
 @Injectable()
@@ -144,7 +144,7 @@ export class RenderJobsService {
           });
       }
 
-      const pdfBuffer = await this.pdfRenderer.renderHtmlToPdf(html);
+      const pdfBuffer = await this.pdfRenderer.renderHtmlToPdf(renumberSectionTitles(html));
       const stored = await this.storage.saveArtifact(pdfBuffer);
 
       const artifact = await this.prisma.documentArtifact.create({

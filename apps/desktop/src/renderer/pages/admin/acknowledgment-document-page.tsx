@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   AlertCircle,
-  ArrowLeft,
+  FileCheck2,
   Briefcase,
   Building2,
   CheckCircle2,
@@ -26,7 +26,8 @@ import type {
 import { useAuth } from '../../auth/use-auth.js';
 import { useToast } from '../../components/toast-context.js';
 import { SelectInput } from '../../components/select-input.js';
-import { formatDisplayName } from '../../lib/format.js';
+import { PageHeader } from '../../components/page-header.js';
+import { formatDateBR, formatDisplayName } from '../../lib/format.js';
 
 export function AcknowledgmentDocumentPage(): React.JSX.Element {
   const { session, api } = useAuth();
@@ -148,7 +149,7 @@ export function AcknowledgmentDocumentPage(): React.JSX.Element {
 
       if (acknowledgmentType === 'REGULATION') {
         if (!currentRegulation) throw new Error('Regimento não publicado.');
-        title = `Termo de Ciência do Regimento Interno - ${selectedEmployee.name}`;
+        title = `Termo de Ciência do Regimento Interno - ${formatDisplayName(selectedEmployee.name)}`;
         payload = {
           employeeId: selectedEmployee.id,
           employeeName: selectedEmployee.name,
@@ -160,7 +161,7 @@ export function AcknowledgmentDocumentPage(): React.JSX.Element {
         };
       } else {
         if (!principalAssignment) throw new Error('Cargo não atribuído.');
-        title = `Termo de Ciência de Cargo - ${selectedEmployee.name}`;
+        title = `Termo de Ciência de Cargo - ${formatDisplayName(selectedEmployee.name)}`;
         payload = {
           employeeId: selectedEmployee.id,
           employeeName: selectedEmployee.name,
@@ -245,29 +246,22 @@ export function AcknowledgmentDocumentPage(): React.JSX.Element {
   };
 
   return (
-    <div className="p-8 max-w-5xl mx-auto space-y-8">
-      {/* Top Breadcrumb & Title */}
-      <div>
-        <Link
-          to="/admin/documentos/gerar"
-          className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition-colors mb-2"
-        >
-          <ArrowLeft className="w-3.5 h-3.5" />
-          Voltar aos Modelos de Documentos
-        </Link>
-        <div className="flex flex-wrap items-center gap-3">
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
-            {pageTitle}
-          </h1>
-          {complianceStatus?.isFullyCompliant && (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap bg-emerald-50 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/60 shadow-2xs">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-              100% Conforme
+    <div className="space-y-5">
+      <PageHeader
+        title={pageTitle}
+        icon={FileCheck2}
+        backTo="/admin/documentos/gerar"
+        backLabel="Documentos & RH"
+        description={pageSubtitle}
+        badges={
+          complianceStatus?.isFullyCompliant ? (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              Equipe toda em dia
             </span>
-          )}
-        </div>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{pageSubtitle}</p>
-      </div>
+          ) : null
+        }
+      />
 
       {/* Compliance Metrics Banner */}
       {complianceStatus && (
@@ -289,11 +283,21 @@ export function AcknowledgmentDocumentPage(): React.JSX.Element {
               <Building2 className="w-5 h-5" />
             </div>
             <div>
-              <div className="text-xs text-slate-500 font-medium">Ciência do Regimento</div>
+              <div className="text-xs text-slate-500 font-medium">
+                Regimento vigente{currentRegulation ? ` (v${currentRegulation.versionNumber})` : ''}
+              </div>
               <div className="text-xl font-bold text-slate-900 dark:text-slate-100">
                 {complianceStatus.regulationAcknowledgedCount} de{' '}
                 {complianceStatus.totalActiveEmployees}
               </div>
+              {currentRegulation &&
+                currentRegulation.versionNumber > 1 &&
+                complianceStatus.regulationAcknowledgedCount <
+                  complianceStatus.totalActiveEmployees && (
+                  <div className="text-[11px] text-amber-700 dark:text-amber-400">
+                    Termos de versões anteriores precisam ser renovados
+                  </div>
+                )}
             </div>
           </div>
 
@@ -302,7 +306,7 @@ export function AcknowledgmentDocumentPage(): React.JSX.Element {
               <Briefcase className="w-5 h-5" />
             </div>
             <div>
-              <div className="text-xs text-slate-500 font-medium">Ciência de Cargo</div>
+              <div className="text-xs text-slate-500 font-medium">Cargo atual</div>
               <div className="text-xl font-bold text-slate-900 dark:text-slate-100">
                 {complianceStatus.roleAcknowledgedCount} de {complianceStatus.totalActiveEmployees}
               </div>
@@ -430,7 +434,7 @@ export function AcknowledgmentDocumentPage(): React.JSX.Element {
             {currentRegulation ? (
               <div className="text-xs text-slate-600 dark:text-slate-400 space-y-1">
                 <div>Título: {currentRegulation.title}</div>
-                <div>Vigência: {currentRegulation.effectiveDate}</div>
+                <div>Vigência: {formatDateBR(currentRegulation.effectiveDate)}</div>
               </div>
             ) : (
               <div className="flex items-center justify-between pt-1">
@@ -464,7 +468,7 @@ export function AcknowledgmentDocumentPage(): React.JSX.Element {
               principalAssignment ? (
                 <div className="text-xs text-slate-600 dark:text-slate-400 space-y-1">
                   <div>Cargo: {principalAssignment.roleTitle}</div>
-                  <div>Atribuído em: {principalAssignment.startDate}</div>
+                  <div>Atribuído em: {formatDateBR(principalAssignment.startDate)}</div>
                 </div>
               ) : (
                 <div className="flex items-center justify-between pt-1">
@@ -547,7 +551,7 @@ export function AcknowledgmentDocumentPage(): React.JSX.Element {
                 acknowledgmentsData.items.map((ack) => (
                   <tr key={ack.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
                     <td className="py-2.5 px-3 font-medium text-slate-900 dark:text-slate-100">
-                      {ack.employeeName ?? 'Colaborador'}
+                      {ack.employeeName ? formatDisplayName(ack.employeeName) : 'Colaborador'}
                     </td>
                     <td className="py-2.5 px-3">
                       <span
@@ -563,7 +567,7 @@ export function AcknowledgmentDocumentPage(): React.JSX.Element {
                       </span>
                     </td>
                     <td className="py-2.5 px-3 text-slate-500">
-                      {new Date(ack.acknowledgedAt).toLocaleDateString('pt-BR')}
+                      {formatDateBR(ack.acknowledgedAt)}
                     </td>
                     <td className="py-2.5 px-3 text-right">
                       <Link
@@ -596,7 +600,7 @@ export function AcknowledgmentDocumentPage(): React.JSX.Element {
                 <FileText className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                 <div>
                   <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                    Prévia do Termo de Ciência - {selectedEmployee?.name}
+                    Prévia do Termo de Ciência — {formatDisplayName(selectedEmployee?.name ?? '')}
                   </h3>
                   <p className="text-xs text-slate-500">
                     Confira a formatação do termo para impressão e assinatura física.

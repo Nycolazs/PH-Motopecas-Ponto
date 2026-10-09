@@ -241,6 +241,103 @@ test('admin logs in, views operational dashboard and navigates admin modules', a
       return;
     }
 
+    if (url.pathname === '/attendance/reports/timesheets') {
+      const withDays = url.searchParams.get('includeDays') === 'true';
+      const totals = {
+        startDate: url.searchParams.get('from'),
+        endDate: url.searchParams.get('to'),
+        finalizedDayCount: 1,
+        completeDayCount: 1,
+        incompleteDayCount: 0,
+        provisionalDayCount: 0,
+        expectedMinutes: 480,
+        workedMinutes: 510,
+        balanceMinutes: 30,
+        overtimeMinutes: 30,
+        missingMinutes: 0,
+        knownPartialWorkedMinutes: 0,
+        punchCount: 4,
+        correctionCount: 0,
+        statusCounts: {
+          normal: 0,
+          overtime: 1,
+          missingHours: 0,
+          incomplete: 0,
+          holiday: 0,
+          dayOff: 0,
+          closed: 0,
+          vacation: 0,
+        },
+      };
+      const punch = (id: string, kind: 'CLOCK_IN' | 'CLOCK_OUT', at: string) => ({
+        id,
+        kind,
+        originalOccurredAt: at,
+        effectiveOccurredAt: at,
+        appliedAdjustmentCount: 0,
+      });
+      const punches = [
+        punch('a1111111-1111-4111-8111-111111111111', 'CLOCK_IN', '2026-08-03T11:00:00.000Z'),
+        punch('a2222222-2222-4222-8222-222222222222', 'CLOCK_OUT', '2026-08-03T15:00:00.000Z'),
+        punch('a3333333-3333-4333-8333-333333333333', 'CLOCK_IN', '2026-08-03T16:00:00.000Z'),
+        punch('a4444444-4444-4444-8444-444444444444', 'CLOCK_OUT', '2026-08-03T20:30:00.000Z'),
+      ];
+      await route.fulfill({
+        contentType: 'application/json',
+        body: JSON.stringify({
+          from: url.searchParams.get('from'),
+          to: url.searchParams.get('to'),
+          generatedAt: '2026-08-14T12:00:00.000Z',
+          employees: [
+            {
+              employeeId: '8f876ef4-dff4-4d58-91bc-e964d75c03da',
+              name: 'Marina Souza',
+              login: 'marina.souza',
+              isActive: true,
+              hasAvatar: false,
+              cpf: null,
+              hireDate: null,
+              roleTitle: 'Atendente de Balcão',
+              department: null,
+              totals,
+              days: withDays
+                ? [
+                    {
+                      businessDate: '2026-08-03',
+                      isFinalized: true,
+                      status: 'OVERTIME',
+                      workState: null,
+                      expectedMinutes: 480,
+                      workedMinutes: 510,
+                      balanceMinutes: 30,
+                      punchCount: 4,
+                      completedIntervalCount: 2,
+                      correctionCount: 0,
+                      expectationSource: 'WEEKLY_SCHEDULE',
+                      calendarStatus: null,
+                      exceptionName: null,
+                      chronology: {
+                        punches,
+                        integrityIssues: [],
+                        intervals: [],
+                        punchCount: 4,
+                        completedIntervalCount: 2,
+                        hasOpenInterval: false,
+                        isIncomplete: false,
+                        workedMilliseconds: 30_600_000,
+                        workedMinutes: 510,
+                      },
+                    },
+                  ]
+                : null,
+            },
+          ],
+          totals,
+        }),
+      });
+      return;
+    }
+
     console.log('UNHANDLED ROUTE:', url.pathname, url.search);
     await route.abort('failed');
   });
@@ -276,4 +373,20 @@ test('admin logs in, views operational dashboard and navigates admin modules', a
   await expect(page.getByRole('heading', { name: 'Gestão de Funcionários' })).toBeVisible();
   await expect(page.getByRole('table')).toContainText('Marina Souza');
   await expect(page.getByRole('table')).toContainText('marina.souza');
+
+  // Reports: opens straight on the team summary, then drills into one timesheet
+  await page.getByRole('link', { name: 'Relatórios & Espelho' }).click();
+  await expect(page.getByRole('heading', { name: 'Relatórios de Ponto' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Fechamento por colaborador' })).toBeVisible();
+  await expect(page.getByRole('table')).toContainText('Marina Souza');
+  await expect(page.getByRole('table')).toContainText('+00:30');
+
+  await page.getByRole('button', { name: 'Abrir espelho de Marina Souza' }).click();
+  const timesheet = page.getByRole('article', { name: 'Espelho de ponto de Marina Souza' });
+  await expect(timesheet).toBeVisible();
+  await expect(timesheet).toContainText('PH Motopeças Ltda');
+  await expect(timesheet).toContainText('08:00');
+  await expect(timesheet).toContainText('17:30');
+  await expect(timesheet).toContainText('Hora extra');
+  await expect(page.getByRole('button', { name: 'Imprimir / Salvar PDF' })).toBeEnabled();
 });

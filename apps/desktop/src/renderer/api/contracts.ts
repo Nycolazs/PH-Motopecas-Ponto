@@ -175,6 +175,35 @@ export const attendancePeriodSchema = z
   .object({ days: z.array(dailyAttendanceSchema), totals: periodTotalsSchema })
   .strict();
 
+export const timesheetReportEmployeeSchema = z
+  .object({
+    employeeId: uuidSchema,
+    name: z.string(),
+    login: z.string(),
+    isActive: z.boolean(),
+    hasAvatar: z.boolean(),
+    cpf: z.string().nullable(),
+    hireDate: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/)
+      .nullable(),
+    roleTitle: z.string().nullable(),
+    department: z.string().nullable(),
+    totals: periodTotalsSchema,
+    days: z.array(dailyAttendanceSchema).nullable(),
+  })
+  .strict();
+
+export const timesheetReportSchema = z
+  .object({
+    from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    generatedAt: z.string().datetime({ offset: true }),
+    employees: z.array(timesheetReportEmployeeSchema),
+    totals: periodTotalsSchema,
+  })
+  .strict();
+
 export const monthlyAttendanceSchema = z
   .object({
     days: z.array(dailyAttendanceSchema),
@@ -540,6 +569,9 @@ export type UserList = z.infer<typeof userListSchema>;
 export type DailyAttendance = z.infer<typeof dailyAttendanceSchema>;
 export type AttendancePeriod = z.infer<typeof attendancePeriodSchema>;
 export type MonthlyAttendance = z.infer<typeof monthlyAttendanceSchema>;
+export type AttendancePeriodTotals = AttendancePeriod['totals'];
+export type TimesheetReportEmployee = z.infer<typeof timesheetReportEmployeeSchema>;
+export type TimesheetReport = z.infer<typeof timesheetReportSchema>;
 export type TimePunchMutation = z.infer<typeof timePunchMutationSchema>;
 export type AttendanceOverview = z.infer<typeof attendanceOverviewSchema>;
 export type EmployeeTodayStatus = z.infer<typeof employeeTodayStatusSchema>;

@@ -21,7 +21,7 @@ import { Modal } from '../../components/modal.js';
 import { Pagination } from '../../components/pagination.js';
 import { SelectInput } from '../../components/select-input.js';
 import { StatusBadge } from '../../components/status-badge.js';
-import { formatDateBR, formatDateTimeBR } from '../../lib/format.js';
+import { formatDateBR, formatDateTimeBR, formatDisplayName } from '../../lib/format.js';
 
 export const ACTION_LABELS: Record<string, string> = {
   LOGIN_SUCCEEDED: 'Login efetuado com sucesso',
@@ -203,7 +203,7 @@ function formatValue(
   ) {
     const u = userMap.get(str);
     if (u) {
-      return `${u.name} (@${u.login})`;
+      return `${formatDisplayName(u.name)} (@${u.login})`;
     }
   }
 
@@ -237,10 +237,12 @@ function getEventNarrative(
   log: AuditLogItem,
   userMap: Map<string, { name: string; login: string; role: string }>,
 ): string {
-  const actorName = log.actor ? `${log.actor.name} (@${log.actor.login})` : 'Sistema';
+  const actorName = log.actor
+    ? `${formatDisplayName(log.actor.name)} (@${log.actor.login})`
+    : 'Sistema';
   const affected = getAffectedUser(log, userMap);
   const affectedStr = affected
-    ? `${affected.name}${affected.login ? ` (@${affected.login})` : ''}`
+    ? `${formatDisplayName(affected.name)}${affected.login ? ` (@${affected.login})` : ''}`
     : null;
   const meta = toRecord(log.metadata);
   const after = toRecord(log.afterState);
@@ -529,7 +531,9 @@ export function AdminAuditPage(): React.JSX.Element {
                         <td className="py-3.5 px-4 text-slate-800 dark:text-slate-200">
                           {log.actor ? (
                             <div className="flex flex-col">
-                              <span className="font-semibold">{log.actor.name}</span>
+                              <span className="font-semibold">
+                                {formatDisplayName(log.actor.name)}
+                              </span>
                               <span className="text-slate-400 font-mono text-[11px]">
                                 @{log.actor.login}
                               </span>
@@ -542,7 +546,7 @@ export function AdminAuditPage(): React.JSX.Element {
                           {rowAffected ? (
                             <div className="flex flex-col">
                               <span className="font-semibold text-indigo-900 dark:text-indigo-300">
-                                {rowAffected.name}
+                                {formatDisplayName(rowAffected.name)}
                               </span>
                               {rowAffected.login && (
                                 <span className="text-slate-400 font-mono text-[11px]">
@@ -650,7 +654,7 @@ export function AdminAuditPage(): React.JSX.Element {
                     <span className="text-slate-400 text-[11px] block">Autor da Ação:</span>
                     <span className="font-semibold text-slate-900 dark:text-white">
                       {detailItem.actor
-                        ? `${detailItem.actor.name} (@${detailItem.actor.login})`
+                        ? `${formatDisplayName(detailItem.actor.name)} (@${detailItem.actor.login})`
                         : 'Sistema'}
                     </span>
                   </div>
@@ -670,7 +674,7 @@ export function AdminAuditPage(): React.JSX.Element {
                       Colaborador / Alvo Afetado:
                     </span>
                     <span className="font-bold text-slate-900 dark:text-white text-sm">
-                      {affectedUser.name}
+                      {formatDisplayName(affectedUser.name)}
                     </span>
                     {affectedUser.login && (
                       <span className="text-slate-500 dark:text-slate-400 font-mono text-xs ml-1.5">

@@ -1,11 +1,15 @@
 import { useState, useRef, useEffect } from 'react';
 import { Calendar, ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
 
+import { currentBusinessMonth } from '../lib/business-date.js';
+
 export interface MonthPickerProps {
   value: string; // "YYYY-MM" (e.g. "2026-09")
   onChange: (value: string) => void;
   disabled?: boolean;
   className?: string;
+  /** Latest selectable month ("YYYY-MM"); later months are disabled. */
+  max?: string;
 }
 
 const MONTHS = [
@@ -28,6 +32,7 @@ export function MonthPicker({
   onChange,
   disabled = false,
   className = '',
+  max,
 }: MonthPickerProps): React.JSX.Element {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -71,9 +76,10 @@ export function MonthPicker({
     };
   }, [isOpen]);
 
-  const now = new Date();
-  const currentCalYear = now.getFullYear();
-  const currentCalMonth = String(now.getMonth() + 1).padStart(2, '0');
+  const [currentYearStr, currentCalMonth = '01'] = currentBusinessMonth().split('-');
+  const currentCalYear = Number(currentYearStr);
+  const maxYear = max ? Number(max.slice(0, 4)) : null;
+  const isAfterMax = (monthKey: string): boolean => max !== undefined && monthKey > max;
 
   const selectedMonthObj = MONTHS.find((m) => m.index === selectedMonth);
   const displayLabel = selectedMonthObj
@@ -82,6 +88,7 @@ export function MonthPicker({
 
   const handleSelectMonth = (monthIndex: string): void => {
     const formatted = `${viewYear}-${monthIndex}`;
+    if (isAfterMax(formatted)) return;
     onChange(formatted);
     setIsOpen(false);
   };
@@ -99,13 +106,15 @@ export function MonthPicker({
       <button
         type="button"
         disabled={disabled}
+        aria-haspopup="dialog"
+        aria-expanded={isOpen}
         onClick={() => setIsOpen((prev) => !prev)}
         className={`inline-flex items-center gap-2.5 px-3.5 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700/80 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-semibold text-slate-900 dark:text-white transition-colors cursor-pointer shadow-2xs ${
           isOpen ? 'ring-2 ring-blue-500/30 border-blue-500' : ''
         } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
       >
         <Calendar className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
-        <span className="capitalize">{displayLabel}</span>
+        <span>{displayLabel}</span>
         <ChevronDown
           className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${
             isOpen ? 'rotate-180 text-blue-600 dark:text-blue-400' : ''
@@ -125,6 +134,7 @@ export function MonthPicker({
               type="button"
               onClick={() => setViewYear((y) => y - 1)}
               title="Ano anterior"
+              aria-label="Ano anterior"
               className="p-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
             >
               <ChevronLeft className="w-4 h-4" />
@@ -138,7 +148,9 @@ export function MonthPicker({
               type="button"
               onClick={() => setViewYear((y) => y + 1)}
               title="Próximo ano"
-              className="p-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
+              aria-label="Próximo ano"
+              disabled={maxYear !== null && viewYear >= maxYear}
+              className="disabled:opacity-30 disabled:cursor-not-allowed p-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
@@ -149,13 +161,17 @@ export function MonthPicker({
             {MONTHS.map((m) => {
               const isSelected = viewYear === selectedYear && m.index === selectedMonth;
               const isCurrent = viewYear === currentCalYear && m.index === currentCalMonth;
+              const isDisabled = isAfterMax(`${viewYear}-${m.index}`);
 
               return (
                 <button
                   key={m.index}
                   type="button"
+                  disabled={isDisabled}
+                  aria-label={`${m.name} de ${viewYear}`}
+                  aria-pressed={isSelected}
                   onClick={() => handleSelectMonth(m.index)}
-                  className={`py-2.5 px-2 rounded-xl text-xs font-semibold transition-all flex flex-col items-center justify-center cursor-pointer ${
+                  className={`disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent py-2.5 px-2 rounded-xl text-xs font-semibold transition-all flex flex-col items-center justify-center cursor-pointer ${
                     isSelected
                       ? 'bg-blue-600 text-white shadow-xs font-bold'
                       : isCurrent
@@ -164,13 +180,6 @@ export function MonthPicker({
                   }`}
                 >
                   <span className="text-sm">{m.short}</span>
-                  <span
-                    className={`text-[10px] opacity-75 capitalize font-normal ${
-                      isSelected ? 'text-white/90' : 'text-slate-400 dark:text-slate-500'
-                    }`}
-                  >
-                    {m.name.slice(0, 3)}
-                  </span>
                 </button>
               );
             })}

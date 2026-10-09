@@ -15,7 +15,7 @@ import {
 import { useApiClient } from '../../auth/use-auth.js';
 import { AvatarImage } from '../../components/avatar-image.js';
 import { MonthPicker } from '../../components/month-picker.js';
-import { formatDateBR } from '../../lib/format.js';
+import { formatDateBR, formatDisplayName } from '../../lib/format.js';
 import type { IncompleteAttendanceDayItem } from '../../api/contracts.js';
 
 function formatPunchTime(isoString: string): string {
@@ -230,14 +230,14 @@ export function IncompletePunchesPage(): React.JSX.Element {
                     <AvatarImage
                       hasAvatar={item.hasAvatar}
                       userId={item.employeeId}
-                      name={item.employeeName}
+                      name={formatDisplayName(item.employeeName)}
                       className="w-12 h-12 rounded-xl text-base shadow-xs shrink-0"
                     />
 
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-bold text-slate-900 dark:text-white">
-                          {item.employeeName}
+                          {formatDisplayName(item.employeeName)}
                         </span>
                         <span className="text-xs font-medium text-slate-400">
                           @{item.employeeLogin}

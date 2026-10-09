@@ -362,4 +362,145 @@ describe('attendance schedules and calendar exceptions with real PostgreSQL', ()
     expect(historyRes.body.totals.balanceMinutes).toBe(0);
     expect(historyRes.body.days).toHaveLength(0);
   });
+
+  it('builds team and individual timesheet reports with role data and admin-only access', async () => {
+    const inactiveLogin = `inativo_${randomUUID().slice(0, 8)}`;
+    const inactive = await prisma.user.create({
+      data: {
+        name: 'Colaborador Inativo',
+        login: inactiveLogin,
+        normalizedLogin: inactiveLogin,
+        passwordHash: employeePasswordHash,
+        role: UserRole.EMPLOYEE,
+        isActive: false,
+        createdAt: new Date('2025-01-01T00:00:00.000Z'),
+      },
+    });
+    const lateLogin = `futuro_${randomUUID().slice(0, 8)}`;
+    await prisma.user.create({
+      data: {
+        name: 'Contratado Depois',
+        login: lateLogin,
+        normalizedLogin: lateLogin,
+        passwordHash: employeePasswordHash,
+        role: UserRole.EMPLOYEE,
+        createdAt: new Date('2026-03-01T12:00:00.000Z'),
+      },
+    });
+    await prisma.employeeProfile.create({
+      data: {
+        userId: employeeId,
+        cpf: '123.456.789-00',
+        hireDate: new Date('2025-01-02T00:00:00.000Z'),
+      },
+    });
+    const role = await prisma.jobRole.create({
+      data: { title: 'Mecânico', department: 'Oficina' },
+    });
+    const version = await prisma.jobRoleVersion.create({
+      data: {
+        jobRoleId: role.id,
+        versionNumber: 1,
+        title: 'Mecânico de Motocicletas',
+        description: 'Manutenção de motocicletas.',
+        createdById: adminId,
+      },
+    });
+    await prisma.employeeRoleAssignment.create({
+      data: {
+        employeeId,
+        jobRoleId: role.id,
+        jobRoleVersionId: version.id,
+        startDate: new Date('2025-01-02T00:00:00.000Z'),
+        isPrincipal: true,
+        createdById: adminId,
+      },
+    });
+
+    // Monday 2026-01-05: 08:00-12:00 and 13:00-17:30 in the business time zone (UTC-3).
+    for (const occurredAt of [
+      '2026-01-05T11:00:00.000Z',
+      '2026-01-05T15:00:00.000Z',
+      '2026-01-05T16:00:00.000Z',
+      '2026-01-05T20:30:00.000Z',
+    ]) {
+      await request(app.getHttpServer())
+        .post('/time-punches/manual')
+        .set('Idempotency-Key', randomUUID())
+        .auth(adminAccessToken, { type: 'bearer' })
+        .send({ employeeId, occurredAt, reason: 'Registro de teste do relatório' })
+        .expect(201);
+    }
+
+    const team = await request(app.getHttpServer())
+      .get('/attendance/reports/timesheets')
+      .query({ from: '2026-01-05', to: '2026-01-06' })
+      .auth(adminAccessToken, { type: 'bearer' })
+      .expect(200);
+    expect(team.body.from).toBe('2026-01-05');
+    expect(team.body.to).toBe('2026-01-06');
+    // Inactive and not-yet-hired collaborators are excluded from the default team report.
+    expect(team.body.employees).toHaveLength(1);
+    const [row] = team.body.employees;
+    expect(row).toMatchObject({
+      employeeId,
+      login: 'employee.attendance',
+      isActive: true,
+      cpf: '123.456.789-00',
+      hireDate: '2025-01-02',
+      roleTitle: 'Mecânico de Motocicletas',
+      department: 'Oficina',
+      days: null,
+    });
+    expect(row.totals).toMatchObject({
+      expectedMinutes: 960,
+      workedMinutes: 510,
+      overtimeMinutes: 30,
+      missingMinutes: 480,
+      balanceMinutes: -450,
+    });
+    expect(team.body.totals.workedMinutes).toBe(510);
+
+    const withInactive = await request(app.getHttpServer())
+      .get('/attendance/reports/timesheets')
+      .query({ from: '2026-01-05', to: '2026-01-06', includeInactive: 'true' })
+      .auth(adminAccessToken, { type: 'bearer' })
+      .expect(200);
+    expect(withInactive.body.employees.map((e: { employeeId: string }) => e.employeeId)).toEqual([
+      inactive.id,
+      employeeId,
+    ]);
+
+    const individual = await request(app.getHttpServer())
+      .get('/attendance/reports/timesheets')
+      .query({ from: '2026-01-05', to: '2026-01-06', employeeId, includeDays: 'true' })
+      .auth(adminAccessToken, { type: 'bearer' })
+      .expect(200);
+    expect(individual.body.employees).toHaveLength(1);
+    expect(individual.body.employees[0].days).toHaveLength(2);
+    expect(individual.body.employees[0].days[0]).toMatchObject({
+      businessDate: '2026-01-05',
+      workedMinutes: 510,
+      punchCount: 4,
+    });
+
+    await request(app.getHttpServer())
+      .get('/attendance/reports/timesheets')
+      .query({ from: '2026-01-05', to: '2026-01-06', employeeId: adminId })
+      .auth(adminAccessToken, { type: 'bearer' })
+      .expect(404);
+
+    const invalidRange = await request(app.getHttpServer())
+      .get('/attendance/reports/timesheets')
+      .query({ from: '2026-01-06', to: '2026-01-05' })
+      .auth(adminAccessToken, { type: 'bearer' })
+      .expect(400);
+    expect(invalidRange.body.code).toBe('INVALID_DATE_RANGE');
+
+    await request(app.getHttpServer())
+      .get('/attendance/reports/timesheets')
+      .query({ from: '2026-01-05', to: '2026-01-06' })
+      .auth(employeeAccessToken, { type: 'bearer' })
+      .expect(403);
+  });
 });

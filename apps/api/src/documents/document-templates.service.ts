@@ -36,6 +36,24 @@ function formatDateBR(date: Date | string): string {
   }).format(d);
 }
 
+function formatScoreBR(value: number): string {
+  return value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+const NUMBERED_SECTION_TITLE = /(<h3 class="section-title">)\d+\.\s+/g;
+
+/**
+ * Templates omit optional sections (e.g. no internal clause reference), which
+ * would leave gaps such as 1, 3, 4. Renumber numbered section titles in order.
+ */
+export function renumberSectionTitles(html: string): string {
+  let counter = 0;
+  return html.replace(NUMBERED_SECTION_TITLE, (_match, open: string) => {
+    counter += 1;
+    return `${open}${counter}. `;
+  });
+}
+
 @Injectable()
 export class DocumentTemplatesService {
   private readonly logger = new Logger(DocumentTemplatesService.name);
@@ -216,6 +234,64 @@ export class DocumentTemplatesService {
       background-color: #f1f5f9;
       color: #1e293b;
       font-weight: 700;
+    }
+    table.meta-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 18px;
+      table-layout: fixed;
+    }
+    table.meta-table th,
+    table.meta-table td {
+      border: 1px solid #e2e8f0;
+      padding: 6px 10px;
+      font-size: 9pt;
+      text-align: left;
+      vertical-align: top;
+    }
+    table.meta-table th {
+      width: 17%;
+      background-color: #f8fafc;
+      color: #475569;
+      font-weight: 700;
+      font-size: 8pt;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    table.meta-table td {
+      color: #0f172a;
+    }
+    .metadata-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px 16px;
+      margin-bottom: 18px;
+      padding: 10px 14px;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      background: #f8fafc;
+    }
+    .metadata-item {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .metadata-label {
+      font-size: 7.5pt;
+      font-weight: 700;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+    .metadata-value {
+      font-size: 9.5pt;
+      color: #0f172a;
+      font-weight: 600;
+    }
+    .blank-field {
+      display: inline-block;
+      min-width: 120px;
+      border-bottom: 1px solid #475569;
     }
     `;
   }
@@ -713,7 +789,7 @@ export class DocumentTemplatesService {
   <div class="section" style="margin-top: 24px;">
     <div class="section-box" style="font-size: 10.5pt; line-height: 1.8; padding: 20px;">
       <p style="margin-bottom: 16px;">
-        Eu, <strong>${escapeHtml(payload.employeeName)}</strong>, inscrito(a) no CPF sob o nº <strong>${escapeHtml(payload.employeeCpf ?? 'Registrado no Prontuário')}</strong>, colaborador(a) da empresa <strong>${escapeHtml(company.legalName)}</strong> (nome fantasia <strong>${escapeHtml(company.tradeName)}</strong>), inscrita no CNPJ sob o nº <strong>${escapeHtml(company.cnpj)}</strong>:
+        Eu, <strong>${escapeHtml(payload.employeeName)}</strong>, inscrito(a) no CPF sob o nº ${payload.employeeCpf ? `<strong>${escapeHtml(payload.employeeCpf)}</strong>` : '<span class="blank-field">&nbsp;</span>'}, colaborador(a) da empresa <strong>${escapeHtml(company.legalName)}</strong> (nome fantasia <strong>${escapeHtml(company.tradeName)}</strong>), inscrita no CNPJ sob o nº <strong>${escapeHtml(company.cnpj)}</strong>:
       </p>
       <p style="margin-bottom: 16px;">
         <strong>DECLARO</strong>, para todos os fins de direito, que recebi nesta data cópia integral do <strong>Regimento Interno de Trabalho (Versão ${payload.regulationVersionNumber})</strong>, com vigência estabelecida para a empresa.
@@ -772,7 +848,7 @@ export class DocumentTemplatesService {
   <div class="section" style="margin-top: 24px;">
     <div class="section-box" style="font-size: 10.5pt; line-height: 1.8; padding: 20px;">
       <p style="margin-bottom: 16px;">
-        Eu, <strong>${escapeHtml(payload.employeeName)}</strong>, inscrito(a) no CPF sob o nº <strong>${escapeHtml(payload.employeeCpf ?? 'Registrado no Prontuário')}</strong>, admitido(a) / alocado(a) na função de <strong>${escapeHtml(payload.roleTitle)}</strong>${payload.department ? ` (Departamento de ${escapeHtml(payload.department)})` : ''}, na empresa <strong>${escapeHtml(company.legalName)}</strong> (CNPJ <strong>${escapeHtml(company.cnpj)}</strong>):
+        Eu, <strong>${escapeHtml(payload.employeeName)}</strong>, inscrito(a) no CPF sob o nº ${payload.employeeCpf ? `<strong>${escapeHtml(payload.employeeCpf)}</strong>` : '<span class="blank-field">&nbsp;</span>'}, admitido(a) / alocado(a) na função de <strong>${escapeHtml(payload.roleTitle)}</strong>${payload.department ? ` (Departamento de ${escapeHtml(payload.department)})` : ''}, na empresa <strong>${escapeHtml(company.legalName)}</strong> (CNPJ <strong>${escapeHtml(company.cnpj)}</strong>):
       </p>
       <p style="margin-bottom: 16px;">
         <strong>DECLARO</strong> ter recebido, lido e tomado pleno conhecimento das responsabilidades, atribuições operacionais, requisitos e normas de conduta específicas inerentes ao cargo que ocupo, constantes da <strong>Descrição de Cargo (Versão ${payload.roleVersionNumber})</strong>.
@@ -872,7 +948,7 @@ export class DocumentTemplatesService {
       <th>Colaborador(a):</th>
       <td><strong>${escapeHtml(payload.employeeName)}</strong></td>
       <th>CPF:</th>
-      <td>${escapeHtml(payload.employeeCpf ?? 'Registrado no Prontuário')}</td>
+      <td>${payload.employeeCpf ? escapeHtml(payload.employeeCpf) : '<span class="blank-field">&nbsp;</span>'}</td>
     </tr>
     <tr>
       <th>Função / Cargo:</th>
@@ -1023,7 +1099,7 @@ export class DocumentTemplatesService {
       <th>Colaborador(a):</th>
       <td><strong>${escapeHtml(payload.employeeName)}</strong></td>
       <th>CPF:</th>
-      <td>${escapeHtml(payload.employeeCpf ?? 'Registrado no Prontuário')}</td>
+      <td>${payload.employeeCpf ? escapeHtml(payload.employeeCpf) : '<span class="blank-field">&nbsp;</span>'}</td>
     </tr>
     <tr>
       <th>Função / Cargo:</th>
@@ -1174,7 +1250,7 @@ export class DocumentTemplatesService {
       <th>Colaborador(a):</th>
       <td><strong>${escapeHtml(payload.employeeName)}</strong></td>
       <th>CPF:</th>
-      <td>${escapeHtml(payload.employeeCpf ?? 'Registrado no Prontuário')}</td>
+      <td>${payload.employeeCpf ? escapeHtml(payload.employeeCpf) : '<span class="blank-field">&nbsp;</span>'}</td>
     </tr>
     <tr>
       <th>Função / Cargo:</th>
@@ -1386,11 +1462,11 @@ export class DocumentTemplatesService {
         Pontuação Geral Consolidada
       </div>
       <div style="display: flex; align-items: baseline; gap: 8px;">
-        <span class="score-big">${evalResult.meanScore.toFixed(2)}</span>
-        <span style="font-size: 11pt; color: #64748b; font-weight: 600;">/ 5.00</span>
+        <span class="score-big">${formatScoreBR(evalResult.meanScore)}</span>
+        <span style="font-size: 11pt; color: #64748b; font-weight: 600;">/ 5,00</span>
       </div>
       <div style="font-size: 8.5pt; color: #475569; margin-top: 4px;">
-        Total: <strong>${evalResult.totalPoints}</strong> de 40 pontos possíveis (8 critérios canônicos com pesos iguais).
+        Total: <strong>${evalResult.totalPoints}</strong> de 40 pontos possíveis (média simples dos 8 critérios).
       </div>
     </div>
     <div style="text-align: right;">
@@ -1404,7 +1480,7 @@ export class DocumentTemplatesService {
   </div>
 
   <div class="section">
-    <h3 class="section-title">1. Avaliação Detalhada por Critério Canônico</h3>
+    <h3 class="section-title">1. Avaliação Detalhada por Critério</h3>
     <table class="criteria-table">
       <thead>
         <tr>

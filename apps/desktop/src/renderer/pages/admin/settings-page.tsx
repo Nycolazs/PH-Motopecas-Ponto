@@ -29,13 +29,13 @@ import { useToast } from '../../components/toast-context.js';
 import { formatDateBR, formatDisplayName } from '../../lib/format.js';
 
 const WEEKDAYS = [
-  { key: 'MONDAY', label: 'Segunda-feira' },
-  { key: 'TUESDAY', label: 'Terça-feira' },
-  { key: 'WEDNESDAY', label: 'Quarta-feira' },
-  { key: 'THURSDAY', label: 'Quinta-feira' },
-  { key: 'FRIDAY', label: 'Sexta-feira' },
-  { key: 'SATURDAY', label: 'Sábado' },
-  { key: 'SUNDAY', label: 'Domingo' },
+  { key: 'MONDAY', label: 'Segunda-feira', short: 'Segunda' },
+  { key: 'TUESDAY', label: 'Terça-feira', short: 'Terça' },
+  { key: 'WEDNESDAY', label: 'Quarta-feira', short: 'Quarta' },
+  { key: 'THURSDAY', label: 'Quinta-feira', short: 'Quinta' },
+  { key: 'FRIDAY', label: 'Sexta-feira', short: 'Sexta' },
+  { key: 'SATURDAY', label: 'Sábado', short: 'Sábado' },
+  { key: 'SUNDAY', label: 'Domingo', short: 'Domingo' },
 ];
 
 function minuteToTimeString(minute?: number | null): string {
@@ -441,7 +441,7 @@ export function AdminSettingsPage(): React.JSX.Element {
 
   const handleDeleteVacation = async (vacation: Vacation): Promise<void> => {
     const confirmed = window.confirm(
-      `Deseja realmente cancelar as férias de ${vacation.employee.name} (${formatDateBR(vacation.startDate)} a ${formatDateBR(vacation.endDate)})?`,
+      `Deseja realmente cancelar as férias de ${formatDisplayName(vacation.employee.name)} (${formatDateBR(vacation.startDate)} a ${formatDateBR(vacation.endDate)})?`,
     );
     if (!confirmed) return;
 
@@ -457,14 +457,14 @@ export function AdminSettingsPage(): React.JSX.Element {
   return (
     <div className="space-y-6">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center">
-            <Settings className="w-7 h-7 mr-2.5 text-blue-600" />
-            Configurações de Trabalho
+          <h1 className="flex items-center gap-2 text-xl font-bold text-slate-900 dark:text-white">
+            <Settings className="h-5 w-5 text-blue-600" />
+            Jornadas e Calendário
           </h1>
-          <p className="text-slate-500 text-sm mt-0.5">
-            Gerenciamento da grade horária semanal, jornadas vigentes, feriados e férias
+          <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+            Horário semanal da empresa, feriados e férias dos colaboradores
           </p>
         </div>
         <div className="flex items-center space-x-2.5">
@@ -478,7 +478,7 @@ export function AdminSettingsPage(): React.JSX.Element {
               className="primary-button text-sm px-4 py-2 shadow-xs"
             >
               <Plus className="w-4 h-4 mr-1.5" />
-              Nova Versão de Jornada
+              Nova jornada
             </button>
           )}
           {activeTab === 'EXCEPTIONS' && (
@@ -518,38 +518,38 @@ export function AdminSettingsPage(): React.JSX.Element {
         <button
           type="button"
           onClick={() => setActiveTab('SCHEDULES')}
-          className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-semibold transition-colors flex items-center justify-center ${
+          className={`flex-1 whitespace-nowrap py-2.5 px-4 rounded-lg text-sm font-semibold transition-colors flex items-center justify-center cursor-pointer ${
             activeTab === 'SCHEDULES'
               ? 'bg-blue-600 text-white shadow-xs'
               : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
           }`}
         >
           <Clock className="w-4 h-4 mr-2" />
-          Horários de Funcionamento (Semanais)
+          Horário semanal
         </button>
         <button
           type="button"
           onClick={() => setActiveTab('EXCEPTIONS')}
-          className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-semibold transition-colors flex items-center justify-center ${
+          className={`flex-1 whitespace-nowrap py-2.5 px-4 rounded-lg text-sm font-semibold transition-colors flex items-center justify-center cursor-pointer ${
             activeTab === 'EXCEPTIONS'
               ? 'bg-blue-600 text-white shadow-xs'
               : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
           }`}
         >
           <Calendar className="w-4 h-4 mr-2" />
-          Feriados e Exceções de Calendário
+          Feriados e exceções
         </button>
         <button
           type="button"
           onClick={() => setActiveTab('VACATIONS')}
-          className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-semibold transition-colors flex items-center justify-center ${
+          className={`flex-1 whitespace-nowrap py-2.5 px-4 rounded-lg text-sm font-semibold transition-colors flex items-center justify-center cursor-pointer ${
             activeTab === 'VACATIONS'
               ? 'bg-blue-600 text-white shadow-xs'
               : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
           }`}
         >
           <Palmtree className="w-4 h-4 mr-2" />
-          Férias dos Colaboradores
+          Férias
         </button>
       </div>
 
@@ -575,7 +575,7 @@ export function AdminSettingsPage(): React.JSX.Element {
                   )}
                 </div>
                 <div className="text-xs text-slate-400">
-                  Criada por {latestSchedule.createdBy.name}
+                  Criada por {formatDisplayName(latestSchedule.createdBy.name)}
                 </div>
               </div>
 
@@ -594,8 +594,11 @@ export function AdminSettingsPage(): React.JSX.Element {
                     >
                       <div>
                         <div className="flex items-center justify-between">
-                          <div className="font-bold text-sm text-slate-900 dark:text-white">
-                            {weekdayMeta?.label ?? d.weekday}
+                          <div
+                            className="font-bold text-sm text-slate-900 dark:text-white whitespace-nowrap"
+                            title={weekdayMeta?.label}
+                          >
+                            {weekdayMeta?.short ?? d.weekday}
                           </div>
                           {d.isOpen && (
                             <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300">
@@ -654,7 +657,7 @@ export function AdminSettingsPage(): React.JSX.Element {
                       </span>
                       {s.note && <span className="text-slate-500 ml-2">({s.note})</span>}
                     </div>
-                    <div className="text-slate-400">por {s.createdBy.name}</div>
+                    <div className="text-slate-400">por {formatDisplayName(s.createdBy.name)}</div>
                   </div>
                 ))}
               </div>
@@ -794,10 +797,14 @@ export function AdminSettingsPage(): React.JSX.Element {
                   >
                     <td className="py-3.5 px-4">
                       <div className="flex items-center space-x-3">
-                        <AvatarImage userId={vac.employeeId} name={vac.employee.name} size="sm" />
+                        <AvatarImage
+                          userId={vac.employeeId}
+                          name={formatDisplayName(vac.employee.name)}
+                          size="sm"
+                        />
                         <div>
                           <div className="font-semibold text-slate-900 dark:text-white">
-                            {vac.employee.name}
+                            {formatDisplayName(vac.employee.name)}
                           </div>
                           <div className="text-xs text-slate-400">@{vac.employee.login}</div>
                         </div>
@@ -814,7 +821,9 @@ export function AdminSettingsPage(): React.JSX.Element {
                     <td className="py-3.5 px-4 text-slate-700 dark:text-slate-300 text-xs">
                       {vac.note || <span className="text-slate-400 italic">Férias regulares</span>}
                     </td>
-                    <td className="py-3.5 px-4 text-xs text-slate-500">{vac.createdBy.name}</td>
+                    <td className="py-3.5 px-4 text-xs text-slate-500">
+                      {formatDisplayName(vac.createdBy.name)}
+                    </td>
                     <td className="py-3.5 px-4 text-right">
                       <button
                         type="button"

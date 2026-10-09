@@ -5,8 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'PH-Motopeças-Ponto-Backend/**'
-      - 'backend/**'
+      - 'apps/api/**'
       - 'packages/shared/**'
       - 'package.json'
       - 'pnpm-lock.yaml'
@@ -68,7 +67,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: ./PH-Motopeças-Ponto-Backend/Dockerfile
+          file: ./apps/api/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

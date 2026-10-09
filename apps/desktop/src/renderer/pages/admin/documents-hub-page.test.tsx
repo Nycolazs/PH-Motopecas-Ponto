@@ -1,59 +1,56 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
 
 import { DocumentsHubPage } from './documents-hub-page.js';
 
+function renderHub(): void {
+  render(
+    <MemoryRouter>
+      <DocumentsHubPage />
+    </MemoryRouter>,
+  );
+}
+
 describe('DocumentsHubPage', () => {
-  it('renders all document categories, report shortcut, and templates', async () => {
-    const user = userEvent.setup();
+  it('groups every document by subject with a clear action link', () => {
+    renderHub();
 
-    render(
-      <MemoryRouter>
-        <DocumentsHubPage />
-      </MemoryRouter>,
+    expect(screen.getByRole('heading', { name: 'Documentos & RH' })).toBeInTheDocument();
+    const discipline = screen.getByRole('region', { name: 'Medidas disciplinares' });
+    expect(within(discipline).getByText('Advertência Verbal')).toBeInTheDocument();
+    expect(within(discipline).getByText('Advertência Escrita')).toBeInTheDocument();
+    expect(within(discipline).getByText('Suspensão Disciplinar')).toBeInTheDocument();
+
+    expect(screen.getByRole('link', { name: /Regimento Interno/ })).toHaveAttribute(
+      'href',
+      '/admin/documentos/regimento',
     );
-
-    expect(screen.getByText('Central de Documentos e Relatórios')).toBeInTheDocument();
-    expect(screen.getByText('Espelho de Ponto Individual')).toBeInTheDocument();
-    expect(screen.getByText('Regimento Interno de Trabalho')).toBeInTheDocument();
-    expect(screen.getByText('Quadro de Cultura Organizacional')).toBeInTheDocument();
-    expect(screen.getByText('Registro de Advertência Verbal')).toBeInTheDocument();
-    expect(screen.getByText('Avaliação de Desempenho e Competências')).toBeInTheDocument();
-
-    // Filter by Medidas Disciplinares
-    const disciplinaTab = screen.getByRole('button', { name: /Medidas Disciplinares/i });
-    await user.click(disciplinaTab);
-
-    expect(screen.getByText('Registro de Advertência Verbal')).toBeInTheDocument();
-    expect(screen.getByText('Aplicação de Advertência Escrita')).toBeInTheDocument();
-    expect(screen.getByText('Aplicação de Suspensão Disciplinar')).toBeInTheDocument();
-    expect(screen.queryByText('Regimento Interno de Trabalho')).not.toBeInTheDocument();
-    expect(screen.queryByText('Espelho de Ponto Individual')).not.toBeInTheDocument();
-
-    // Filter by Ponto & Relatórios
-    const pontoTab = screen.getByRole('button', { name: /Ponto & Relatórios/i });
-    await user.click(pontoTab);
-
-    expect(screen.getByText('Espelho de Ponto Individual')).toBeInTheDocument();
-    expect(screen.queryByText('Registro de Advertência Verbal')).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Espelho de Ponto/ })).toHaveAttribute(
+      'href',
+      '/admin/relatorios',
+    );
+    expect(screen.getByRole('link', { name: /Documentos emitidos/ })).toHaveAttribute(
+      'href',
+      '/admin/documentos',
+    );
   });
 
-  it('filters templates via live search query', async () => {
+  it('filters documents with accent-insensitive search and hides empty sections', async () => {
     const user = userEvent.setup();
+    renderHub();
 
-    render(
-      <MemoryRouter>
-        <DocumentsHubPage />
-      </MemoryRouter>,
-    );
+    await user.type(screen.getByRole('searchbox', { name: 'Buscar documento' }), 'suspensao');
 
-    const searchInput = screen.getByPlaceholderText('Buscar modelo de documento ou relatório...');
-    await user.type(searchInput, 'suspensão');
+    expect(screen.getByText('Suspensão Disciplinar')).toBeInTheDocument();
+    expect(screen.queryByText('Regimento Interno')).not.toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: 'Empresa e regras' })).not.toBeInTheDocument();
 
-    expect(screen.getByText('Aplicação de Suspensão Disciplinar')).toBeInTheDocument();
-    expect(screen.queryByText('Regimento Interno de Trabalho')).not.toBeInTheDocument();
-    expect(screen.queryByText('Espelho de Ponto Individual')).not.toBeInTheDocument();
+    await user.clear(screen.getByRole('searchbox', { name: 'Buscar documento' }));
+    await user.type(screen.getByRole('searchbox', { name: 'Buscar documento' }), 'xyz');
+    expect(screen.getByText(/Nenhum documento encontrado/)).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Ver todos os documentos' }));
+    expect(screen.getByText('Regimento Interno')).toBeInTheDocument();
   });
 });

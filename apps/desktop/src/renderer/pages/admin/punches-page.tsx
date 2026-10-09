@@ -14,7 +14,7 @@ import { formatDateBR, formatDisplayName } from '../../lib/format.js';
 import { formatMinutesDuration } from '@ph-ponto/shared';
 
 function formatTime(isoString?: string | null): string {
-  if (!isoString) return '--:--';
+  if (!isoString) return '—';
   const d = new Date(isoString);
   return d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 }
@@ -132,7 +132,9 @@ export function AdminPunchesPage(): React.JSX.Element {
               )}
               <div>
                 <h2 className="text-base font-bold text-slate-900 dark:text-white">
-                  {selectedEmployeeObj?.name ?? 'Colaborador'}
+                  {selectedEmployeeObj
+                    ? formatDisplayName(selectedEmployeeObj.name)
+                    : 'Colaborador'}
                 </h2>
                 <div className="text-xs text-slate-500">Batidas em {selectedDate}</div>
               </div>
@@ -265,7 +267,9 @@ export function AdminPunchesPage(): React.JSX.Element {
                           size="sm"
                         />
                         <div>
-                          <div className="font-bold text-slate-900 dark:text-white">{emp.name}</div>
+                          <div className="font-bold text-slate-900 dark:text-white">
+                            {formatDisplayName(emp.name)}
+                          </div>
                           <div className="text-xs text-slate-500">{emp.login}</div>
                         </div>
                       </div>
@@ -281,17 +285,19 @@ export function AdminPunchesPage(): React.JSX.Element {
                     </td>
                     <td
                       className={`py-3 px-3 font-mono text-xs font-bold ${
-                        emp.balanceMinutes !== null && emp.balanceMinutes >= 0
-                          ? 'text-emerald-600 dark:text-emerald-400'
-                          : 'text-rose-600 dark:text-rose-400'
+                        emp.balanceMinutes === null || emp.balanceMinutes === 0
+                          ? 'text-slate-400'
+                          : emp.balanceMinutes > 0
+                            ? 'text-emerald-600 dark:text-emerald-400'
+                            : 'text-rose-600 dark:text-rose-400'
                       }`}
                     >
                       {emp.balanceMinutes !== null
-                        ? formatMinutesDuration(emp.balanceMinutes)
-                        : '--:--'}
+                        ? `${emp.balanceMinutes > 0 ? '+' : ''}${formatMinutesDuration(emp.balanceMinutes)}`
+                        : '—'}
                     </td>
                     <td className="py-3 px-3 font-mono text-xs text-slate-600 dark:text-slate-400">
-                      {emp.lastPunchAt ? formatTime(emp.lastPunchAt) : '--:--'}
+                      {emp.lastPunchAt ? formatTime(emp.lastPunchAt) : '—'}
                     </td>
                     <td className="py-3 px-4 text-right">
                       <button

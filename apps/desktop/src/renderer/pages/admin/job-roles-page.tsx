@@ -10,6 +10,7 @@ import type {
   JobRoleDto,
   JobRoleVersionDto,
 } from '../../api/contracts.js';
+import { PageHeader, headerButton } from '../../components/page-header.js';
 
 export function JobRolesPage(): React.JSX.Element {
   const { api } = useAuth();
@@ -36,27 +37,22 @@ export function JobRolesPage(): React.JSX.Element {
   );
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
-        <div>
-          <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white flex items-center gap-2.5">
-            <Briefcase className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-            <span>Cargos e Funções</span>
-          </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Defina a estrutura organizacional, atribuições e versões imutáveis para cada cargo
-          </p>
-        </div>
-
-        <button
-          onClick={() => setIsCreateModalOpen(true)}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 shadow-xs transition-colors self-start sm:self-auto"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Novo Cargo</span>
-        </button>
-      </div>
+    <div className="space-y-5">
+      <PageHeader
+        title="Cargos e Funções"
+        icon={Briefcase}
+        description="Atribuições e requisitos de cada cargo. Cada alteração gera uma nova versão, preservando o histórico."
+        actions={
+          <button
+            type="button"
+            onClick={() => setIsCreateModalOpen(true)}
+            className={headerButton.primary}
+          >
+            <Plus className="h-4 w-4" aria-hidden="true" />
+            Novo cargo
+          </button>
+        }
+      />
 
       {/* Filter / Search Bar */}
       <div className="flex items-center gap-3">

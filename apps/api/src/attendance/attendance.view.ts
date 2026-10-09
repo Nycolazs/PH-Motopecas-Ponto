@@ -159,6 +159,9 @@ export class AttendanceStatusCountsViewDto {
 
   @ApiProperty({ minimum: 0 })
   public closed!: number;
+
+  @ApiProperty({ minimum: 0 })
+  public vacation!: number;
 }
 
 export class AttendancePeriodTotalsViewDto implements AttendancePeriodSummary {
@@ -416,6 +419,62 @@ export class IncompleteAttendanceViewDto {
 
   @ApiProperty({ type: [IncompleteAttendanceDayItemDto] })
   public items!: IncompleteAttendanceDayItemDto[];
+}
+
+export class TimesheetReportEmployeeViewDto {
+  @ApiProperty({ format: 'uuid' })
+  public employeeId!: string;
+
+  @ApiProperty({ example: 'João da Silva' })
+  public name!: string;
+
+  @ApiProperty({ example: 'joao.silva' })
+  public login!: string;
+
+  @ApiProperty()
+  public isActive!: boolean;
+
+  @ApiProperty()
+  public hasAvatar!: boolean;
+
+  @ApiPropertyOptional({ nullable: true, example: '123.456.789-00' })
+  public cpf!: string | null;
+
+  @ApiPropertyOptional({ nullable: true, example: '2026-01-10' })
+  public hireDate!: string | null;
+
+  @ApiPropertyOptional({ nullable: true, example: 'Mecânico' })
+  public roleTitle!: string | null;
+
+  @ApiPropertyOptional({ nullable: true, example: 'Oficina' })
+  public department!: string | null;
+
+  @ApiProperty({ type: AttendancePeriodTotalsViewDto })
+  public totals!: AttendancePeriodSummary;
+
+  @ApiPropertyOptional({
+    type: [DailyAttendanceViewDto],
+    nullable: true,
+    description: 'Detalhamento diário, presente apenas quando includeDays=true.',
+  })
+  public days!: DailyAttendanceViewDto[] | null;
+}
+
+export class TimesheetReportViewDto {
+  @ApiProperty({ example: '2026-09-01' })
+  public from!: string;
+
+  @ApiProperty({ example: '2026-09-30', description: 'Data final efetivamente apurada.' })
+  public to!: string;
+
+  @ApiProperty({ format: 'date-time' })
+  public generatedAt!: string;
+
+  @ApiProperty({ type: [TimesheetReportEmployeeViewDto] })
+  public employees!: TimesheetReportEmployeeViewDto[];
+
+  @ApiProperty({ type: AttendancePeriodTotalsViewDto })
+  public totals!: AttendancePeriodSummary;
 }
 
 export function toDailyAttendanceView(summary: DailyAttendanceSummary): DailyAttendanceViewDto {

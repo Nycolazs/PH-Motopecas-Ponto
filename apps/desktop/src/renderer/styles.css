@@ -1295,21 +1295,24 @@ button:disabled {
   }
 }
 
+/*
+ * Entry animations use `backwards` (not `both`) and no permanent `will-change`:
+ * a transform left on the container after the animation would become the
+ * containing block of every `position: fixed` modal inside the page, pinning
+ * modals to the scrolled content instead of the viewport.
+ */
 .page-transition {
-  animation: pageEnter 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
-  will-change: opacity, transform;
+  animation: pageEnter 0.22s cubic-bezier(0.16, 1, 0.3, 1) backwards;
 }
 
 .tab-transition {
-  animation: tabEnter 0.18s cubic-bezier(0.16, 1, 0.3, 1) both;
-  will-change: opacity, transform;
+  animation: tabEnter 0.18s cubic-bezier(0.16, 1, 0.3, 1) backwards;
 }
 
 .employee-page,
 .home-page,
 .history-page {
-  animation: pageEnter 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
-  will-change: opacity, transform;
+  animation: pageEnter 0.22s cubic-bezier(0.16, 1, 0.3, 1) backwards;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1492,9 +1495,33 @@ a.button,
   .print-signatures {
     break-inside: avoid !important;
     page-break-inside: avoid !important;
-    margin-top: 18px !important;
-    padding-top: 14px !important;
   }
+
+  /* Report documents: only the print-only container reaches the paper. */
+  .print-only {
+    display: block !important;
+    width: 100% !important;
+  }
+
+  .report-paper {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    background: #ffffff !important;
+  }
+
+  .print-page-break {
+    break-after: page !important;
+    page-break-after: always !important;
+  }
+}
+
+.print-only {
+  display: none;
 }
 
 /* Toast entrance and exit animations */

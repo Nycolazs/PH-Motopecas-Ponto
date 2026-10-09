@@ -67,9 +67,7 @@ describe('CultureDocumentPage', () => {
 
     renderWithProviders(<CultureDocumentPage />);
 
-    expect(
-      await screen.findByRole('heading', { name: /Manual de Cultura Organizacional/i }),
-    ).toBeVisible();
+    expect(await screen.findByRole('heading', { name: /Manual de Cultura/i })).toBeVisible();
     expect(screen.getByText('Não publicado')).toBeVisible();
     expect(await screen.findByLabelText(/Missão Institucional/i)).toBeVisible();
     expect(screen.getByLabelText(/Visão de Futuro/i)).toBeVisible();

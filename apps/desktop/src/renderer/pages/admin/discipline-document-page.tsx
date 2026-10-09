@@ -3,7 +3,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   AlertCircle,
   AlertTriangle,
-  ArrowLeft,
   CheckCircle2,
   Eye,
   FileText,
@@ -28,9 +27,11 @@ import type {
   DocumentTypeDto,
 } from '../../api/contracts.js';
 import { useAuth } from '../../auth/use-auth.js';
+import { PageHeader } from '../../components/page-header.js';
+import { DateInput } from '../../components/date-input.js';
 import { useToast } from '../../components/toast-context.js';
 import { SelectInput } from '../../components/select-input.js';
-import { formatDisplayName } from '../../lib/format.js';
+import { formatDateBR, formatDisplayName } from '../../lib/format.js';
 
 export function DisciplineDocumentPage(): React.JSX.Element {
   const { session, api } = useAuth();
@@ -284,11 +285,11 @@ export function DisciplineDocumentPage(): React.JSX.Element {
 
       let title: string;
       if (documentType === 'DISCIPLINE_VERBAL') {
-        title = `Conversa Disciplinar - ${selectedEmployee?.name} (${incidentDate})`;
+        title = `Advertência Verbal - ${formatDisplayName(selectedEmployee?.name ?? '')} (${formatDateBR(incidentDate)})`;
       } else if (documentType === 'DISCIPLINE_WRITTEN') {
-        title = `Advertência Escrita - ${selectedEmployee?.name} (${incidentDate})`;
+        title = `Advertência Escrita - ${formatDisplayName(selectedEmployee?.name ?? '')} (${formatDateBR(incidentDate)})`;
       } else {
-        title = `Suspensão Disciplinar (${suspensionDays}d) - ${selectedEmployee?.name} (${incidentDate})`;
+        title = `Suspensão Disciplinar (${suspensionDays} ${suspensionDays === 1 ? 'dia' : 'dias'}) - ${formatDisplayName(selectedEmployee?.name ?? '')} (${formatDateBR(incidentDate)})`;
       }
 
       // 1. Save draft
@@ -452,29 +453,14 @@ export function DisciplineDocumentPage(): React.JSX.Element {
   };
 
   return (
-    <div className="space-y-6 pb-12 max-w-6xl mx-auto">
-      {/* Top Breadcrumb & Title */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <Link
-              to="/admin/documentos/gerar"
-              className="inline-flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
-            >
-              <ArrowLeft className="w-3.5 h-3.5" />
-              Modelos de Documentos
-            </Link>
-            <span className="text-slate-300 dark:text-slate-700">/</span>
-            <span className="text-xs font-medium text-slate-800 dark:text-slate-200">
-              Medidas Disciplinares
-            </span>
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
-            {pageTitle}
-          </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{pageSubtitle}</p>
-        </div>
-      </div>
+    <div className="space-y-5 pb-6">
+      <PageHeader
+        title={pageTitle}
+        icon={ShieldAlert}
+        backTo="/admin/documentos/gerar"
+        backLabel="Documentos & RH"
+        description={pageSubtitle}
+      />
 
       {/* Main Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -590,7 +576,7 @@ export function DisciplineDocumentPage(): React.JSX.Element {
                           : act.actionType === 'WRITTEN_WARNING'
                             ? 'Advertência Escrita'
                             : 'Suspensão'
-                      } - ${act.incidentDate}: ${act.reason.slice(0, 35)}...`,
+                      } - ${formatDateBR(act.incidentDate)}: ${act.reason.length > 35 ? `${act.reason.slice(0, 35)}...` : act.reason}`,
                     })),
                   ]}
                   className="w-full"
@@ -611,14 +597,14 @@ export function DisciplineDocumentPage(): React.JSX.Element {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-                  Data do Ocorrido *
-                </label>
-                <input
-                  type="date"
+                <DateInput
+                  id="data-do-ocorrido"
+                  label="Data do Ocorrido"
+                  labelPosition="top"
+                  required
                   value={incidentDate}
-                  onChange={(e) => setIncidentDate(e.target.value)}
-                  className="w-full text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                  onChange={(value) => setIncidentDate(value)}
+                  className="w-full"
                 />
               </div>
 
@@ -765,38 +751,38 @@ export function DisciplineDocumentPage(): React.JSX.Element {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                      Início da Suspensão *
-                    </label>
-                    <input
-                      type="date"
+                    <DateInput
+                      id="inicio-da-suspensao"
+                      label="Início da Suspensão"
+                      labelPosition="top"
+                      required
                       value={suspensionStartDate}
-                      onChange={(e) => setSuspensionStartDate(e.target.value)}
-                      className="w-full text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 py-2.5 text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                      onChange={(value) => setSuspensionStartDate(value)}
+                      className="w-full"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                      Término da Suspensão *
-                    </label>
-                    <input
-                      type="date"
+                    <DateInput
+                      id="termino-da-suspensao"
+                      label="Término da Suspensão"
+                      labelPosition="top"
+                      required
                       value={suspensionEndDate}
-                      onChange={(e) => setSuspensionEndDate(e.target.value)}
-                      className="w-full text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 py-2.5 text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                      onChange={(value) => setSuspensionEndDate(value)}
+                      className="w-full"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                      Retorno ao Trabalho *
-                    </label>
-                    <input
-                      type="date"
+                    <DateInput
+                      id="retorno-ao-trabalho"
+                      label="Retorno ao Trabalho"
+                      labelPosition="top"
+                      required
                       value={returnDate}
-                      onChange={(e) => setReturnDate(e.target.value)}
-                      className="w-full text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 py-2.5 text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                      onChange={(value) => setReturnDate(value)}
+                      className="w-full"
                     />
                   </div>
                 </div>
@@ -1098,10 +1084,10 @@ export function DisciplineDocumentPage(): React.JSX.Element {
                     className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors"
                   >
                     <td className="p-3 whitespace-nowrap font-medium text-slate-900 dark:text-slate-100">
-                      {act.incidentDate}
+                      {formatDateBR(act.incidentDate)}
                     </td>
                     <td className="p-3 whitespace-nowrap font-medium text-slate-800 dark:text-slate-200">
-                      {act.employeeName ?? 'Não informado'}
+                      {act.employeeName ? formatDisplayName(act.employeeName) : 'Não informado'}
                     </td>
                     <td className="p-3 whitespace-nowrap">
                       {act.actionType === 'VERBAL_WARNING' && (
@@ -1181,7 +1167,8 @@ export function DisciplineDocumentPage(): React.JSX.Element {
                 <FileText className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                 <div>
                   <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                    Prévia do Documento Disciplinar - {selectedEmployee?.name}
+                    Prévia do Documento Disciplinar -{' '}
+                    {formatDisplayName(selectedEmployee?.name ?? '')}
                   </h3>
                   <p className="text-xs text-slate-500">
                     Verifique os fatos narrados e o layout antes da confirmação definitiva.
@@ -1265,9 +1252,10 @@ export function DisciplineDocumentPage(): React.JSX.Element {
 
             <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
               Você está prestes a anular a medida aplicada em{' '}
-              <strong>{voidingAction.incidentDate}</strong> para{' '}
-              <strong>{voidingAction.employeeName}</strong>. A anulação excluirá esta penalidade da
-              progressão ativa, mas manterá o registro auditado no histórico.
+              <strong>{formatDateBR(voidingAction.incidentDate)}</strong> para{' '}
+              <strong>{formatDisplayName(voidingAction.employeeName ?? '')}</strong>. A anulação
+              excluirá esta penalidade da progressão ativa, mas manterá o registro auditado no
+              histórico.
             </p>
 
             <div>

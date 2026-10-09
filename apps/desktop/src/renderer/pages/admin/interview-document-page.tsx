@@ -28,6 +28,8 @@ import type {
   SaveDocumentDraftDto,
 } from '../../api/contracts.js';
 import { useAuth } from '../../auth/use-auth.js';
+import { DateInput } from '../../components/date-input.js';
+import { formatDateBR } from '../../lib/format.js';
 import { useToast } from '../../components/toast-context.js';
 import { SelectInput } from '../../components/select-input.js';
 
@@ -282,19 +284,19 @@ export function InterviewDocumentPage(): React.JSX.Element {
   });
 
   return (
-    <div className="p-6 sm:p-8 max-w-6xl mx-auto space-y-8">
+    <div className="space-y-5">
       {/* Top Breadcrumb & Actions */}
-      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 pb-2 border-b border-slate-200/80 dark:border-slate-800/80">
+      <div className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900 lg:flex-row lg:items-center lg:justify-between">
         <div className="min-w-0">
           <Link
             to="/admin/documentos/gerar"
-            className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition-colors mb-2.5"
+            className="mb-2 inline-flex items-center gap-1 text-xs font-semibold text-slate-500 transition-colors hover:text-blue-700 dark:text-slate-400 dark:hover:text-blue-300"
           >
             <ArrowLeft className="w-3.5 h-3.5 shrink-0" />
-            Voltar aos Modelos de Documentos
+            Documentos & RH
           </Link>
           <div className="flex flex-wrap items-center gap-3">
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100 whitespace-nowrap">
+            <h1 className="text-xl font-bold text-slate-900 dark:text-white">
               Guia de Entrevista e Seleção
             </h1>
             {activeDraft && (
@@ -304,13 +306,13 @@ export function InterviewDocumentPage(): React.JSX.Element {
               </span>
             )}
           </div>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1.5">
+          <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
             Avalie competências técnicas, postura e alinhamento cultural de candidatos sem criar
             vínculo empregatício automático.
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5 shrink-0 self-start xl:self-center">
+        <div className="flex flex-wrap items-center gap-2 lg:shrink-0 lg:flex-nowrap">
           {activeDraft && (
             <button
               type="button"
@@ -455,14 +457,14 @@ export function InterviewDocumentPage(): React.JSX.Element {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  Data da Entrevista *
-                </label>
-                <input
-                  type="date"
+                <DateInput
+                  id="data-da-entrevista"
+                  label="Data da Entrevista"
+                  labelPosition="top"
+                  required
                   value={form.interviewDate}
-                  onChange={(e) => setForm({ ...form, interviewDate: e.target.value })}
-                  className="w-full text-sm px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  onChange={(value) => setForm({ ...form, interviewDate: value })}
+                  className="w-full"
                 />
               </div>
 
@@ -678,7 +680,7 @@ export function InterviewDocumentPage(): React.JSX.Element {
                       </span>
                     </div>
                     <div className="text-2xs text-slate-500">
-                      {it.roleTitle} • {it.interviewDate}
+                      {it.roleTitle} • {formatDateBR(it.interviewDate)}
                     </div>
                     {it.generatedDocumentId && (
                       <Link

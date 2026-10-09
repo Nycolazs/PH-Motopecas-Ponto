@@ -10,9 +10,54 @@ COMPLETED — HR evolution in active local development on `feat/hr-evolution`. P
 
 ## Last Updated
 
-2026-10-01 America/Sao_Paulo
+2026-10-09 America/Sao_Paulo
 
 ## Active HR Implementation
+
+- **Hands-on QA Pass as an Admin User — Documents Area Simplification and Bug Fixes (2026-10-09)**:
+  - Method: Playwright walkthrough of every admin route at 1366x768 (light/dark) collecting console errors, failed requests and horizontal overflow; manual review of every screenshot; real user flows (create → preview → emit → archive → void a verbal warning; PDF previews for evaluation, acknowledgment, interview, culture and written warning) with the produced PDFs rendered and inspected. Test documents created during QA were voided through the UI.
+  - **Critical bugs fixed**:
+    - Employee profile contract drift: the API returned `isActive`, absent from the strict shared `employeeProfileSchema`, so the renderer rejected every profile silently. The prontuário showed "Não informado" for CPF/RG/address/hire date, and CPF was missing from acknowledgment, discipline and evaluation documents. Added `isActive` to the contract and the principal current `roleAssignment` to `GET /employees/:id/profile` (it was never returned, so every collaborator showed "Nenhum cargo formal atribuído"). Unit tests added.
+    - The API client now logs (`console.error`) any response that violates the renderer contract before raising `INVALID_RESPONSE`, so drift can no longer fail silently. A full sweep after the fix reported zero violations.
+    - Page/tab entry animations used `animation-fill-mode: both` + permanent `will-change: transform`, making the page container the containing block of every `position: fixed` modal: overlays did not cover the sidebar and modals were cut off when the page was scrolled. Switched to `backwards` without `will-change`; verified the overlay now covers the full viewport.
+    - Colored Tailwind shadows (`shadow-blue-500/20`) rendered a yellow fringe around disabled buttons in Chromium/Electron (evaluation PDF button); replaced with neutral shadows.
+    - PDF templates: `meta-table` and `metadata-grid` classes had no CSS (labels and values ran together); added styles. Optional sections left numbering gaps (1, 3, 4) — added `renumberSectionTitles` (unit tested) in the render pipeline. Missing CPF printed "inscrito no CPF sob o nº Registrado no Prontuário"; it now prints a blank line to fill by hand. Evaluation score uses pt-BR decimals and plain wording.
+  - **Documents area simplified**:
+    - Hub rewritten: sections by subject (Empresa e regras, Contratação e termos, Medidas disciplinares, Desempenho, Ponto e frequência) with compact cards and a clear action verb; removed the category tab strip that overflowed at 1366px; accent-insensitive search.
+    - New shared `PageHeader` (`components/page-header.tsx`) and removal of the duplicated `p-6 max-w-*` wrappers (the layout already pads) across Documentos emitidos, Cultura, Termos de Ciência, Disciplina, Avaliação, Entrevista, Regimento, Minha Empresa, Cargos, Jornadas e Calendário and Solicitações: same back link ("Documentos & RH"), title, description and right-aligned actions.
+    - Documentos emitidos: table reduced to Documento (+ tipo), Colaborador, Emissão (+ autor), Situação ("Válido"/"Anulado") and visible actions; no more clipped action column; interviews show "Candidato".
+    - Native date pickers replaced by the standard `DateInput` (interview, discipline incident/suspension dates, evaluation, regulation effective date). ISO dates (`2026-10-09`, `Vigência: 2026-01-01`) replaced by `DD/MM/AAAA` everywhere found. Discipline document titles now match the type ("Advertência Verbal - Nome (DD/MM/AAAA)").
+    - Termo de Ciência metric clarified as "Regimento vigente (vN)" with a renewal hint when terms belong to older versions.
+  - **Other screens**: names normalized to Title Case in Colaboradores, Registros de Ponto, Solicitações, Incompletos, Auditoria, Férias, Disciplina, Avaliação and modals; removed the meaningless "ID: 95e14721" line; not-started balances show "—" in neutral color instead of red "--:--"; Jornadas tabs and weekday cards no longer wrap; profile tab deep links (`?tab=`) now also work when already on the page.
+  - **Data note**: several archive entries dated 25/09/2026 in the local cloned database point to 316-byte blank placeholder PDFs that were inserted directly into the local database in an earlier session (no code generates them). Newly generated documents render correctly.
+  - **Verification (run in this session)**: `pnpm check` PASSED (lint 0 warnings, Prettier, strict typecheck, 429 tests: shared 91, api 192, desktop 134, tooling 12; production build). `pnpm test:integration` PASSED (26/26). Playwright E2E PASSED (5/5). Full admin sweep: zero console errors, zero failed requests, zero contract violations.
+  - Not committed or deployed; awaiting the user's acceptance test.
+
+- **Reports Module Redesign — Team Closing, Individual Timesheets & Batch Printing (2026-10-09)**:
+  - **Problems found by hands-on QA of the previous `/admin/relatorios` (local stack + cloned database, 1366x768, light/dark, Playwright PDF)**:
+    - Printed timesheet used hardcoded company data (CNPJ and a phone number that did not match the `Minha Empresa` record) and claimed "Documento Oficial / Registro Eletrônico de Ponto".
+    - Silent failures: an inverted or future custom range returned HTTP 400 and the screen went blank with no message.
+    - "Today", "this month" and punch times used the workstation clock/time zone instead of the business time zone; `VACATION` rendered as raw English; "Falta / Atraso" used the same neutral style as normal days; empty balances printed as `--:--`.
+    - The total row said "N dias apurados" while summing only finalized complete days (today and incomplete days are excluded by the domain), which was inconsistent.
+    - PDF content was clipped at the right margin and the signature block could fall alone onto a second page.
+    - Flow started empty and required choosing a collaborator before seeing anything; there was no team view and no way to print the monthly closing for everyone.
+  - **Backend (`apps/api/src/attendance`)**:
+    - New ADMIN-only `GET /attendance/reports/timesheets?from&to[&employeeId][&includeInactive][&includeDays]` (`AttendanceTimesheetReportQueryDto`, `TimesheetReportViewDto`, Swagger documented, pt-BR validation messages). Reuses the existing `loadPeriodSummaries` snapshot logic per employee and adds CPF, hire date and the principal job role/department valid in the period; team totals aggregate every included day; collaborators without applicable days are omitted from team reports; rows are sorted accent-insensitively in pt-BR. Measured ~90 ms for 13 collaborators x 30 days on the cloned database.
+    - Added the missing `vacation` field to the Swagger status-counts DTO.
+    - Integration test covering team/individual/inactive/not-yet-hired filtering, role data, totals, 404 for non-employees, invalid range and EMPLOYEE 403.
+  - **Desktop (`apps/desktop/src/renderer/pages/admin/reports/`)** — replaces `pages/admin/reports-page.tsx`:
+    - `reports-page.tsx`: header with context actions; one filter bar (Resumo da equipe | Espelho individual → Mês/Personalizado with month arrows → collaborator with ‹ › and "N de M"). State lives in the URL (`visao`, `mes`, `periodo`, `de`, `ate`, `colaborador`, `inativos`), never starts empty, blocks future months, validates custom ranges inline, disables actions while the period is invalid or data belongs to the previous period, and shows `FeedbackPanel` with retry on API errors.
+    - `team-report-panel.tsx`: KPIs (worked vs expected with progress, team balance, overtime, absences/delays), incomplete-days banner linking to `/admin/incompletos`, searchable/sortable table with worked progress and balance bars, pending badges, inactive toggle and "Espelho" drill-down.
+    - `report-documents.tsx`: A4 timesheet and team summary documents rendered as white paper in both themes, using real company data (placeholder CNPJ hidden + on-screen link to complete the company record), CPF/role/hire date, dynamic Entrada/Saída columns, "*" marker and legend for admin-adjusted punches, explicit note for days excluded from totals, signatures and emission footer. Rows densify automatically for long periods so a full month plus signatures fits on one page.
+    - Printing: dedicated print-only container (`.print-only`, `.print-page-break`) for "Imprimir resumo", "Imprimir / Salvar PDF" and new "Imprimir espelhos" (all collaborators, one page each).
+    - `report-model.ts`: pure period/status/CSV logic. CSV now uses UTF-8 BOM, `;` separator, CRLF and ASCII minus so Excel pt-BR opens it correctly; team and individual spreadsheets.
+    - `MonthPicker`: optional `max`, business-time-zone current month, accessible labels, removed duplicated month captions and the "Setembro De 2026" capitalization bug. Documents hub card copy updated.
+  - **Verification (all run in this session)**:
+    - Manual/automated visual QA via Playwright against the local API + cloned database: team and individual views in light/dark at 1366x768, invalid range, month picker, sorting, drill-down, CSV download, and generated PDFs (individual = 1 page, team summary = 1 page, batch = 13 pages for 13 collaborators). Zero console errors and zero failed requests.
+    - `pnpm check`: PASSED (ESLint 0 warnings, Prettier clean, strict typecheck, 426 tests: shared 91, api 189, desktop 134 including 18 new report tests, tooling 12; production build).
+    - `pnpm test:integration`: PASSED (26/26, including the new timesheet report test).
+    - Playwright E2E: PASSED (5/5; admin flow extended to open Relatórios, check the team table and drill into a timesheet).
+  - Not committed or deployed; awaiting the user's manual acceptance test.
 
 - **Session Persistence on Page Reload & Header Visual Alignment (2026-10-01)**:
   - **Single-Flight Token Refresh & Session Persistence on Reload (`apps/desktop/src/renderer/auth/web-auth.ts`)**:

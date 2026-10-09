@@ -244,6 +244,20 @@ export class UpdateEmployeeProfileRequestDto {
   public notes?: string | null;
 }
 
+export class EmployeeProfileRoleAssignmentDto {
+  @ApiProperty({ format: 'uuid' }) public id!: string;
+  @ApiProperty({ format: 'uuid' }) public employeeId!: string;
+  @ApiProperty({ format: 'uuid' }) public jobRoleId!: string;
+  @ApiProperty({ format: 'uuid' }) public jobRoleVersionId!: string;
+  @ApiProperty() public roleTitle!: string;
+  @ApiProperty() public versionNumber!: number;
+  @ApiProperty({ example: '2026-01-15' }) public startDate!: string;
+  @ApiPropertyOptional({ nullable: true }) public endDate?: string | null;
+  @ApiProperty() public isPrincipal!: boolean;
+  @ApiPropertyOptional({ nullable: true }) public notes?: string | null;
+  @ApiProperty() public createdAt!: string;
+}
+
 export class EmployeeProfileResponseDto {
   @ApiProperty({ format: 'uuid' })
   public userId!: string;
@@ -295,6 +309,12 @@ export class EmployeeProfileResponseDto {
 
   @ApiProperty()
   public isActive!: boolean;
+
+  @ApiPropertyOptional({
+    nullable: true,
+    description: 'Cargo principal vigente do colaborador, quando houver.',
+  })
+  public roleAssignment?: EmployeeProfileRoleAssignmentDto | null;
 
   @ApiProperty()
   public createdAt!: string;

@@ -16,6 +16,7 @@ import {
   AttendanceIncompletesQueryDto,
   AttendanceMonthQueryDto,
   AttendanceOverviewQueryDto,
+  AttendanceTimesheetReportQueryDto,
 } from './attendance.dto.js';
 import { AttendanceService } from './attendance.service.js';
 import {
@@ -24,6 +25,7 @@ import {
   DailyAttendanceViewDto,
   IncompleteAttendanceViewDto,
   MonthlyAttendanceViewDto,
+  TimesheetReportViewDto,
 } from './attendance.view.js';
 
 @ApiTags('Frequência')
@@ -97,6 +99,24 @@ export class AdminAttendanceController {
     @Query() query: AttendanceIncompletesQueryDto,
   ): Promise<IncompleteAttendanceViewDto> {
     return this.attendance.getIncompleteDays(query.month);
+  }
+
+  @Get('reports/timesheets')
+  @ApiOperation({
+    summary: 'Relatório de espelhos de ponto da equipe ou de um colaborador em um período',
+  })
+  @ApiQuery({ type: AttendanceTimesheetReportQueryDto })
+  @ApiOkResponse({ type: TimesheetReportViewDto })
+  public timesheets(
+    @Query() query: AttendanceTimesheetReportQueryDto,
+  ): Promise<TimesheetReportViewDto> {
+    return this.attendance.getTimesheetReport({
+      from: query.from,
+      to: query.to,
+      employeeId: query.employeeId,
+      includeInactive: query.includeInactive,
+      includeDays: query.includeDays,
+    });
   }
 
   @Get('employees/:employeeId/day')

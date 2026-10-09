@@ -35,6 +35,32 @@ export function getUpdater(): AppUpdater | null {
 export function resetUpdaterInstanceForTesting(): void {
   updaterInstance = null;
   lastCheckTime = 0;
+  if (installTimer !== null) clearInterval(installTimer);
+  installTimer = null;
+  installStarted = false;
+}
+
+/** Seconds without keyboard/mouse input before an update may be applied automatically. */
+export const IDLE_SECONDS_BEFORE_INSTALL = 180;
+/** How often a downloaded update re-checks whether it can be installed. */
+export const INSTALL_POLL_INTERVAL_MS = 60_000;
+
+let installTimer: ReturnType<typeof setInterval> | null = null;
+let installStarted = false;
+
+/**
+ * PH-Ponto lives in the system tray and starts with the OS, so it is almost never
+ * quit; relying on `autoInstallOnAppQuit` alone left downloaded updates pending
+ * forever. An update is applied as soon as the app is not in use: the window is
+ * hidden in the tray/minimized, or nobody touched the machine for a few minutes.
+ */
+export function isSafeMomentToInstall(windowInUse: boolean, systemIdleSeconds: number): boolean {
+  return !windowInUse || systemIdleSeconds >= IDLE_SECONDS_BEFORE_INSTALL;
+}
+
+export interface AutoUpdaterOptions {
+  /** Returns true when installing now would not interrupt anyone. */
+  canInstallNow?: () => boolean;
 }
 
 let lastCheckTime = 0;
@@ -61,7 +87,22 @@ export function triggerBackgroundUpdateCheck(options: { force?: boolean } = {}):
   });
 }
 
-export function setupAutoUpdater(): void {
+function installDownloadedUpdate(updater: AppUpdater): void {
+  if (installStarted) return;
+  installStarted = true;
+  if (installTimer !== null) clearInterval(installTimer);
+  installTimer = null;
+  console.log('[AutoUpdater] Instalando atualização em segundo plano e reabrindo o aplicativo...');
+  try {
+    // Silent install (no wizard) and relaunch PH-Ponto right after.
+    updater.quitAndInstall(true, true);
+  } catch (err) {
+    installStarted = false;
+    console.warn('[AutoUpdater] Não foi possível iniciar a instalação:', err);
+  }
+}
+
+export function setupAutoUpdater(options: AutoUpdaterOptions = {}): void {
   // Only execute update checks in packaged production builds
   if (!app.isPackaged) {
     return;
@@ -111,19 +152,19 @@ export function setupAutoUpdater(): void {
 
     updater.on('update-downloaded', (info) => {
       console.log(
-        `[AutoUpdater] Versão ${info.version} baixada com sucesso em segundo plano. O instalador será executado automaticamente ao encerrar ou reiniciar o aplicativo.`,
+        `[AutoUpdater] Versão ${info.version} baixada. Será instalada automaticamente assim que o aplicativo não estiver em uso.`,
       );
 
       try {
         if (Notification.isSupported()) {
           const notification = new Notification({
-            title: 'PH-Ponto - Atualização Disponível',
-            body: `A versão ${info.version} foi baixada e está pronta. Clique aqui para reiniciar e atualizar agora.`,
-            silent: false,
+            title: 'PH-Ponto - Atualização pronta',
+            body: `A versão ${info.version} será instalada automaticamente quando o computador estiver livre. Clique para atualizar agora.`,
+            silent: true,
           });
 
           notification.on('click', () => {
-            updater.quitAndInstall(false, true);
+            installDownloadedUpdate(updater);
           });
 
           notification.show();
@@ -131,6 +172,21 @@ export function setupAutoUpdater(): void {
       } catch (notifErr) {
         console.warn('[AutoUpdater] Não foi possível exibir notificação nativa:', notifErr);
       }
+
+      const tryInstall = (): void => {
+        if (installStarted) return;
+        let safe = false;
+        try {
+          safe = options.canInstallNow?.() ?? false;
+        } catch (err) {
+          console.warn('[AutoUpdater] Falha ao avaliar momento de instalação:', err);
+        }
+        if (safe) installDownloadedUpdate(updater);
+      };
+
+      if (installTimer !== null) clearInterval(installTimer);
+      installTimer = setInterval(tryInstall, INSTALL_POLL_INTERVAL_MS);
+      tryInstall();
     });
 
     // Initial check delayed to 15 seconds after start to ensure 0% impact on startup speed

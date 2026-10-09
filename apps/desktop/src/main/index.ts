@@ -7,6 +7,7 @@ import {
   BrowserWindow,
   ipcMain,
   net,
+  powerMonitor,
   protocol,
   session,
   type IpcMainInvokeEvent,
@@ -19,7 +20,11 @@ import { resolveAppIcon } from './app-icon.js';
 import { AuthApiClient } from './auth-api-client.js';
 import { registerAuthIpc } from './auth-ipc.js';
 import { DesktopAuthSessionService } from './auth-session.service.js';
-import { setupAutoUpdater, triggerBackgroundUpdateCheck } from './auto-updater.js';
+import {
+  isSafeMomentToInstall,
+  setupAutoUpdater,
+  triggerBackgroundUpdateCheck,
+} from './auto-updater.js';
 import { initAutoStartDefault } from './autostart.js';
 import { RefreshTokenVault, type TokenEncryption } from './refresh-token-vault.js';
 import {
@@ -251,7 +256,14 @@ if (!hasSingleInstanceLock) {
     registerApplicationProtocol();
     configureSessionSecurity();
     registerIpc();
-    setupAutoUpdater();
+    setupAutoUpdater({
+      canInstallNow: () => {
+        const window = mainWindow;
+        const windowInUse =
+          window !== null && !window.isDestroyed() && window.isVisible() && !window.isMinimized();
+        return isSafeMomentToInstall(windowInUse, powerMonitor.getSystemIdleTime());
+      },
+    });
     initAutoStartDefault();
     setupSystemTray(() => mainWindow, appIcon);
     await createMainWindow();

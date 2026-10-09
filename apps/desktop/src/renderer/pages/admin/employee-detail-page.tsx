@@ -54,7 +54,7 @@ import { PunchCorrectionModal } from '../../components/punch-correction-modal.js
 import { StatusBadge } from '../../components/status-badge.js';
 import { Modal } from '../../components/modal.js';
 import { SelectInput } from '../../components/select-input.js';
-import { formatDateBR } from '../../lib/format.js';
+import { formatDateBR, formatDisplayName } from '../../lib/format.js';
 import { formatMinutesDuration } from '@ph-ponto/shared';
 
 function formatTime(isoString?: string | null): string {
@@ -72,6 +72,15 @@ function getTodayString(): string {
 }
 
 type ProfileTab = 'RESUMO' | 'HISTORICO' | 'DOCUMENTOS' | 'AVALIACOES' | 'PONTO' | 'ACESSO';
+
+const PROFILE_TABS: readonly ProfileTab[] = [
+  'RESUMO',
+  'HISTORICO',
+  'DOCUMENTOS',
+  'AVALIACOES',
+  'PONTO',
+  'ACESSO',
+];
 
 const DOCUMENT_TYPE_LABELS: Record<string, string> = {
   CULTURE: 'Cultura Organizacional',
@@ -120,10 +129,7 @@ export function AdminEmployeeDetailPage(): React.JSX.Element {
   // Tab State
   const [activeTab, setActiveTab] = useState<ProfileTab>(() => {
     if (initialDate || initialMonth) return 'PONTO';
-    if (
-      initialTab &&
-      ['RESUMO', 'HISTORICO', 'DOCUMENTOS', 'AVALIACOES', 'PONTO', 'ACESSO'].includes(initialTab)
-    ) {
+    if (initialTab && PROFILE_TABS.includes(initialTab)) {
       return initialTab;
     }
     return 'RESUMO';
@@ -179,6 +185,11 @@ export function AdminEmployeeDetailPage(): React.JSX.Element {
       setCurrentMonth(urlDate.slice(0, 7));
       setActiveTab('PONTO');
       setAttendanceView('CALENDAR');
+      return;
+    }
+    const urlTab = searchParams.get('tab')?.toUpperCase();
+    if (urlTab && PROFILE_TABS.includes(urlTab as ProfileTab)) {
+      setActiveTab(urlTab as ProfileTab);
     }
   }, [searchParams]);
 
@@ -390,7 +401,7 @@ export function AdminEmployeeDetailPage(): React.JSX.Element {
             <div className="relative group">
               <AvatarImage
                 userId={employee.id}
-                name={employee.name}
+                name={formatDisplayName(employee.name)}
                 hasAvatar={employee.hasAvatar}
                 size="xl"
               />
@@ -406,7 +417,7 @@ export function AdminEmployeeDetailPage(): React.JSX.Element {
             <div>
               <div className="flex flex-wrap items-center gap-2">
                 <h1 className="text-xl font-bold text-slate-900 dark:text-white">
-                  {employee.name}
+                  {formatDisplayName(employee.name)}
                 </h1>
                 <StatusBadge isActive={employee.isActive} />
                 {employee.accessEnabled ? (
@@ -547,7 +558,7 @@ export function AdminEmployeeDetailPage(): React.JSX.Element {
               <div className="flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-blue-600" />
                 <h2 className="text-sm font-bold text-slate-900 dark:text-white">
-                  Gerar para {employee?.name ?? 'o colaborador'}
+                  Gerar para {employee ? formatDisplayName(employee.name) : 'o colaborador'}
                 </h2>
               </div>
               <span className="text-xs text-slate-400">
@@ -1335,7 +1346,7 @@ export function AdminEmployeeDetailPage(): React.JSX.Element {
 
             <Link
               to={`/admin/documentos/avaliacao?employeeId=${employeeId}`}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md shadow-blue-500/20 transition-all"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-xs transition-all"
             >
               <Plus className="w-4 h-4" />
               Nova Avaliação de Desempenho
@@ -1594,7 +1605,7 @@ export function AdminEmployeeDetailPage(): React.JSX.Element {
               <div className="pt-2">
                 <Link
                   to={`/admin/documentos/avaliacao?employeeId=${employeeId}`}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md shadow-blue-500/20 transition-all"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-xs transition-all"
                 >
                   <Plus className="w-4 h-4" />
                   Realizar Primeira Avaliação
@@ -2205,7 +2216,7 @@ export function AdminEmployeeDetailPage(): React.JSX.Element {
           isOpen={avatarOpen}
           onClose={() => setAvatarOpen(false)}
           userId={employee.id}
-          userName={employee.name}
+          userName={formatDisplayName(employee.name)}
           hasAvatar={employee.hasAvatar}
           onAvatarUpdated={() => void refetchEmployee()}
         />
@@ -2230,7 +2241,7 @@ export function AdminEmployeeDetailPage(): React.JSX.Element {
           isOpen={true}
           onClose={() => setCorrectPunch(null)}
           punchId={correctPunch.id}
-          employeeName={employee.name}
+          employeeName={formatDisplayName(employee.name)}
           originalOccurredAt={correctPunch.occurredAt}
           currentSequence={correctPunch.sequence}
           onSuccess={() => void refetchMonthly()}

@@ -1,8 +1,6 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-  AlertCircle,
-  ArrowLeft,
   Ban,
   CheckCircle2,
   ChevronLeft,
@@ -11,21 +9,21 @@ import {
   Eye,
   FileCheck2,
   FileText,
-  Filter,
   FolderArchive,
   RefreshCw,
   RotateCcw,
   Search,
   Sparkles,
-  User,
   X,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 import { useAuth } from '../../auth/use-auth.js';
 import { useToast } from '../../components/toast-context.js';
+import { FeedbackPanel } from '../../components/feedback-panel.js';
 import { SelectInput } from '../../components/select-input.js';
-import { formatDisplayName } from '../../lib/format.js';
+import { PageHeader, headerButton } from '../../components/page-header.js';
+import { formatDisplayName, formatInstantDateTime } from '../../lib/format.js';
 import type { DocumentTypeDto, GeneratedDocumentDto } from '../../api/contracts.js';
 
 const DOCUMENT_TYPE_LABELS: Record<DocumentTypeDto, string> = {
@@ -180,47 +178,31 @@ export function DocumentsArchivePage(): React.JSX.Element {
   const totalPages = documentsData?.pagination.totalPages ?? 1;
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
-      {/* Header & Quick Action */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="space-y-1">
-          <Link
-            to="/admin"
-            className="inline-flex items-center text-xs font-semibold text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition-colors mb-1"
-          >
-            <ArrowLeft className="w-3.5 h-3.5 mr-1" />
-            Voltar ao Início
+    <div className="space-y-5">
+      <PageHeader
+        title="Documentos emitidos"
+        icon={FolderArchive}
+        backTo="/admin/documentos/gerar"
+        backLabel="Documentos & RH"
+        description="Todos os documentos gerados, com prévia, download e anulação. Documentos emitidos não podem ser editados."
+        badges={
+          <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-semibold text-blue-700 dark:bg-blue-950/60 dark:text-blue-300">
+            {documentsData?.pagination.total ?? 0}{' '}
+            {(documentsData?.pagination.total ?? 0) === 1 ? 'documento' : 'documentos'}
+          </span>
+        }
+        actions={
+          <Link to="/admin/documentos/gerar" className={headerButton.primary}>
+            <Sparkles className="h-4 w-4" aria-hidden="true" />
+            Criar documento
           </Link>
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-              <FolderArchive className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-              Arquivo de Documentos Oficiais
-            </h1>
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 border border-blue-300/40">
-              {documentsData?.pagination.total ?? 0} Documentos
-            </span>
-          </div>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
-            Repositório imutável de manuais, descrições de cargos, termos de ciência e comunicados
-            oficiais emitidos.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <Link
-            to="/admin/documentos/gerar"
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white transition-colors shadow-xs"
-          >
-            <Sparkles className="w-4 h-4" />
-            Gerar Documento
-          </Link>
-        </div>
-      </div>
+        }
+      />
 
       {/* Filter and Search Bar */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-xs flex flex-wrap items-center justify-between gap-4">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 shadow-xs flex flex-wrap items-center gap-2.5">
         {/* Search */}
-        <div className="relative flex-1 min-w-[240px]">
+        <div className="relative flex-1 min-w-[180px]">
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
@@ -229,15 +211,14 @@ export function DocumentsArchivePage(): React.JSX.Element {
               setSearch(e.target.value);
               setPage(1);
             }}
-            placeholder="Buscar por título ou colaborador..."
+            placeholder="Buscar título ou colaborador..."
             className="w-full pl-9 pr-4 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
         {/* Document Type Filter */}
         <div className="flex items-center gap-2">
-          <Filter className="w-4 h-4 text-slate-400 shrink-0" />
-          <div className="w-52">
+          <div className="w-48">
             <SelectInput
               size="sm"
               placeholder="Todos os Tipos"
@@ -260,8 +241,7 @@ export function DocumentsArchivePage(): React.JSX.Element {
 
         {/* Employee Filter */}
         <div className="flex items-center gap-2">
-          <User className="w-4 h-4 text-slate-400 shrink-0" />
-          <div className="w-56">
+          <div className="w-52">
             <SelectInput
               size="sm"
               placeholder="Todos os Colaboradores"
@@ -312,7 +292,7 @@ export function DocumentsArchivePage(): React.JSX.Element {
                 : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
-            Ativos
+            Válidos
           </button>
           <button
             type="button"
@@ -367,12 +347,11 @@ export function DocumentsArchivePage(): React.JSX.Element {
         {isLoading ? (
           <div className="py-20 flex flex-col justify-center items-center text-slate-400">
             <RefreshCw className="w-8 h-8 animate-spin mb-3 text-blue-600" />
-            <span className="text-sm">Carregando documentos oficiais...</span>
+            <span className="text-sm">Carregando documentos...</span>
           </div>
         ) : queryError ? (
-          <div className="p-8 text-center text-rose-600 dark:text-rose-400 space-y-2">
-            <AlertCircle className="w-8 h-8 mx-auto" />
-            <p className="text-sm font-semibold">Falha ao carregar o arquivo de documentos.</p>
+          <div className="p-4">
+            <FeedbackPanel error={queryError} onRetry={() => void refetch()} compact />
           </div>
         ) : documentsData?.items.length === 0 ? (
           <div className="py-16 text-center space-y-3">
@@ -390,108 +369,94 @@ export function DocumentsArchivePage(): React.JSX.Element {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40 text-slate-500 dark:text-slate-400 uppercase tracking-wider font-semibold">
-                  <th className="py-3.5 px-4">Documento</th>
-                  <th className="py-3.5 px-4">Tipo</th>
-                  <th className="py-3.5 px-4">Destinatário</th>
-                  <th className="py-3.5 px-4">Versão</th>
-                  <th className="py-3.5 px-4">Data de Emissão</th>
-                  <th className="py-3.5 px-4">Emitido por</th>
-                  <th className="py-3.5 px-4">Status</th>
-                  <th className="py-3.5 px-4 text-right">Ações</th>
+                <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40 text-[11px] text-slate-500 dark:text-slate-400 uppercase tracking-wider font-semibold">
+                  <th className="py-3 px-4">Documento</th>
+                  <th className="py-3 px-4">Colaborador</th>
+                  <th className="py-3 px-4">Emissão</th>
+                  <th className="py-3 px-4">Situação</th>
+                  <th className="py-3 px-4 text-right">Ações</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
                 {documentsData?.items.map((doc) => (
                   <tr
                     key={doc.id}
-                    className="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors"
+                    className={`hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors ${doc.isVoid ? 'opacity-70' : ''}`}
                   >
-                    {/* Document Title & Icon */}
-                    <td className="py-3.5 px-4 font-semibold text-slate-900 dark:text-white">
-                      <div className="flex items-center gap-2">
-                        <FileText className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
-                        <span className="truncate max-w-[220px]" title={doc.title}>
-                          {doc.title}
-                        </span>
+                    <td className="py-3 px-4 max-w-[340px]">
+                      <div className="flex items-start gap-2.5">
+                        <FileText className="mt-0.5 w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
+                        <div className="min-w-0">
+                          <div
+                            className={`truncate font-semibold text-slate-900 dark:text-white ${doc.isVoid ? 'line-through' : ''}`}
+                            title={doc.title}
+                          >
+                            {doc.title}
+                          </div>
+                          <div className="mt-0.5 text-[11px] text-slate-500 dark:text-slate-400">
+                            {DOCUMENT_TYPE_LABELS[doc.documentType] ?? doc.documentType}
+                            {doc.version > 1 && ` • versão ${doc.version}`}
+                          </div>
+                        </div>
                       </div>
                     </td>
 
-                    {/* Document Type Badge */}
-                    <td className="py-3.5 px-4">
-                      <span className="inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
-                        {DOCUMENT_TYPE_LABELS[doc.documentType] ?? doc.documentType}
-                      </span>
-                    </td>
-
-                    {/* Employee / General */}
-                    <td className="py-3.5 px-4">
+                    <td className="py-3 px-4 whitespace-nowrap">
                       {doc.employeeName ? (
                         <span className="font-medium text-slate-900 dark:text-white">
-                          {doc.employeeName}
+                          {formatDisplayName(doc.employeeName)}
                         </span>
                       ) : (
-                        <span className="text-slate-400 italic">Institucional / Geral</span>
+                        <span className="text-slate-400">
+                          {doc.documentType === 'INTERVIEW' ? 'Candidato' : 'Toda a empresa'}
+                        </span>
                       )}
                     </td>
 
-                    {/* Version */}
-                    <td className="py-3.5 px-4">
-                      <span className="font-mono text-xs font-semibold bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md">
-                        v{doc.version}
-                      </span>
+                    <td className="py-3 px-4 whitespace-nowrap">
+                      <div className="text-slate-700 dark:text-slate-300">
+                        {formatInstantDateTime(doc.createdAt)}
+                      </div>
+                      <div className="mt-0.5 text-[11px] text-slate-400">
+                        por {formatDisplayName(doc.authorName ?? 'Administrador')}
+                      </div>
                     </td>
 
-                    {/* Created Date */}
-                    <td className="py-3.5 px-4 text-slate-500 dark:text-slate-400 whitespace-nowrap">
-                      {new Date(doc.createdAt).toLocaleDateString('pt-BR')} às{' '}
-                      {new Date(doc.createdAt).toLocaleTimeString('pt-BR', {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </td>
-
-                    {/* Author */}
-                    <td className="py-3.5 px-4 text-slate-600 dark:text-slate-400">
-                      {doc.authorName ?? 'Administrador'}
-                    </td>
-
-                    {/* Status */}
-                    <td className="py-3.5 px-4">
+                    <td className="py-3 px-4 whitespace-nowrap">
                       {doc.isVoid ? (
                         <span
-                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 border border-rose-300/40"
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300"
                           title={`Motivo: ${doc.voidReason ?? 'Não informado'}`}
                         >
                           <Ban className="w-3 h-3" />
                           Anulado
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-300/40">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300">
                           <CheckCircle2 className="w-3 h-3" />
-                          Ativo
+                          Válido
                         </span>
                       )}
                     </td>
 
-                    {/* Actions */}
-                    <td className="py-3.5 px-4 text-right">
-                      <div className="flex items-center justify-end gap-1.5">
+                    <td className="py-3 px-4 text-right">
+                      <div className="flex items-center justify-end gap-1">
                         <button
                           type="button"
                           onClick={() => void handlePreview(doc)}
-                          className="p-1.5 text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                          title="Visualizar PDF"
+                          className="inline-flex h-8 items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 transition-colors hover:border-blue-400 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer"
+                          aria-label={`Visualizar ${doc.title}`}
                         >
-                          <Eye className="w-4 h-4" />
+                          <Eye className="w-3.5 h-3.5" />
+                          Ver
                         </button>
-
                         <button
                           type="button"
                           onClick={() => void handleDownload(doc)}
                           disabled={downloadingId === doc.id}
-                          className="p-1.5 text-slate-500 hover:text-emerald-600 dark:hover:text-emerald-400 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors disabled:opacity-50"
+                          className="p-2 text-slate-500 hover:text-emerald-600 dark:hover:text-emerald-400 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors disabled:opacity-50 cursor-pointer"
                           title="Baixar PDF"
+                          aria-label={`Baixar ${doc.title}`}
                         >
                           {downloadingId === doc.id ? (
                             <RefreshCw className="w-4 h-4 animate-spin text-emerald-600" />
@@ -499,7 +464,6 @@ export function DocumentsArchivePage(): React.JSX.Element {
                             <Download className="w-4 h-4" />
                           )}
                         </button>
-
                         {!doc.isVoid ? (
                           <button
                             type="button"
@@ -507,12 +471,15 @@ export function DocumentsArchivePage(): React.JSX.Element {
                               setDocToVoid(doc);
                               setVoidReason('');
                             }}
-                            className="p-1.5 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
-                            title="Anular Documento"
+                            className="p-2 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
+                            title="Anular documento"
+                            aria-label={`Anular ${doc.title}`}
                           >
                             <Ban className="w-4 h-4" />
                           </button>
-                        ) : null}
+                        ) : (
+                          <span className="w-8" aria-hidden="true" />
+                        )}
                       </div>
                     </td>
                   </tr>
