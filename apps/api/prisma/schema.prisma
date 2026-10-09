@@ -257,43 +257,46 @@ model User {
   createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt       DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  avatar                     Avatar?
-  employeeProfile            EmployeeProfile?
-  refreshSessions            RefreshSession[]
-  createdScheduleVersions    BusinessScheduleVersion[]    @relation("ScheduleCreatedBy")
-  createdExceptionRevisions  CalendarExceptionRevision[]  @relation("ExceptionCreatedBy")
-  employeePunches            TimePunch[]                  @relation("EmployeePunches")
-  insertedPunches            TimePunch[]                  @relation("PunchInsertedBy")
-  timeAdjustments            TimeAdjustment[]             @relation("AdjustmentAdmin")
-  adjustmentRequests         TimePunchAdjustmentRequest[] @relation("AdjustmentRequester")
-  reviewedAdjustmentRequests TimePunchAdjustmentRequest[] @relation("AdjustmentReviewer")
-  idempotencyRecords         IdempotencyRecord[]
-  auditEvents                AuditLog[]                   @relation("AuditActor")
-  updatedSettings            AppSetting[]                 @relation("SettingUpdatedBy")
-  vacations                  Vacation[]                   @relation("EmployeeVacations")
-  createdVacations           Vacation[]                   @relation("VacationsCreatedBy")
-  punchVoids                 TimePunchVoid[]              @relation("PunchVoidedBy")
-  roleAssignments            EmployeeRoleAssignment[]     @relation("EmployeeRoleAssignments")
-  createdRoleAssignments     EmployeeRoleAssignment[]     @relation("RoleAssignmentsCreatedBy")
-  createdRoleVersions        JobRoleVersion[]             @relation("RoleVersionsCreatedBy")
-  draftsCreated              DocumentDraft[]              @relation("DraftAuthor")
-  employeeDrafts             DocumentDraft[]              @relation("DraftEmployee")
-  documentsAuthored          GeneratedDocument[]          @relation("DocumentAuthor")
-  employeeDocuments          GeneratedDocument[]          @relation("EmployeeDocuments")
-  voidedDocuments            GeneratedDocument[]          @relation("DocumentVoidedBy")
-  createdCultureVersions     CultureProfileVersion[]      @relation("CultureVersionsCreatedBy")
-  createdRegulationVersions  CompanyRegulationVersion[]   @relation("RegulationVersionsCreatedBy")
-  interviewsEvaluated        HiringInterview[]            @relation("InterviewEvaluator")
-  createdAcknowledgments     EmployeeDocumentAcknowledgment[] @relation("AcknowledgmentsCreatedBy")
-  employeeAcknowledgments    EmployeeDocumentAcknowledgment[] @relation("EmployeeAcknowledgments")
-  employmentEvents           EmploymentEvent[]                @relation("EmployeeEmploymentEvents")
-  createdEmploymentEvents    EmploymentEvent[]                @relation("EmploymentEventsCreatedBy")
-  disciplinaryActionsReceived DisciplinaryAction[]            @relation("DisciplinaryEmployee")
-  disciplinaryActionsIssued   DisciplinaryAction[]            @relation("DisciplinaryIssuer")
-  disciplinaryActionsVoided   DisciplinaryAction[]            @relation("DisciplinaryVoidedBy")
-  performanceReviewsReceived  PerformanceReview[]             @relation("PerformanceReviewEmployee")
-  performanceReviewsEvaluated PerformanceReview[]             @relation("PerformanceReviewEvaluator")
-  createdPerformanceCriteria PerformanceEvaluationCriteria[] @relation("PerformanceCriteriaCreatedBy")
+  avatar                      Avatar?
+  employeeProfile             EmployeeProfile?
+  refreshSessions             RefreshSession[]
+  createdScheduleVersions     BusinessScheduleVersion[]        @relation("ScheduleCreatedBy")
+  createdExceptionRevisions   CalendarExceptionRevision[]      @relation("ExceptionCreatedBy")
+  employeePunches             TimePunch[]                      @relation("EmployeePunches")
+  insertedPunches             TimePunch[]                      @relation("PunchInsertedBy")
+  timeAdjustments             TimeAdjustment[]                 @relation("AdjustmentAdmin")
+  adjustmentRequests          TimePunchAdjustmentRequest[]     @relation("AdjustmentRequester")
+  reviewedAdjustmentRequests  TimePunchAdjustmentRequest[]     @relation("AdjustmentReviewer")
+  idempotencyRecords          IdempotencyRecord[]
+  auditEvents                 AuditLog[]                       @relation("AuditActor")
+  updatedSettings             AppSetting[]                     @relation("SettingUpdatedBy")
+  vacations                   Vacation[]                       @relation("EmployeeVacations")
+  createdVacations            Vacation[]                       @relation("VacationsCreatedBy")
+  punchVoids                  TimePunchVoid[]                  @relation("PunchVoidedBy")
+  roleAssignments             EmployeeRoleAssignment[]         @relation("EmployeeRoleAssignments")
+  createdRoleAssignments      EmployeeRoleAssignment[]         @relation("RoleAssignmentsCreatedBy")
+  createdRoleVersions         JobRoleVersion[]                 @relation("RoleVersionsCreatedBy")
+  draftsCreated               DocumentDraft[]                  @relation("DraftAuthor")
+  employeeDrafts              DocumentDraft[]                  @relation("DraftEmployee")
+  documentsAuthored           GeneratedDocument[]              @relation("DocumentAuthor")
+  employeeDocuments           GeneratedDocument[]              @relation("EmployeeDocuments")
+  voidedDocuments             GeneratedDocument[]              @relation("DocumentVoidedBy")
+  createdCultureVersions      CultureProfileVersion[]          @relation("CultureVersionsCreatedBy")
+  createdRegulationVersions   CompanyRegulationVersion[]       @relation("RegulationVersionsCreatedBy")
+  interviewsEvaluated         HiringInterview[]                @relation("InterviewEvaluator")
+  createdAcknowledgments      EmployeeDocumentAcknowledgment[] @relation("AcknowledgmentsCreatedBy")
+  employeeAcknowledgments     EmployeeDocumentAcknowledgment[] @relation("EmployeeAcknowledgments")
+  employmentEvents            EmploymentEvent[]                @relation("EmployeeEmploymentEvents")
+  createdEmploymentEvents     EmploymentEvent[]                @relation("EmploymentEventsCreatedBy")
+  disciplinaryActionsReceived DisciplinaryAction[]             @relation("DisciplinaryEmployee")
+  disciplinaryActionsIssued   DisciplinaryAction[]             @relation("DisciplinaryIssuer")
+  disciplinaryActionsVoided   DisciplinaryAction[]             @relation("DisciplinaryVoidedBy")
+  performanceReviewsReceived  PerformanceReview[]              @relation("PerformanceReviewEmployee")
+  performanceReviewsEvaluated PerformanceReview[]              @relation("PerformanceReviewEvaluator")
+  createdPerformanceCriteria  PerformanceEvaluationCriteria[]  @relation("PerformanceCriteriaCreatedBy")
+  notificationPreference      AdminNotificationPreference?     @relation("AdminNotificationPreference")
+  notificationsReceived       NotificationOutbox[]             @relation("NotificationRecipient")
+  notificationsAbout          NotificationOutbox[]             @relation("NotificationSubject")
 
   @@index([role, isActive])
   @@index([role, accessEnabled])
@@ -459,12 +462,12 @@ model TimePunch {
   idempotencyRecordId String          @unique @map("idempotency_record_id") @db.Uuid
   createdAt           DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
 
-  employee          User                          @relation("EmployeePunches", fields: [employeeId], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  createdByAdmin    User?                         @relation("PunchInsertedBy", fields: [createdByAdminId], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  idempotencyRecord IdempotencyRecord             @relation(fields: [idempotencyRecordId], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  adjustments       TimeAdjustment[]
+  employee           User                         @relation("EmployeePunches", fields: [employeeId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  createdByAdmin     User?                        @relation("PunchInsertedBy", fields: [createdByAdminId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  idempotencyRecord  IdempotencyRecord            @relation(fields: [idempotencyRecordId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  adjustments        TimeAdjustment[]
   adjustmentRequests TimePunchAdjustmentRequest[]
-  void              TimePunchVoid?
+  void               TimePunchVoid?
 
   @@index([employeeId, occurredAt, id])
   @@index([occurredAt])
@@ -480,8 +483,8 @@ model TimePunchVoid {
   idempotencyRecordId String   @unique @map("idempotency_record_id") @db.Uuid
   createdAt           DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
-  timePunch         TimePunch        @relation(fields: [timePunchId], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  admin             User             @relation("PunchVoidedBy", fields: [adminId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  timePunch         TimePunch         @relation(fields: [timePunchId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  admin             User              @relation("PunchVoidedBy", fields: [adminId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   idempotencyRecord IdempotencyRecord @relation(fields: [idempotencyRecordId], references: [id], onDelete: Restrict, onUpdate: Restrict)
 
   @@index([createdAt])
@@ -644,12 +647,12 @@ model EmployeeProfile {
 }
 
 model JobRole {
-  id          String   @id @default(uuid()) @db.Uuid
-  title       String   @db.VarChar(120)
-  department  String?  @db.VarChar(100)
-  isActive    Boolean  @default(true) @map("is_active")
-  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id         String   @id @default(uuid()) @db.Uuid
+  title      String   @db.VarChar(120)
+  department String?  @db.VarChar(100)
+  isActive   Boolean  @default(true) @map("is_active")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   versions    JobRoleVersion[]
   assignments EmployeeRoleAssignment[]
@@ -672,10 +675,10 @@ model JobRoleVersion {
   createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   publishedAt      DateTime @default(now()) @map("published_at") @db.Timestamptz(6)
 
-  jobRole          JobRole                  @relation(fields: [jobRoleId], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  createdBy        User                     @relation("RoleVersionsCreatedBy", fields: [createdById], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  assignments      EmployeeRoleAssignment[]
-  acknowledgments  EmployeeDocumentAcknowledgment[]
+  jobRole         JobRole                          @relation(fields: [jobRoleId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  createdBy       User                             @relation("RoleVersionsCreatedBy", fields: [createdById], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  assignments     EmployeeRoleAssignment[]
+  acknowledgments EmployeeDocumentAcknowledgment[]
 
   @@unique([jobRoleId, versionNumber])
   @@index([jobRoleId, publishedAt])
@@ -695,10 +698,10 @@ model EmployeeRoleAssignment {
   createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt        DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  employee         User           @relation("EmployeeRoleAssignments", fields: [employeeId], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  jobRole          JobRole        @relation(fields: [jobRoleId], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  jobRoleVersion   JobRoleVersion @relation(fields: [jobRoleVersionId], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  createdBy        User           @relation("RoleAssignmentsCreatedBy", fields: [createdById], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  employee       User           @relation("EmployeeRoleAssignments", fields: [employeeId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  jobRole        JobRole        @relation(fields: [jobRoleId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  jobRoleVersion JobRoleVersion @relation(fields: [jobRoleVersionId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  createdBy      User           @relation("RoleAssignmentsCreatedBy", fields: [createdById], references: [id], onDelete: Restrict, onUpdate: Restrict)
 
   @@index([employeeId, isPrincipal, startDate])
   @@index([jobRoleId])
@@ -781,11 +784,11 @@ model GeneratedDocument {
   voidedAt       DateTime?    @map("voided_at") @db.Timestamptz(6)
   createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
 
-  company                Company                 @relation(fields: [companyId], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  employee               User?                   @relation("EmployeeDocuments", fields: [employeeId], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  author                 User                    @relation("DocumentAuthor", fields: [authorId], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  artifact               DocumentArtifact        @relation(fields: [artifactId], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  voidedBy               User?                   @relation("DocumentVoidedBy", fields: [voidedById], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  company                Company                         @relation(fields: [companyId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  employee               User?                           @relation("EmployeeDocuments", fields: [employeeId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  author                 User                            @relation("DocumentAuthor", fields: [authorId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  artifact               DocumentArtifact                @relation(fields: [artifactId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  voidedBy               User?                           @relation("DocumentVoidedBy", fields: [voidedById], references: [id], onDelete: Restrict, onUpdate: Restrict)
   cultureProfileVersions CultureProfileVersion[]
   regulationVersions     CompanyRegulationVersion[]
   hiringInterviews       HiringInterview[]
@@ -857,9 +860,9 @@ model CompanyRegulationVersion {
   createdById         String   @map("created_by_id") @db.Uuid
   createdAt           DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
-  companyRegulation   CompanyRegulation               @relation(fields: [companyRegulationId], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  generatedDocument   GeneratedDocument?              @relation(fields: [generatedDocumentId], references: [id], onDelete: SetNull, onUpdate: Restrict)
-  createdBy         User                            @relation("RegulationVersionsCreatedBy", fields: [createdById], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  companyRegulation CompanyRegulation                @relation(fields: [companyRegulationId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  generatedDocument GeneratedDocument?               @relation(fields: [generatedDocumentId], references: [id], onDelete: SetNull, onUpdate: Restrict)
+  createdBy         User                             @relation("RegulationVersionsCreatedBy", fields: [createdById], references: [id], onDelete: Restrict, onUpdate: Restrict)
   acknowledgments   EmployeeDocumentAcknowledgment[]
 
   @@unique([companyRegulationId, versionNumber])
@@ -868,21 +871,21 @@ model CompanyRegulationVersion {
 }
 
 model HiringInterview {
-  id                  String                   @id @default(uuid()) @db.Uuid
-  candidateName       String                   @map("candidate_name") @db.VarChar(120)
-  candidateEmail      String?                  @map("candidate_email") @db.VarChar(120)
-  candidatePhone      String?                  @map("candidate_phone") @db.VarChar(30)
-  jobRoleId           String?                  @map("job_role_id") @db.Uuid
-  roleTitle           String                   @map("role_title") @db.VarChar(120)
-  interviewDate       DateTime                 @map("interview_date") @db.Date
-  interviewerName     String                   @map("interviewer_name") @db.VarChar(120)
-  evaluatorId         String                   @map("evaluator_id") @db.Uuid
+  id                  String                  @id @default(uuid()) @db.Uuid
+  candidateName       String                  @map("candidate_name") @db.VarChar(120)
+  candidateEmail      String?                 @map("candidate_email") @db.VarChar(120)
+  candidatePhone      String?                 @map("candidate_phone") @db.VarChar(30)
+  jobRoleId           String?                 @map("job_role_id") @db.Uuid
+  roleTitle           String                  @map("role_title") @db.VarChar(120)
+  interviewDate       DateTime                @map("interview_date") @db.Date
+  interviewerName     String                  @map("interviewer_name") @db.VarChar(120)
+  evaluatorId         String                  @map("evaluator_id") @db.Uuid
   recommendation      InterviewRecommendation
-  notes               String?                  @db.Text
-  scores              Json                     @default("{}")
-  generatedDocumentId String?                  @map("generated_document_id") @db.Uuid
-  createdAt           DateTime                 @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt           DateTime                 @updatedAt @map("updated_at") @db.Timestamptz(6)
+  notes               String?                 @db.Text
+  scores              Json                    @default("{}")
+  generatedDocumentId String?                 @map("generated_document_id") @db.Uuid
+  createdAt           DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime                @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   evaluator         User               @relation("InterviewEvaluator", fields: [evaluatorId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   jobRole           JobRole?           @relation(fields: [jobRoleId], references: [id], onDelete: SetNull, onUpdate: Restrict)
@@ -956,13 +959,13 @@ model DisciplinaryAction {
   createdAt           DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt           DateTime               @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  company           Company             @relation(fields: [companyId], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  employee          User                @relation("DisciplinaryEmployee", fields: [employeeId], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  issuer            User                @relation("DisciplinaryIssuer", fields: [issuerId], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  priorAction       DisciplinaryAction? @relation("DisciplinaryProgression", fields: [priorActionId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  company           Company              @relation(fields: [companyId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  employee          User                 @relation("DisciplinaryEmployee", fields: [employeeId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  issuer            User                 @relation("DisciplinaryIssuer", fields: [issuerId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  priorAction       DisciplinaryAction?  @relation("DisciplinaryProgression", fields: [priorActionId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   subsequentActions DisciplinaryAction[] @relation("DisciplinaryProgression")
-  generatedDocument GeneratedDocument?  @relation(fields: [generatedDocumentId], references: [id], onDelete: SetNull, onUpdate: Restrict)
-  voidedBy          User?               @relation("DisciplinaryVoidedBy", fields: [voidedById], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  generatedDocument GeneratedDocument?   @relation(fields: [generatedDocumentId], references: [id], onDelete: SetNull, onUpdate: Restrict)
+  voidedBy          User?                @relation("DisciplinaryVoidedBy", fields: [voidedById], references: [id], onDelete: Restrict, onUpdate: Restrict)
 
   @@index([employeeId, incidentDate(sort: Desc)])
   @@index([employeeId, actionType])
@@ -1023,3 +1026,53 @@ model PerformanceReview {
   @@map("performance_reviews")
 }
 
+enum NotificationKind {
+  LATE_ARRIVAL
+  TEST
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+/// WhatsApp contact and alert opt-ins of an administrator.
+model AdminNotificationPreference {
+  userId            String   @id @map("user_id") @db.Uuid
+  /// Digits only, with country code (e.g. 5585999990000).
+  whatsappPhone     String   @map("whatsapp_phone") @db.VarChar(20)
+  lateArrivalAlerts Boolean  @default(true) @map("late_arrival_alerts")
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user User @relation("AdminNotificationPreference", fields: [userId], references: [id], onDelete: Cascade, onUpdate: Restrict)
+
+  @@map("admin_notification_preferences")
+}
+
+/// Durable WhatsApp outbox: every alert is persisted first and delivered with retries.
+model NotificationOutbox {
+  id              String             @id @default(uuid()) @db.Uuid
+  kind            NotificationKind
+  /// Prevents duplicate alerts (e.g. one late-arrival alert per employee, day and recipient).
+  dedupeKey       String             @unique @map("dedupe_key") @db.VarChar(200)
+  recipientUserId String?            @map("recipient_user_id") @db.Uuid
+  subjectUserId   String?            @map("subject_user_id") @db.Uuid
+  phone           String             @db.VarChar(20)
+  message         String             @db.Text
+  status          NotificationStatus @default(PENDING)
+  attempts        Int                @default(0)
+  nextAttemptAt   DateTime           @default(now()) @map("next_attempt_at") @db.Timestamptz(6)
+  lastError       String?            @map("last_error") @db.VarChar(500)
+  sentAt          DateTime?          @map("sent_at") @db.Timestamptz(6)
+  createdAt       DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime           @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  recipient User? @relation("NotificationRecipient", fields: [recipientUserId], references: [id], onDelete: SetNull, onUpdate: Restrict)
+  subject   User? @relation("NotificationSubject", fields: [subjectUserId], references: [id], onDelete: SetNull, onUpdate: Restrict)
+
+  @@index([status, nextAttemptAt])
+  @@index([createdAt])
+  @@map("notification_outbox")
+}

@@ -17,6 +17,10 @@ const booleanSchema = z.preprocess((value) => {
   return value;
 }, z.boolean());
 
+function emptyToUndefined(value: unknown): unknown {
+  return typeof value === 'string' && value.trim().length === 0 ? undefined : value;
+}
+
 function isOriginUrl(value: string, protocols: string[]): boolean {
   const url = new URL(value);
   return (
@@ -121,6 +125,17 @@ const rawEnvironmentSchema = z
     DATABASE_CONNECTION_TIMEOUT_MS: z.coerce.number().int().min(100).max(30_000).default(2_000),
     DATABASE_POOL_MAX: z.coerce.number().int().min(1).max(100).default(10),
     READINESS_TIMEOUT_MS: z.coerce.number().int().min(100).max(30_000).default(3_000),
+    OPENWA_BASE_URL: z.preprocess(
+      emptyToUndefined,
+      z
+        .url()
+        .refine((value) => isOriginUrl(value, ['http:', 'https:']), {
+          message: 'OPENWA_BASE_URL deve conter somente a origem HTTP(S) do serviço de WhatsApp.',
+        })
+        .optional(),
+    ),
+    OPENWA_API_KEY: z.preprocess(emptyToUndefined, z.string().min(32).max(512).optional()),
+    NOTIFICATIONS_DISPATCH_ENABLED: z.preprocess(emptyToUndefined, booleanSchema.optional()),
   })
   .superRefine((environment, context) => {
     if (

@@ -16,6 +16,7 @@ import {
   ShieldCheck,
   Users,
   WifiOff,
+  MessageCircle,
 } from 'lucide-react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -156,6 +157,12 @@ export function AdminLayout(): React.JSX.Element {
         { to: '/admin/cargos', label: 'Cargos & Funções', icon: Briefcase, end: false },
         { to: '/admin/administradores', label: 'Administradores', icon: ShieldCheck, end: false },
         { to: '/admin/configuracoes', label: 'Jornadas & Regras', icon: Settings, end: false },
+        {
+          to: '/admin/notificacoes',
+          label: 'Alertas no WhatsApp',
+          icon: MessageCircle,
+          end: false,
+        },
         { to: '/admin/auditoria', label: 'Trilha de Auditoria', icon: ScrollText, end: false },
         { to: '/admin/aplicativo', label: 'Aplicativo Desktop', icon: MonitorDown, end: false },
       ],
@@ -181,6 +188,7 @@ export function AdminLayout(): React.JSX.Element {
       pathname.startsWith('/admin/cargos') ||
       pathname.startsWith('/admin/administradores') ||
       pathname.startsWith('/admin/configuracoes') ||
+      pathname.startsWith('/admin/notificacoes') ||
       pathname.startsWith('/admin/auditoria') ||
       pathname.startsWith('/admin/aplicativo')
     ) {
@@ -205,6 +213,7 @@ export function AdminLayout(): React.JSX.Element {
       pathname.startsWith('/admin/cargos') ||
       pathname.startsWith('/admin/administradores') ||
       pathname.startsWith('/admin/configuracoes') ||
+      pathname.startsWith('/admin/notificacoes') ||
       pathname.startsWith('/admin/auditoria') ||
       pathname.startsWith('/admin/aplicativo')
     ) {

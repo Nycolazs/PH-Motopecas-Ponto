@@ -40,6 +40,8 @@ services:
       ADMIN_WEB_ORIGIN: ${ADMIN_WEB_ORIGIN:-http://localhost:5173}
       DESKTOP_DEV_ORIGIN: ${DESKTOP_DEV_ORIGIN:-http://localhost:5173}
       UPLOAD_DIR: /data/uploads
+      OPENWA_BASE_URL: ${OPENWA_BASE_URL:-http://openwa:2785}
+      OPENWA_API_KEY: ${OPENWA_API_KEY:-}
     ports:
       # Production sets API_BIND_IP=0.0.0.0 in .env so the LAN/Tailscale can reach it.
       - '${API_BIND_IP:-127.0.0.1}:${API_PORT:-3000}:3000'
@@ -58,6 +60,34 @@ services:
       timeout: 5s
       retries: 12
       start_period: 20s
+
+  # Self-hosted WhatsApp gateway used for late-arrival alerts. Reachable only from
+  # the compose network; the store's number is paired through the admin panel.
+  openwa:
+    image: ghcr.io/rmyndharis/openwa:0.23.4
+    restart: unless-stopped
+    profiles: ['whatsapp']
+    environment:
+      NODE_ENV: production
+      PORT: '2785'
+      LOG_LEVEL: info
+      LOG_FORMAT: json
+      AUTO_START_SESSIONS: 'true'
+      API_MASTER_KEY: ${OPENWA_API_KEY:-}
+    volumes:
+      - openwa_data:/app/data
+    shm_size: 512mb
+    stop_grace_period: 45s
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:2785/api/health').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
 
   web:
     build:
@@ -79,3 +109,4 @@ services:
 volumes:
   postgres_data:
   uploads_data:
+  openwa_data:

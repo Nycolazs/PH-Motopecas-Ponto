@@ -21,6 +21,12 @@ import {
   timePunchAdjustmentHistorySchema,
   timePunchMutationSchema,
   timesheetReportSchema,
+  notificationSettingsSchema,
+  whatsappStatusSchema,
+  whatsappQrSchema,
+  notificationRecipientSchema,
+  lateArrivalSettingsSchema,
+  notificationOutboxSchema,
   userListSchema,
   vacationListSchema,
   vacationSchema,
@@ -43,6 +49,12 @@ import {
   type TimePunchAdjustmentHistory,
   type TimePunchMutation,
   type TimesheetReport,
+  type NotificationSettings,
+  type WhatsappStatus,
+  type WhatsappQr,
+  type NotificationRecipient,
+  type LateArrivalSettings,
+  type NotificationOutboxItem,
   type UserList,
   type Vacation,
   type VacationList,
@@ -404,6 +416,66 @@ export class ApiClient {
     if (params.includeInactive) q.set('includeInactive', 'true');
     if (params.includeDays) q.set('includeDays', 'true');
     return this.request(`/attendance/reports/timesheets?${q.toString()}`, timesheetReportSchema, {
+      ...(signal === undefined ? {} : { signal }),
+    });
+  }
+
+  // WhatsApp notifications
+  public getNotificationSettings(signal?: AbortSignal): Promise<NotificationSettings> {
+    return this.request('/notifications/settings', notificationSettingsSchema, {
+      ...(signal === undefined ? {} : { signal }),
+    });
+  }
+
+  public updateLateArrivalSettings(input: LateArrivalSettings): Promise<LateArrivalSettings> {
+    return this.request('/notifications/late-arrival', lateArrivalSettingsSchema, {
+      method: 'PUT',
+      body: JSON.stringify(input),
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  public updateNotificationRecipient(
+    userId: string,
+    input: { whatsappPhone: string | null; lateArrivalAlerts: boolean },
+  ): Promise<NotificationRecipient> {
+    return this.request(
+      `/notifications/recipients/${encodeURIComponent(userId)}`,
+      notificationRecipientSchema,
+      {
+        method: 'PUT',
+        body: JSON.stringify(input),
+        headers: { 'Content-Type': 'application/json' },
+      },
+    );
+  }
+
+  public async sendNotificationTest(userId: string): Promise<void> {
+    await this.requestVoid(`/notifications/recipients/${encodeURIComponent(userId)}/test`, {
+      method: 'POST',
+    });
+  }
+
+  public connectWhatsapp(): Promise<WhatsappStatus> {
+    return this.request('/notifications/whatsapp/connect', whatsappStatusSchema, {
+      method: 'POST',
+    });
+  }
+
+  public getWhatsappQr(signal?: AbortSignal): Promise<WhatsappQr> {
+    return this.request('/notifications/whatsapp/qr', whatsappQrSchema, {
+      ...(signal === undefined ? {} : { signal }),
+    });
+  }
+
+  public disconnectWhatsapp(): Promise<WhatsappStatus> {
+    return this.request('/notifications/whatsapp/disconnect', whatsappStatusSchema, {
+      method: 'POST',
+    });
+  }
+
+  public getNotificationOutbox(signal?: AbortSignal): Promise<NotificationOutboxItem[]> {
+    return this.request('/notifications/outbox', notificationOutboxSchema, {
       ...(signal === undefined ? {} : { signal }),
     });
   }

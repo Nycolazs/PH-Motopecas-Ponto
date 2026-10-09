@@ -520,4 +520,39 @@ describe('authoritative and idempotent time punches with real PostgreSQL', () =>
     });
     expect(history.body.days[0].chronology.punches).toHaveLength(2);
   });
+
+  it('queues a WhatsApp alert for administrators when the first clock-in is late', async () => {
+    await prisma.adminNotificationPreference.create({
+      data: { userId: adminId, whatsappPhone: '5585999990000', lateArrivalAlerts: true },
+    });
+
+    // Monday 2026-01-05, opening 08:00 (UTC-3). 08:04 is within the 5-minute tolerance.
+    setClock('2026-01-05T11:04:00.000Z');
+    expect((await punch()).status).toBe(201);
+    await expect.poll(() => prisma.notificationOutbox.count(), { timeout: 2_000 }).toBe(0);
+
+    // Next day the first clock-in happens at 08:17: one alert, then no duplicates
+    // for the remaining punches of the same day.
+    setClock('2026-01-06T11:17:00.000Z');
+    expect((await punch()).status).toBe(201);
+    await expect.poll(() => prisma.notificationOutbox.count(), { timeout: 2_000 }).toBe(1);
+    const alert = await prisma.notificationOutbox.findFirstOrThrow();
+    expect(alert).toMatchObject({
+      kind: 'LATE_ARRIVAL',
+      status: 'PENDING',
+      phone: '5585999990000',
+      recipientUserId: adminId,
+      subjectUserId: employeeId,
+      dedupeKey: `LATE_ARRIVAL:${employeeId}:2026-01-06:${adminId}`,
+    });
+    expect(alert.message).toContain('*Entrada:* 08:17 (previsto 08:00)');
+    expect(alert.message).toContain('*Atraso:* 17 min');
+
+    setClock('2026-01-06T15:00:00.000Z');
+    expect((await punch()).status).toBe(201);
+    setClock('2026-01-06T16:00:00.000Z');
+    expect((await punch()).status).toBe(201);
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    expect(await prisma.notificationOutbox.count()).toBe(1);
+  });
 });

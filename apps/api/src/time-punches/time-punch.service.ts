@@ -3,6 +3,7 @@ import {
   ConflictException,
   Inject,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 
@@ -19,6 +20,10 @@ import {
   type Prisma,
 } from '../generated/prisma/client.js';
 import { IdempotencyService } from '../idempotency/idempotency.service.js';
+import {
+  NotificationsService,
+  type FirstClockInEvent,
+} from '../notifications/notifications.service.js';
 import { MutationLockService } from '../idempotency/mutation-lock.service.js';
 import {
   ATTENDANCE_SUMMARY_RESOLVER,
@@ -119,6 +124,8 @@ function createdPunch(input: {
 
 @Injectable()
 export class TimePunchService {
+  private readonly logger = new Logger(TimePunchService.name);
+
   public constructor(
     @Inject(PrismaService) private readonly prisma: PrismaService,
     @Inject(IdempotencyService) private readonly idempotency: IdempotencyService,
@@ -129,6 +136,7 @@ export class TimePunchService {
     @Inject(ATTENDANCE_SUMMARY_RESOLVER)
     private readonly summaries: AttendanceSummaryResolver,
     @Inject(TIME_PUNCH_CLOCK) private readonly clock: TimePunchClock,
+    @Inject(NotificationsService) private readonly notifications: NotificationsService,
   ) {}
 
   public async createEmployeePunch(
@@ -136,9 +144,10 @@ export class TimePunchService {
     idempotencyKey: string,
   ): Promise<MutationHttpResult<TimePunchMutationResponseDto>> {
     const claimInstant = this.clock();
+    let firstClockIn: FirstClockInEvent | null = null;
 
     try {
-      return await this.prisma.$transaction(async (transaction) => {
+      const result = await this.prisma.$transaction(async (transaction) => {
         const start = await this.idempotency.begin<TimePunchMutationResponseDto>(transaction, {
           actorId: actor.id,
           requiredRole: 'EMPLOYEE',
@@ -196,6 +205,14 @@ export class TimePunchService {
           evaluationInstant: occurredAt,
           transaction,
         });
+        if (kind === TimePunchKind.CLOCK_IN && currentPunches.length === 0) {
+          firstClockIn = {
+            employeeId: actor.id,
+            businessDate,
+            clockInAt: occurredAt,
+            expectation: dailySummary.expectation,
+          };
+        }
         const response: TimePunchMutationResponseDto = {
           punch: toPunchView(punch),
           dailySummary: toDailyAttendanceView(dailySummary),
@@ -209,6 +226,13 @@ export class TimePunchService {
         );
         return { body: response, replayed: false };
       });
+      if (firstClockIn !== null && !result.replayed) {
+        // Alerts are best-effort side effects of a committed punch.
+        this.notifications.onFirstClockIn(firstClockIn).catch((error: unknown) => {
+          this.logger.error('Falha ao avaliar alerta de atraso.', error as Error);
+        });
+      }
+      return result;
     } catch (error) {
       if (databaseCode(error) !== undefined) {
         throw chronologyConflict();

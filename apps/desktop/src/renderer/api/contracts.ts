@@ -204,6 +204,66 @@ export const timesheetReportSchema = z
   })
   .strict();
 
+export const whatsappStatusSchema = z
+  .object({
+    state: z.enum([
+      'NOT_CONFIGURED',
+      'UNAVAILABLE',
+      'DISCONNECTED',
+      'CONNECTING',
+      'WAITING_QR',
+      'CONNECTED',
+      'ERROR',
+    ]),
+    phone: z.string().nullable(),
+    connectedAt: z.string().nullable(),
+  })
+  .strict();
+
+export const notificationRecipientSchema = z
+  .object({
+    userId: uuidSchema,
+    name: z.string(),
+    login: z.string(),
+    whatsappPhone: z.string().nullable(),
+    lateArrivalAlerts: z.boolean(),
+  })
+  .strict();
+
+export const lateArrivalSettingsSchema = z
+  .object({ enabled: z.boolean(), toleranceMinutes: z.number().int() })
+  .strict();
+
+export const notificationSettingsSchema = z
+  .object({
+    whatsapp: whatsappStatusSchema,
+    lateArrival: lateArrivalSettingsSchema,
+    recipients: z.array(notificationRecipientSchema),
+  })
+  .strict();
+
+export const whatsappQrSchema = z
+  .object({ qrCode: z.string().nullable(), status: whatsappStatusSchema })
+  .strict();
+
+export const notificationOutboxSchema = z.array(
+  z
+    .object({
+      id: uuidSchema,
+      kind: z.enum(['LATE_ARRIVAL', 'TEST']),
+      status: z.enum(['PENDING', 'SENT', 'FAILED']),
+      recipientName: z.string().nullable(),
+      subjectName: z.string().nullable(),
+      phone: z.string(),
+      message: z.string(),
+      attempts: z.number().int(),
+      lastError: z.string().nullable(),
+      createdAt: z.string(),
+      sentAt: z.string().nullable(),
+    })
+    .strict(),
+);
+
 export const monthlyAttendanceSchema = z
   .object({
     days: z.array(dailyAttendanceSchema),
@@ -572,6 +632,12 @@ export type MonthlyAttendance = z.infer<typeof monthlyAttendanceSchema>;
 export type AttendancePeriodTotals = AttendancePeriod['totals'];
 export type TimesheetReportEmployee = z.infer<typeof timesheetReportEmployeeSchema>;
 export type TimesheetReport = z.infer<typeof timesheetReportSchema>;
+export type WhatsappStatus = z.infer<typeof whatsappStatusSchema>;
+export type NotificationRecipient = z.infer<typeof notificationRecipientSchema>;
+export type LateArrivalSettings = z.infer<typeof lateArrivalSettingsSchema>;
+export type NotificationSettings = z.infer<typeof notificationSettingsSchema>;
+export type WhatsappQr = z.infer<typeof whatsappQrSchema>;
+export type NotificationOutboxItem = z.infer<typeof notificationOutboxSchema>[number];
 export type TimePunchMutation = z.infer<typeof timePunchMutationSchema>;
 export type AttendanceOverview = z.infer<typeof attendanceOverviewSchema>;
 export type EmployeeTodayStatus = z.infer<typeof employeeTodayStatusSchema>;
