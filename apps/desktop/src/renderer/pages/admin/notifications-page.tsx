@@ -14,9 +14,11 @@ import {
   Users,
   XCircle,
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 import { ApiClientError } from '../../api/client.js';
 import type {
+  LateArrivalSettings,
   NotificationOutboxItem,
   NotificationRecipient,
   WhatsappStatus,
@@ -32,6 +34,32 @@ const CARD =
 
 function errorMessage(error: unknown, fallback: string): string {
   return error instanceof ApiClientError ? error.message : fallback;
+}
+
+/**
+ * Masks what the administrator types as a Brazilian phone: (85) 99999-0000.
+ * Numbers typed with "+" keep the international form (+ and digits only).
+ */
+export function maskWhatsappInput(value: string): string {
+  if (value.trim().startsWith('+')) return `+${value.replace(/\D/g, '').slice(0, 15)}`;
+  let digits = value.replace(/\D/g, '');
+  if (digits.length > 11 && digits.startsWith('55')) digits = digits.slice(2);
+  digits = digits.slice(0, 11);
+  if (digits.length === 0) return '';
+  if (digits.length <= 2) return `(${digits}`;
+  const area = digits.slice(0, 2);
+  const local = digits.slice(2);
+  const split = local.length > 8 ? 5 : 4;
+  if (local.length <= split) return `(${area}) ${local}`;
+  return `(${area}) ${local.slice(0, split)}-${local.slice(split)}`;
+}
+
+/** Whether a masked value is complete enough to save (DDD + 8 or 9 digits). */
+export function isCompleteWhatsapp(value: string): boolean {
+  const digits = value.replace(/\D/g, '');
+  return value.trim().startsWith('+')
+    ? digits.length >= 10
+    : digits.length === 10 || digits.length === 11;
 }
 
 /** Formats 5585999990000 as +55 (85) 99999-0000 for display. */
@@ -99,10 +127,7 @@ export function AdminNotificationsPage(): React.JSX.Element {
         <>
           <WhatsappConnectionCard status={settingsQuery.data.whatsapp} />
           <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,360px)_minmax(0,1fr)]">
-            <LateArrivalCard
-              enabled={settingsQuery.data.lateArrival.enabled}
-              toleranceMinutes={settingsQuery.data.lateArrival.toleranceMinutes}
-            />
+            <LateArrivalCard settings={settingsQuery.data.lateArrival} />
             <RecipientsCard
               recipients={settingsQuery.data.recipients}
               whatsappConnected={settingsQuery.data.whatsapp.state === 'CONNECTED'}
@@ -266,32 +291,21 @@ function WhatsappConnectionCard({ status }: { status: WhatsappStatus }): React.J
   );
 }
 
-function LateArrivalCard({
-  enabled,
-  toleranceMinutes,
-}: {
-  enabled: boolean;
-  toleranceMinutes: number;
-}): React.JSX.Element {
+function LateArrivalCard({ settings }: { settings: LateArrivalSettings }): React.JSX.Element {
   const api = useApiClient();
   const toast = useToast();
   const queryClient = useQueryClient();
-  const [draftEnabled, setDraftEnabled] = useState(enabled);
-  const [draftTolerance, setDraftTolerance] = useState(String(toleranceMinutes));
-  useEffect(() => {
-    setDraftEnabled(enabled);
-    setDraftTolerance(String(toleranceMinutes));
-  }, [enabled, toleranceMinutes]);
-
-  const tolerance = Number(draftTolerance);
-  const toleranceValid = Number.isInteger(tolerance) && tolerance >= 0 && tolerance <= 120;
-  const dirty = draftEnabled !== enabled || tolerance !== toleranceMinutes;
+  const [draftEnabled, setDraftEnabled] = useState(settings.enabled);
+  useEffect(() => setDraftEnabled(settings.enabled), [settings.enabled]);
+  const dirty = draftEnabled !== settings.enabled;
+  const tolerance = settings.toleranceMinutes;
 
   const save = useMutation({
-    mutationFn: () =>
-      api.updateLateArrivalSettings({ enabled: draftEnabled, toleranceMinutes: tolerance }),
+    mutationFn: () => api.updateLateArrivalSettings({ enabled: draftEnabled }),
     onSuccess: () => {
-      toast.success('Regra de atraso salva.');
+      toast.success(
+        draftEnabled ? 'Alertas de atraso ativados.' : 'Alertas de atraso desativados.',
+      );
       void queryClient.invalidateQueries({ queryKey: ['notification-settings'] });
     },
     onError: (error) => toast.error(errorMessage(error, 'Não foi possível salvar.')),
@@ -315,32 +329,31 @@ function LateArrivalCard({
         />
         Enviar alerta de atraso
       </label>
-      <div className="mt-4">
-        <label
-          htmlFor="tolerance"
-          className="block text-xs font-semibold text-slate-700 dark:text-slate-300"
-        >
-          Tolerância (minutos)
-        </label>
-        <input
-          id="tolerance"
-          type="number"
-          min={0}
-          max={120}
-          inputMode="numeric"
-          value={draftTolerance}
-          disabled={!draftEnabled}
-          onChange={(event) => setDraftTolerance(event.target.value)}
-          className="mt-1.5 h-10 w-28 rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
-        />
-        {!toleranceValid && (
-          <p role="alert" className="mt-1 text-xs font-semibold text-rose-600">
-            Informe um número inteiro entre 0 e 120.
-          </p>
-        )}
-      </div>
+      <dl className="mt-4 rounded-lg border border-slate-200 p-3 dark:border-slate-800">
+        <dt className="text-xs font-semibold text-slate-500 dark:text-slate-400">Tolerância</dt>
+        <dd className="mt-0.5 text-lg font-bold text-slate-900 dark:text-white">
+          {tolerance} {tolerance === 1 ? 'minuto' : 'minutos'}
+        </dd>
+        <dd className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+          {settings.source === 'REGULATION' ? (
+            <>
+              Definida no Regimento Interno
+              {settings.regulationVersion !== null ? ` (versão ${settings.regulationVersion})` : ''}
+              .
+            </>
+          ) : (
+            <>Padrão de 5 minutos: ainda não há Regimento Interno publicado.</>
+          )}{' '}
+          <Link
+            to="/admin/documentos/regimento"
+            className="font-semibold text-blue-600 hover:underline dark:text-blue-400"
+          >
+            Alterar no Regimento
+          </Link>
+        </dd>
+      </dl>
       <p className="mt-4 rounded-lg bg-slate-50 p-3 text-xs leading-relaxed text-slate-600 dark:bg-slate-800/50 dark:text-slate-300">
-        {draftEnabled && toleranceValid
+        {draftEnabled
           ? `Se a primeira entrada do dia for registrada mais de ${tolerance} min depois do horário de abertura, os administradores marcados recebem o nome do colaborador e a hora em que ele entrou. Folgas, feriados e férias não geram alerta.`
           : 'Nenhum alerta de atraso será enviado.'}
       </p>
@@ -348,7 +361,7 @@ function LateArrivalCard({
         type="button"
         className={`${headerButton.primary} mt-4`}
         onClick={() => save.mutate()}
-        disabled={!dirty || !toleranceValid || save.isPending}
+        disabled={!dirty || save.isPending}
       >
         {save.isPending && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
         Salvar regra
@@ -408,6 +421,7 @@ function RecipientRow({
 
   const dirty =
     phone !== formatWhatsapp(recipient.whatsappPhone) || alerts !== recipient.lateArrivalAlerts;
+  const phoneIncomplete = phone.trim() !== '' && !isCompleteWhatsapp(phone);
   const name = formatDisplayName(recipient.name);
 
   const save = useMutation({
@@ -441,9 +455,14 @@ function RecipientRow({
         <input
           type="tel"
           value={phone}
-          onChange={(event) => setPhone(event.target.value)}
+          onChange={(event) => setPhone(maskWhatsappInput(event.target.value))}
           placeholder="(85) 99999-0000"
+          inputMode="tel"
+          autoComplete="tel"
+          maxLength={20}
           aria-label={`WhatsApp de ${name}`}
+          aria-invalid={phoneIncomplete}
+          aria-describedby={phoneIncomplete ? `phone-hint-${recipient.userId}` : undefined}
           className="h-9 w-44 rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
         />
         <label className="inline-flex cursor-pointer items-center gap-2 text-xs font-medium text-slate-700 dark:text-slate-200">
@@ -456,6 +475,15 @@ function RecipientRow({
           />
           Recebe alertas de atraso
         </label>
+        {phoneIncomplete && (
+          <p
+            id={`phone-hint-${recipient.userId}`}
+            role="alert"
+            className="w-full text-xs font-semibold text-rose-600"
+          >
+            Número incompleto: use DDD + número, ex.: (85) 99999-0000.
+          </p>
+        )}
       </div>
       <div className="flex shrink-0 gap-2">
         <button
@@ -478,7 +506,7 @@ function RecipientRow({
           type="button"
           className={headerButton.primary}
           onClick={() => save.mutate()}
-          disabled={!dirty || save.isPending}
+          disabled={!dirty || phoneIncomplete || save.isPending}
         >
           {save.isPending && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
           Salvar

@@ -1,6 +1,11 @@
 import { BUSINESS_TIME_ZONE } from '@ph-ponto/shared';
 import { z } from 'zod';
 
+import {
+  DEVELOPMENT_DOCUMENTS_ENCRYPTION_KEY,
+  isValidDocumentsEncryptionKey,
+} from './documents-encryption-key.js';
+
 const booleanSchema = z.preprocess((value) => {
   if (typeof value !== 'string') {
     return value;
@@ -153,6 +158,16 @@ const rawEnvironmentSchema = z
     ),
     OPENWA_API_KEY: z.preprocess(emptyToUndefined, z.string().min(32).max(512).optional()),
     NOTIFICATIONS_DISPATCH_ENABLED: z.preprocess(emptyToUndefined, booleanSchema.optional()),
+    /** AES-256 key (64 hex chars or base64) encrypting every stored PDF. */
+    DOCUMENTS_ENCRYPTION_KEY: z.string().trim().refine(isValidDocumentsEncryptionKey, {
+      message:
+        'DOCUMENTS_ENCRYPTION_KEY deve ter 32 bytes em hexadecimal (64 caracteres) ou base64.',
+    }),
+    /** Chromium used to render PDFs; the API image sets the system Chromium. */
+    PDF_BROWSER_EXECUTABLE_PATH: z.preprocess(
+      emptyToUndefined,
+      z.string().trim().min(1).max(1_024).optional(),
+    ),
   })
   .superRefine((environment, context) => {
     if (
@@ -206,6 +221,15 @@ const rawEnvironmentSchema = z
           path: [field],
         });
       }
+    }
+
+    if (environment.DOCUMENTS_ENCRYPTION_KEY === DEVELOPMENT_DOCUMENTS_ENCRYPTION_KEY) {
+      context.addIssue({
+        code: 'custom',
+        message:
+          'A chave de criptografia de documentos de desenvolvimento não pode ser usada em produção.',
+        path: ['DOCUMENTS_ENCRYPTION_KEY'],
+      });
     }
   });
 

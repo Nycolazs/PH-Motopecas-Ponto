@@ -1,25 +1,10 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
-import { IsBoolean, IsInt, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator';
-
-import { MAX_LATE_TOLERANCE_MINUTES, MIN_LATE_TOLERANCE_MINUTES } from './late-arrival.js';
+import { IsBoolean, IsOptional, IsString, MaxLength } from 'class-validator';
 
 export class UpdateLateArrivalSettingsDto {
   @ApiProperty({ description: 'Envia alertas de atraso pelo WhatsApp.' })
   @IsBoolean()
   public enabled!: boolean;
-
-  @ApiProperty({
-    minimum: MIN_LATE_TOLERANCE_MINUTES,
-    maximum: MAX_LATE_TOLERANCE_MINUTES,
-    example: 5,
-    description: 'Minutos após o horário de abertura tolerados antes do alerta.',
-  })
-  @Type(() => Number)
-  @IsInt()
-  @Min(MIN_LATE_TOLERANCE_MINUTES)
-  @Max(MAX_LATE_TOLERANCE_MINUTES)
-  public toleranceMinutes!: number;
 }
 
 export class UpdateNotificationRecipientDto {
@@ -40,7 +25,12 @@ export class UpdateNotificationRecipientDto {
 
 export class LateArrivalSettingsViewDto {
   @ApiProperty() public enabled!: boolean;
-  @ApiProperty() public toleranceMinutes!: number;
+  @ApiProperty({
+    description: 'Tolerância do Regimento Interno vigente (ou o padrão de 5 minutos).',
+  })
+  public toleranceMinutes!: number;
+  @ApiProperty({ enum: ['REGULATION', 'DEFAULT'] }) public source!: 'REGULATION' | 'DEFAULT';
+  @ApiPropertyOptional({ nullable: true }) public regulationVersion!: number | null;
 }
 
 export class WhatsappStatusViewDto {

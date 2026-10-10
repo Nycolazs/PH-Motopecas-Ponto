@@ -4,7 +4,7 @@ import type { AuditService } from '../audit/audit.service.js';
 import type { PrismaService } from '../database/prisma.service.js';
 import { DocumentType } from '../generated/prisma/client.js';
 import type { DocumentStorageService } from './document-storage.service.js';
-import { DocumentsService } from './documents.service.js';
+import { DocumentsService, documentPdfFilename } from './documents.service.js';
 
 interface DocumentsPrismaMock {
   generatedDocument: {
@@ -20,7 +20,7 @@ interface DocumentsPrismaMock {
 }
 
 interface StorageMock {
-  getArtifactStream: ReturnType<typeof vi.fn>;
+  readArtifact: ReturnType<typeof vi.fn>;
 }
 
 interface AuditMock {
@@ -78,7 +78,7 @@ describe('DocumentsService', () => {
     };
 
     storageMock = {
-      getArtifactStream: vi.fn().mockReturnValue({ pipe: vi.fn() }),
+      readArtifact: vi.fn(),
     };
 
     auditMock = {
@@ -122,13 +122,21 @@ describe('DocumentsService', () => {
     await expect(service.getDocumentById('non-existent')).rejects.toThrow(NotFoundException);
   });
 
-  it('provides download stream for valid document', async () => {
+  it('provides the decrypted PDF for a valid document', async () => {
     prismaMock.generatedDocument.findUnique.mockResolvedValue(mockDoc);
+    storageMock.readArtifact.mockResolvedValue(Buffer.from('%PDF-1.7'));
 
-    const result = await service.getDownloadStream('doc-1');
+    const result = await service.getDownloadFile('doc-1');
     expect(result.filename).toBe('manual_de_cultura_v1_v1.pdf');
-    expect(result.fileSize).toBe(12345);
-    expect(storageMock.getArtifactStream).toHaveBeenCalledWith('docs/test.pdf');
+    expect(result.contents.toString()).toBe('%PDF-1.7');
+    expect(storageMock.readArtifact).toHaveBeenCalledWith(mockDoc.artifact);
+  });
+
+  it('builds ASCII download names from Portuguese titles', () => {
+    expect(documentPdfFilename('Advertência Escrita — João Conceição', 2)).toBe(
+      'advertencia_escrita_joao_conceicao_v2.pdf',
+    );
+    expect(documentPdfFilename('***', 1)).toBe('documento_v1.pdf');
   });
 
   it('voids an active document and records audit log', async () => {

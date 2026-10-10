@@ -10,7 +10,7 @@ import {
   type OnModuleDestroy,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import type { LocalWorkHours } from '@ph-ponto/shared';
+import { businessDateFromInstant, type LocalWorkHours } from '@ph-ponto/shared';
 
 import { AuditService } from '../audit/audit.service.js';
 import type { AuthenticatedUser, ClientContext } from '../auth/auth.types.js';
@@ -44,8 +44,20 @@ const STALE_AFTER_MS = 12 * 60 * 60 * 1000;
 
 export interface LateArrivalSettings {
   enabled: boolean;
-  toleranceMinutes: number;
 }
+
+/**
+ * The tolerance is not configured here: it is the one published in the company's
+ * Regimento Interno (latest version already in effect), so alerts and the official
+ * rules never disagree.
+ */
+export interface LateArrivalTolerance {
+  toleranceMinutes: number;
+  source: 'REGULATION' | 'DEFAULT';
+  regulationVersion: number | null;
+}
+
+export type LateArrivalSettingsView = LateArrivalSettings & LateArrivalTolerance;
 
 export interface NotificationRecipientView {
   userId: string;
@@ -76,24 +88,28 @@ export interface FirstClockInEvent {
   expectation: Pick<LocalWorkHours, 'isOpen' | 'openingMinute'>;
 }
 
-const DEFAULT_SETTINGS: LateArrivalSettings = {
-  enabled: true,
-  toleranceMinutes: DEFAULT_LATE_TOLERANCE_MINUTES,
-};
+const DEFAULT_SETTINGS: LateArrivalSettings = { enabled: true };
 
 function parseSettings(value: unknown): LateArrivalSettings {
   if (typeof value !== 'object' || value === null) return DEFAULT_SETTINGS;
   const record = value as Record<string, unknown>;
-  const tolerance = Number(record.toleranceMinutes);
   return {
     enabled: typeof record.enabled === 'boolean' ? record.enabled : DEFAULT_SETTINGS.enabled,
-    toleranceMinutes:
-      Number.isInteger(tolerance) &&
-      tolerance >= MIN_LATE_TOLERANCE_MINUTES &&
-      tolerance <= MAX_LATE_TOLERANCE_MINUTES
-        ? tolerance
-        : DEFAULT_SETTINGS.toleranceMinutes,
   };
+}
+
+/** Reads `workSchedule.toleranceMinutes` from a published regulation's content. */
+export function regulationToleranceMinutes(content: unknown): number | null {
+  if (typeof content !== 'object' || content === null) return null;
+  const schedule = (content as Record<string, unknown>).workSchedule;
+  if (typeof schedule !== 'object' || schedule === null) return null;
+  const tolerance = (schedule as Record<string, unknown>).toleranceMinutes;
+  return typeof tolerance === 'number' &&
+    Number.isInteger(tolerance) &&
+    tolerance >= MIN_LATE_TOLERANCE_MINUTES &&
+    tolerance <= MAX_LATE_TOLERANCE_MINUTES
+    ? tolerance
+    : null;
 }
 
 export function retryDelayMs(attempts: number): number {
@@ -127,26 +143,38 @@ export class NotificationsService implements OnApplicationBootstrap, OnModuleDes
 
   // ---------------------------------------------------------------- settings
 
-  public async getLateArrivalSettings(): Promise<LateArrivalSettings> {
-    const row = await this.prisma.appSetting.findUnique({
-      where: { key: LATE_ARRIVAL_SETTING_KEY },
+  public async getLateArrivalSettings(): Promise<LateArrivalSettingsView> {
+    const [row, tolerance] = await Promise.all([
+      this.prisma.appSetting.findUnique({ where: { key: LATE_ARRIVAL_SETTING_KEY } }),
+      this.resolveTolerance(businessDateFromInstant(new Date())),
+    ]);
+    return { ...parseSettings(row?.value), ...tolerance };
+  }
+
+  /** Tolerance from the latest Regimento Interno version in effect on `businessDate`. */
+  public async resolveTolerance(businessDate: string): Promise<LateArrivalTolerance> {
+    const version = await this.prisma.companyRegulationVersion.findFirst({
+      where: { effectiveDate: { lte: new Date(`${businessDate}T12:00:00.000Z`) } },
+      orderBy: [{ effectiveDate: 'desc' }, { versionNumber: 'desc' }],
+      select: { versionNumber: true, content: true },
     });
-    return parseSettings(row?.value);
+    const toleranceMinutes = version ? regulationToleranceMinutes(version.content) : null;
+    return toleranceMinutes === null
+      ? {
+          toleranceMinutes: DEFAULT_LATE_TOLERANCE_MINUTES,
+          source: 'DEFAULT',
+          regulationVersion: null,
+        }
+      : { toleranceMinutes, source: 'REGULATION', regulationVersion: version!.versionNumber };
   }
 
   public async updateLateArrivalSettings(
     actor: AuthenticatedUser,
     input: LateArrivalSettings,
     context: ClientContext,
-  ): Promise<LateArrivalSettings> {
+  ): Promise<LateArrivalSettingsView> {
     const next = parseSettings(input);
-    if (next.toleranceMinutes !== input.toleranceMinutes) {
-      throw new BadRequestException({
-        code: 'VALIDATION_ERROR',
-        message: `A tolerância deve ser um número inteiro entre ${MIN_LATE_TOLERANCE_MINUTES} e ${MAX_LATE_TOLERANCE_MINUTES} minutos.`,
-      });
-    }
-    return this.prisma.$transaction(async (tx) => {
+    await this.prisma.$transaction(async (tx) => {
       const before = await tx.appSetting.findUnique({ where: { key: LATE_ARRIVAL_SETTING_KEY } });
       await tx.appSetting.upsert({
         where: { key: LATE_ARRIVAL_SETTING_KEY },
@@ -165,8 +193,8 @@ export class NotificationsService implements OnApplicationBootstrap, OnModuleDes
         },
         tx,
       );
-      return next;
     });
+    return this.getLateArrivalSettings();
   }
 
   public async listRecipients(): Promise<NotificationRecipientView[]> {
@@ -309,12 +337,15 @@ export class NotificationsService implements OnApplicationBootstrap, OnModuleDes
    * WhatsApp outage never blocks or fails a punch.
    */
   public async onFirstClockIn(event: FirstClockInEvent): Promise<number> {
-    const settings = await this.getLateArrivalSettings();
-    if (!settings.enabled) return 0;
+    const row = await this.prisma.appSetting.findUnique({
+      where: { key: LATE_ARRIVAL_SETTING_KEY },
+    });
+    if (!parseSettings(row?.value).enabled) return 0;
+    const { toleranceMinutes } = await this.resolveTolerance(event.businessDate);
     const lateArrival = evaluateLateArrival({
       expectation: event.expectation,
       clockInAt: event.clockInAt,
-      toleranceMinutes: settings.toleranceMinutes,
+      toleranceMinutes,
     });
     if (lateArrival === null) return 0;
 

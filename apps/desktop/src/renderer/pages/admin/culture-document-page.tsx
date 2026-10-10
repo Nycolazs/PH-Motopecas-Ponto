@@ -2,17 +2,13 @@ import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   AlertCircle,
-  CheckCircle2,
   Clock,
-  Download,
   Eye,
-  FileCheck2,
   FileText,
   History,
   Plus,
   RefreshCw,
   Save,
-  Send,
   Sparkles,
   Trash2,
   X,
@@ -21,6 +17,7 @@ import { Link, useNavigate } from 'react-router-dom';
 
 import { useAuth } from '../../auth/use-auth.js';
 import { PageHeader, headerButton } from '../../components/page-header.js';
+import { DocumentPreviewDialog } from '../../components/document-preview-dialog.js';
 import { useToast } from '../../components/toast-context.js';
 import type {
   CulturePayloadDto,
@@ -59,7 +56,7 @@ export function CultureDocumentPage(): React.JSX.Element {
 
   const [form, setForm] = useState<CultureFormValues>(DEFAULT_FORM);
   const [activeDraft, setActiveDraft] = useState<DocumentDraftDto | null>(null);
-  const [previewBlobUrl, setPreviewBlobUrl] = useState<string | null>(null);
+  const [previewPdf, setPreviewPdf] = useState<Blob | null>(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [formErrors, setFormErrors] = useState<string[]>([]);
@@ -106,13 +103,6 @@ export function CultureDocumentPage(): React.JSX.Element {
       });
     }
   }, [draftData, cultureProfile]);
-
-  // Clean up preview blob URL on unmount
-  useEffect(() => {
-    return () => {
-      if (previewBlobUrl) URL.revokeObjectURL(previewBlobUrl);
-    };
-  }, [previewBlobUrl]);
 
   // Save Draft Mutation
   const saveMutation = useMutation({
@@ -222,9 +212,7 @@ export function CultureDocumentPage(): React.JSX.Element {
 
       // Fetch PDF blob
       const blob = await api.getArtifactPreviewBlob(prepared.preparedArtifactId);
-      if (previewBlobUrl) URL.revokeObjectURL(previewBlobUrl);
-      const url = URL.createObjectURL(blob);
-      setPreviewBlobUrl(url);
+      setPreviewPdf(blob);
       setIsPreviewOpen(true);
     },
     onError: (err: unknown) => {
@@ -602,79 +590,16 @@ export function CultureDocumentPage(): React.JSX.Element {
         </div>
       ) : null}
 
-      {/* PDF Preview Modal */}
-      {isPreviewOpen && previewBlobUrl ? (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-5xl h-[90vh] flex flex-col shadow-2xl overflow-hidden">
-            {/* Modal Header */}
-            <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between shrink-0 bg-slate-50 dark:bg-slate-900">
-              <div className="flex items-center gap-2">
-                <FileCheck2 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                  Pré-visualização do Documento (A4 Impresso)
-                </h3>
-              </div>
-              <button
-                onClick={() => setIsPreviewOpen(false)}
-                className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* PDF View Container */}
-            <div className="flex-1 bg-slate-100 dark:bg-slate-950 p-2 overflow-hidden flex justify-center">
-              <iframe
-                src={previewBlobUrl}
-                title="Pré-visualização do Manual de Cultura"
-                className="w-full h-full rounded-lg border border-slate-300 dark:border-slate-800 shadow-inner bg-white"
-              />
-            </div>
-
-            {/* Modal Footer with Confirmation */}
-            <div className="p-4 border-t border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-4 shrink-0 bg-slate-50 dark:bg-slate-900">
-              <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span>
-                  Revise o documento atentamente. Ao confirmar, o PDF oficial será assinado e
-                  publicado no arquivo.
-                </span>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <a
-                  href={previewBlobUrl}
-                  download="previa_cultura_organizacional.pdf"
-                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors"
-                >
-                  <Download className="w-4 h-4" />
-                  Baixar Prévia
-                </a>
-                <button
-                  type="button"
-                  onClick={() => setIsPreviewOpen(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
-                >
-                  Voltar e Editar
-                </button>
-                <button
-                  type="button"
-                  onClick={() => void confirmMutation.mutate()}
-                  disabled={confirmMutation.isPending}
-                  className="inline-flex items-center gap-2 px-5 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition-colors shadow-sm disabled:opacity-50"
-                >
-                  {confirmMutation.isPending ? (
-                    <RefreshCw className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Send className="w-4 h-4" />
-                  )}
-                  Confirmar e Publicar Documento
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      ) : null}
+      <DocumentPreviewDialog
+        isOpen={isPreviewOpen}
+        title={'Prévia do Manual de Cultura'}
+        description={'Revise o documento antes de publicá-lo no arquivo.'}
+        pdf={previewPdf}
+        confirmLabel="Publicar Documento"
+        isConfirming={confirmMutation.isPending}
+        onClose={() => setIsPreviewOpen(false)}
+        onConfirm={() => confirmMutation.mutateAsync()}
+      />
 
       {/* History Modal */}
       {isHistoryOpen ? (

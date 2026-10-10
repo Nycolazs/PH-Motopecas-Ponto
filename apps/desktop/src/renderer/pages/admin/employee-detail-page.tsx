@@ -26,7 +26,6 @@ import {
   User,
   UserCheck,
   UserX,
-  X,
 } from 'lucide-react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
@@ -45,6 +44,7 @@ import {
   type UpdateEmployeeProfileDto,
 } from '../../api/contracts.js';
 import { useApiClient } from '../../auth/use-auth.js';
+import { DocumentViewerDialog } from '../../components/document-viewer-dialog.js';
 import { useToast } from '../../components/toast-context.js';
 import { AvatarImage } from '../../components/avatar-image.js';
 import { AvatarModal } from '../../components/avatar-modal.js';
@@ -158,8 +158,11 @@ export function AdminEmployeeDetailPage(): React.JSX.Element {
     isVoid: boolean;
     voidReason?: string | null | undefined;
   } | null>(null);
-  const [previewBlobUrl, setPreviewBlobUrl] = useState<string | null>(null);
-  const [isPreviewLoading, setIsPreviewLoading] = useState(false);
+  const [previewPdf, setPreviewPdf] = useState<{
+    pdf: Blob | null;
+    filename: string;
+    loadError: string | null;
+  }>({ pdf: null, filename: 'documento.pdf', loadError: null });
 
   // Modals state
   const [avatarOpen, setAvatarOpen] = useState(false);
@@ -260,24 +263,22 @@ export function AdminEmployeeDetailPage(): React.JSX.Element {
     voidReason?: string | null | undefined;
   }) => {
     setPreviewDoc(doc);
-    setIsPreviewLoading(true);
+    setPreviewPdf({ pdf: null, filename: 'documento.pdf', loadError: null });
     try {
-      const blob = await api.getArtifactPreviewBlob(doc.artifactId);
-      const url = URL.createObjectURL(blob);
-      setPreviewBlobUrl(url);
+      const { blob, filename } = await api.downloadDocumentBlob(doc.id);
+      setPreviewPdf({ pdf: blob, filename, loadError: null });
     } catch {
-      toastError('Não foi possível carregar a visualização do documento.');
-    } finally {
-      setIsPreviewLoading(false);
+      setPreviewPdf({
+        pdf: null,
+        filename: 'documento.pdf',
+        loadError: 'Não foi possível carregar a visualização do documento.',
+      });
     }
   };
 
   const handleClosePdfPreview = () => {
-    if (previewBlobUrl) {
-      URL.revokeObjectURL(previewBlobUrl);
-      setPreviewBlobUrl(null);
-    }
     setPreviewDoc(null);
+    setPreviewPdf({ pdf: null, filename: 'documento.pdf', loadError: null });
   };
 
   const handleDownloadDoc = async (docId: string) => {
@@ -2136,79 +2137,19 @@ export function AdminEmployeeDetailPage(): React.JSX.Element {
         />
       )}
 
-      {/* PDF Preview Modal */}
-      {previewDoc && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-4xl h-[85vh] flex flex-col shadow-2xl overflow-hidden">
-            <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between shrink-0 bg-slate-50 dark:bg-slate-900">
-              <div className="flex items-center gap-2">
-                <FileText className="w-5 h-5 text-blue-600" />
-                <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                  {previewDoc.title}
-                </h3>
-              </div>
-              <button
-                type="button"
-                onClick={handleClosePdfPreview}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="flex-1 bg-slate-100 dark:bg-slate-950 p-2 overflow-hidden flex justify-center items-center">
-              {isPreviewLoading ? (
-                <div className="flex flex-col items-center gap-2 text-slate-400">
-                  <RefreshCw className="w-8 h-8 animate-spin text-blue-600" />
-                  <span className="text-xs">Carregando visualização do PDF...</span>
-                </div>
-              ) : previewBlobUrl ? (
-                <iframe
-                  src={previewBlobUrl}
-                  title={previewDoc.title}
-                  className="w-full h-full rounded-lg border border-slate-300 dark:border-slate-800 shadow-inner bg-white"
-                />
-              ) : (
-                <div className="text-xs text-rose-500">Erro ao carregar prévia do PDF.</div>
-              )}
-            </div>
-
-            <div className="p-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between shrink-0 bg-slate-50 dark:bg-slate-900">
-              <span className="text-xs text-slate-500">
-                {previewDoc.isVoid ? (
-                  <span className="text-rose-600 font-semibold flex items-center gap-1">
-                    <Ban className="w-3.5 h-3.5" />
-                    Documento Anulado: {previewDoc.voidReason}
-                  </span>
-                ) : (
-                  <span className="text-emerald-600 font-semibold flex items-center gap-1">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    Documento Oficial
-                  </span>
-                )}
-              </span>
-
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => void handleDownloadDoc(previewDoc.id)}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white transition-colors"
-                >
-                  <Download className="w-4 h-4" />
-                  Baixar PDF
-                </button>
-                <button
-                  type="button"
-                  onClick={handleClosePdfPreview}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors"
-                >
-                  Fechar
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <DocumentViewerDialog
+        isOpen={previewDoc !== null}
+        title={previewDoc?.title ?? ''}
+        description={
+          previewDoc?.isVoid
+            ? `Documento anulado: ${previewDoc.voidReason ?? 'sem motivo informado'}`
+            : 'Documento oficial'
+        }
+        pdf={previewPdf.pdf}
+        filename={previewPdf.filename}
+        loadError={previewPdf.loadError}
+        onClose={handleClosePdfPreview}
+      />
 
       {/* Avatar Modal */}
       {employee && (

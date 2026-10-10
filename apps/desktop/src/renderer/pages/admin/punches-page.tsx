@@ -87,9 +87,10 @@ export function AdminPunchesPage(): React.JSX.Element {
       </div>
 
       {/* Filter Bar */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs">
+      <div className="grid grid-cols-1 sm:grid-cols-3 items-end gap-3 bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs">
         <DateInput
           label="Data"
+          labelPosition="top"
           value={selectedDate}
           onChange={setSelectedDate}
           className="w-full"

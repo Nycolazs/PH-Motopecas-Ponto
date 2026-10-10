@@ -17,6 +17,8 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
+import { RecentDocumentsPanel } from './recent-documents-panel.js';
+
 export type TemplateCategory = 'EMPRESA' | 'ADMISSAO' | 'DISCIPLINA' | 'DESEMPENHO' | 'PONTO';
 
 type Tone = 'blue' | 'purple' | 'amber' | 'rose' | 'emerald';
@@ -269,6 +271,8 @@ export function DocumentsHubPage(): React.JSX.Element {
           </Link>
         </div>
       </div>
+
+      {searchQuery.trim() === '' && <RecentDocumentsPanel />}
 
       {visibleTemplates.length === 0 ? (
         <div className="rounded-xl border border-dashed border-slate-300 bg-white p-12 text-center dark:border-slate-700 dark:bg-slate-900">

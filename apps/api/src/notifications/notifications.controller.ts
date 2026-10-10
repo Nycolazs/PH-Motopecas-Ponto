@@ -59,7 +59,7 @@ export class NotificationsController {
   }
 
   @Put('late-arrival')
-  @ApiOperation({ summary: 'Atualiza o alerta de atraso (ativo e tolerância)' })
+  @ApiOperation({ summary: 'Liga ou desliga o alerta de atraso' })
   @ApiBody({ type: UpdateLateArrivalSettingsDto })
   @ApiOkResponse({ type: LateArrivalSettingsViewDto })
   public updateLateArrival(
@@ -69,7 +69,7 @@ export class NotificationsController {
   ): Promise<LateArrivalSettingsViewDto> {
     return this.notifications.updateLateArrivalSettings(
       actor,
-      { enabled: input.enabled, toleranceMinutes: input.toleranceMinutes },
+      { enabled: input.enabled },
       this.clientContext.fromRequest(request),
     );
   }

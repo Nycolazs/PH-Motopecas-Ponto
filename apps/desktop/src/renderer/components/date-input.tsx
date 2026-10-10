@@ -63,7 +63,7 @@ export function DateInput({
         </label>
         <div
           onClick={handleClick}
-          className={`relative flex items-center gap-2.5 bg-white dark:bg-slate-800 hover:border-slate-400 dark:hover:border-slate-600 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 cursor-pointer transition-all duration-200 focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500 group select-none w-full h-[42px] text-sm ${
+          className={`relative flex items-center gap-2.5 bg-white dark:bg-slate-800 hover:border-slate-400 dark:hover:border-slate-600 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 cursor-pointer transition-all duration-200 focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500 group select-none w-full h-[42px] text-sm ${
             disabled ? 'opacity-50 cursor-not-allowed' : ''
           }`}
         >

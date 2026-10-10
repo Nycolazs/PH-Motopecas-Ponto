@@ -33,6 +33,8 @@ services:
       API_PORT: 3000
       JWT_SECRET: ${JWT_SECRET:-development-access-secret-change-before-production}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-development-refresh-secret-change-before-production}
+      # Encrypts every stored PDF. Production must set its own key in .env and back it up.
+      DOCUMENTS_ENCRYPTION_KEY: ${DOCUMENTS_ENCRYPTION_KEY:-ZGV2ZWxvcG1lbnQtZG9jdW1lbnRzLWtleS0zMmJ5dGU=}
       APP_TIMEZONE: ${APP_TIMEZONE:-America/Sao_Paulo}
       INITIAL_ADMIN_USERNAME: ${INITIAL_ADMIN_USERNAME:-admin}
       INITIAL_ADMIN_PASSWORD: ${INITIAL_ADMIN_PASSWORD:-development-bootstrap-password-change-me}

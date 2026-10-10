@@ -1556,3 +1556,36 @@ a.button,
   animation: toastSlideOutRight 0.3s cubic-bezier(0.4, 0, 1, 1) forwards;
   will-change: transform, opacity;
 }
+
+/* Printing a stored PDF (lib/pdf.ts printPdfBlob): only the rasterised pages are printed,
+   edge to edge, because the PDF already carries its own margins. */
+#pdf-print-root {
+  display: none;
+}
+
+@page pdf-sheet {
+  size: A4 portrait;
+  margin: 0;
+}
+
+@media print {
+  html.printing-pdf body > *:not(#pdf-print-root) {
+    display: none !important;
+  }
+
+  html.printing-pdf #pdf-print-root {
+    display: block;
+    page: pdf-sheet;
+  }
+
+  html.printing-pdf #pdf-print-root img {
+    display: block;
+    width: 210mm;
+    height: auto;
+    break-after: page;
+  }
+
+  html.printing-pdf #pdf-print-root img:last-child {
+    break-after: auto;
+  }
+}

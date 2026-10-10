@@ -91,6 +91,7 @@ const environment = {
   API_BASE_URL: 'http://127.0.0.1:3333',
   JWT_SECRET: 'test-access-secret-with-at-least-32-characters',
   JWT_REFRESH_SECRET: 'test-refresh-secret-with-at-least-32-characters',
+  DOCUMENTS_ENCRYPTION_KEY: 'dGVzdC1kb2N1bWVudHMta2V5LTMyLWJ5dGVzLWxvbmc=',
   INITIAL_ADMIN_USERNAME: 'admin',
   INITIAL_ADMIN_PASSWORD: 'test-bootstrap-password',
   UPLOAD_DIR: uploadDirectory,

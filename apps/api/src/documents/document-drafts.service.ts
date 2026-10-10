@@ -50,6 +50,7 @@ import type {
   PrepareDocumentDraftDto,
   SaveDocumentDraftDto,
 } from './documents.dto.js';
+import { DocumentArchiveService } from './document-archive.service.js';
 import { RenderJobsService } from './render-jobs.service.js';
 
 @Injectable()
@@ -59,6 +60,7 @@ export class DocumentDraftsService {
     @Inject(AuditService) private readonly audit: AuditService,
     @Inject(CompanyService) private readonly companyService: CompanyService,
     @Inject(RenderJobsService) private readonly renderJobs: RenderJobsService,
+    @Inject(DocumentArchiveService) private readonly archive: DocumentArchiveService,
   ) {}
 
   public async getDraft(
@@ -157,6 +159,7 @@ export class DocumentDraftsService {
         return saved;
       });
 
+      await this.archive.discardPreview(existing.preparedArtifactId);
       return this.serializeDraft(updated);
     }
 
@@ -241,6 +244,8 @@ export class DocumentDraftsService {
       );
     });
 
+    await this.archive.discardPreview(draft.preparedArtifactId);
+
     return { success: true };
   }
 
@@ -314,6 +319,10 @@ export class DocumentDraftsService {
 
       return saved;
     });
+
+    if (draft.preparedArtifactId !== artifact.id) {
+      await this.archive.discardPreview(draft.preparedArtifactId);
+    }
 
     return this.serializeDraft(updated);
   }
@@ -859,6 +868,8 @@ export class DocumentDraftsService {
 
       return doc;
     });
+
+    await this.archive.archive(generated.artifactId, generated.createdAt);
 
     return {
       id: generated.id,

@@ -145,7 +145,7 @@ export class RenderJobsService {
       }
 
       const pdfBuffer = await this.pdfRenderer.renderHtmlToPdf(renumberSectionTitles(html));
-      const stored = await this.storage.saveArtifact(pdfBuffer);
+      const stored = await this.storage.savePreview(pdfBuffer);
 
       const artifact = await this.prisma.documentArtifact.create({
         data: {

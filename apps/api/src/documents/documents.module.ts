@@ -3,6 +3,7 @@ import { AuditModule } from '../audit/audit.module.js';
 import { AuthModule } from '../auth/auth.module.js';
 import { CompanyModule } from '../company/company.module.js';
 import { DatabaseModule } from '../database/database.module.js';
+import { DocumentArchiveService } from './document-archive.service.js';
 import { DocumentDraftsController } from './document-drafts.controller.js';
 import { DocumentDraftsService } from './document-drafts.service.js';
 import { DocumentStorageService } from './document-storage.service.js';
@@ -17,6 +18,7 @@ import { RenderJobsService } from './render-jobs.service.js';
   controllers: [DocumentDraftsController, DocumentsController],
   providers: [
     DocumentStorageService,
+    DocumentArchiveService,
     PdfRendererService,
     DocumentTemplatesService,
     RenderJobsService,

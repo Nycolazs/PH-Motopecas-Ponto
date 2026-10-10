@@ -1,5 +1,4 @@
 import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
-import type { Readable } from 'node:stream';
 import { AuditService } from '../audit/audit.service.js';
 import type { ClientContext } from '../auth/auth.types.js';
 import { PrismaService } from '../database/prisma.service.js';
@@ -126,9 +125,7 @@ export class DocumentsService {
     };
   }
 
-  public async getDownloadStream(
-    id: string,
-  ): Promise<{ stream: Readable; filename: string; fileSize: number }> {
+  public async getDownloadFile(id: string): Promise<{ contents: Buffer; filename: string }> {
     const doc = await this.prisma.generatedDocument.findUnique({
       where: { id },
       include: { artifact: true },
@@ -141,20 +138,11 @@ export class DocumentsService {
       });
     }
 
-    const stream = this.storage.getArtifactStream(doc.artifact.storagePath);
-    const sanitizedTitle = doc.title.replace(/[^a-zA-Z0-9_-]/g, '_').toLowerCase();
-    const filename = `${sanitizedTitle}_v${doc.version}.pdf`;
-
-    return {
-      stream,
-      filename,
-      fileSize: doc.artifact.fileSize,
-    };
+    const contents = await this.storage.readArtifact(doc.artifact);
+    return { contents, filename: documentPdfFilename(doc.title, doc.version) };
   }
 
-  public async getPreviewStream(
-    artifactId: string,
-  ): Promise<{ stream: Readable; fileSize: number }> {
+  public async getPreviewFile(artifactId: string): Promise<Buffer> {
     const artifact = await this.prisma.documentArtifact.findUnique({
       where: { id: artifactId },
     });
@@ -162,16 +150,11 @@ export class DocumentsService {
     if (!artifact) {
       throw new NotFoundException({
         code: 'ARTIFACT_NOT_FOUND',
-        message: 'Arquivo de preview não encontrado.',
+        message: 'A prévia expirou ou não foi encontrada. Gere a visualização novamente.',
       });
     }
 
-    const stream = this.storage.getArtifactStream(artifact.storagePath);
-
-    return {
-      stream,
-      fileSize: artifact.fileSize,
-    };
+    return this.storage.readArtifact(artifact);
   }
 
   public async voidDocument(
@@ -270,4 +253,16 @@ export class DocumentsService {
       createdAt: updated.createdAt.toISOString(),
     };
   }
+}
+
+/** ASCII-only download name, e.g. "advertencia_escrita_joao_silva_v1.pdf". */
+export function documentPdfFilename(title: string, version: number): string {
+  const slug = title
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '')
+    .slice(0, 120);
+  return `${slug || 'documento'}_v${version}.pdf`;
 }

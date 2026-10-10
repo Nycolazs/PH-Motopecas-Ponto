@@ -8,14 +8,24 @@ import { AuthProvider } from '../../auth/auth-context.js';
 import { useAuth } from '../../auth/use-auth.js';
 import { ToastProvider } from '../../components/toast-context.js';
 import { adminSession, createBridge, jsonResponse } from '../../test/fixtures.js';
-import { AdminNotificationsPage, formatWhatsapp } from './notifications-page.js';
+import {
+  AdminNotificationsPage,
+  formatWhatsapp,
+  isCompleteWhatsapp,
+  maskWhatsappInput,
+} from './notifications-page.js';
 
 const ADMIN_ID = '6959a6b9-8d98-48db-be01-8a1d7b8ab75f';
 
 function settings(state: string, overrides: Record<string, unknown> = {}) {
   return {
     whatsapp: { state, phone: state === 'CONNECTED' ? '5585988887777' : null, connectedAt: null },
-    lateArrival: { enabled: true, toleranceMinutes: 5 },
+    lateArrival: {
+      enabled: true,
+      toleranceMinutes: 10,
+      source: 'REGULATION',
+      regulationVersion: 3,
+    },
     recipients: [
       {
         userId: ADMIN_ID,
@@ -138,15 +148,56 @@ describe('AdminNotificationsPage', () => {
     );
   });
 
-  it('blocks invalid tolerance values', async () => {
+  it('uses the tolerance registered in the Regimento Interno', async () => {
+    const calls = installFetch('CONNECTED');
+    const user = userEvent.setup();
+    renderPage();
+
+    expect(await screen.findByText('10 minutos')).toBeInTheDocument();
+    expect(screen.getByText(/Definida no Regimento Interno \(versão 3\)/)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Alterar no Regimento' })).toHaveAttribute(
+      'href',
+      '/admin/documentos/regimento',
+    );
+    expect(screen.queryByRole('spinbutton')).not.toBeInTheDocument();
+    expect(screen.getByText(/mais de 10 min depois do horário de abertura/)).toBeInTheDocument();
+
+    await user.click(screen.getByRole('checkbox', { name: 'Enviar alerta de atraso' }));
+    await user.click(screen.getByRole('button', { name: 'Salvar regra' }));
+    await waitFor(() =>
+      expect(calls.find((call) => call.url.endsWith('/notifications/late-arrival'))).toMatchObject({
+        method: 'PUT',
+        body: JSON.stringify({ enabled: false }),
+      }),
+    );
+  });
+
+  it('masks the WhatsApp number while typing and rejects letters', async () => {
     installFetch('CONNECTED');
     const user = userEvent.setup();
     renderPage();
-    const input = await screen.findByLabelText('Tolerância (minutos)');
-    await user.clear(input);
-    await user.type(input, '500');
-    expect(screen.getByRole('alert')).toHaveTextContent('entre 0 e 120');
-    expect(screen.getByRole('button', { name: 'Salvar regra' })).toBeDisabled();
+
+    const input = await screen.findByRole('textbox', { name: 'WhatsApp de Ana Lucia' });
+    await user.type(input, '34324234asd');
+    expect(input).toHaveValue('(34) 3242-34');
+    expect(screen.getByRole('alert')).toHaveTextContent('Número incompleto');
+    const row = input.closest('li')!;
+    expect(within(row).getByRole('button', { name: 'Salvar' })).toBeDisabled();
+
+    await user.type(input, '567');
+    expect(input).toHaveValue('(34) 32423-4567');
+    expect(within(row).getByRole('button', { name: 'Salvar' })).toBeEnabled();
+  });
+
+  it('applies the Brazilian phone mask', () => {
+    expect(maskWhatsappInput('85999990000')).toBe('(85) 99999-0000');
+    expect(maskWhatsappInput('8532221111')).toBe('(85) 3222-1111');
+    expect(maskWhatsappInput('+55 (85) 99999-0000')).toBe('+5585999990000');
+    expect(maskWhatsappInput('5585999990000')).toBe('(85) 99999-0000');
+    expect(maskWhatsappInput('abc')).toBe('');
+    expect(maskWhatsappInput('8')).toBe('(8');
+    expect(isCompleteWhatsapp('(85) 99999-0000')).toBe(true);
+    expect(isCompleteWhatsapp('(85) 9999')).toBe(false);
   });
 
   it('formats stored numbers for display', () => {

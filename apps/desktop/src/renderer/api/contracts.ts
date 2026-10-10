@@ -231,7 +231,13 @@ export const notificationRecipientSchema = z
   .strict();
 
 export const lateArrivalSettingsSchema = z
-  .object({ enabled: z.boolean(), toleranceMinutes: z.number().int() })
+  .object({
+    enabled: z.boolean(),
+    /** Tolerance of the Regimento Interno in effect (5 min when none is published). */
+    toleranceMinutes: z.number().int(),
+    source: z.enum(['REGULATION', 'DEFAULT']),
+    regulationVersion: z.number().int().nullable(),
+  })
   .strict();
 
 export const notificationSettingsSchema = z

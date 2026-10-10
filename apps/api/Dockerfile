@@ -22,6 +22,10 @@ RUN pnpm --filter @ph-ponto/shared build \
 
 FROM base AS runtime
 ENV NODE_ENV=production
+# PDFs are rendered by headless Chromium (playwright-core ships no browser). Fonts cover
+# Portuguese accents and the Arial/Helvetica metrics used by the document templates.
+RUN apk add --no-cache chromium nss freetype harfbuzz ca-certificates font-liberation font-noto
+ENV PDF_BROWSER_EXECUTABLE_PATH=/usr/bin/chromium
 WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/shared/package.json packages/shared/package.json

@@ -8,6 +8,7 @@ const validEnvironment = {
   API_BASE_URL: 'http://localhost:3000',
   JWT_SECRET: 'access-secret-with-at-least-32-characters',
   JWT_REFRESH_SECRET: 'refresh-secret-with-at-least-32-characters',
+  DOCUMENTS_ENCRYPTION_KEY: 'abababababababababababababababababababababababababababababababab',
   INITIAL_ADMIN_USERNAME: 'admin',
   INITIAL_ADMIN_PASSWORD: 'strong-bootstrap-password',
   UPLOAD_DIR: './data/uploads',

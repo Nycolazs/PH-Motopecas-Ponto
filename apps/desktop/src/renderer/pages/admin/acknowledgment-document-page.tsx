@@ -5,14 +5,12 @@ import {
   FileCheck2,
   Briefcase,
   Building2,
-  CheckCircle2,
   Eye,
   FileText,
   Filter,
   History,
   RefreshCw,
   Users,
-  X,
 } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 
@@ -24,6 +22,7 @@ import type {
   DocumentDraftDto,
 } from '../../api/contracts.js';
 import { useAuth } from '../../auth/use-auth.js';
+import { DocumentPreviewDialog } from '../../components/document-preview-dialog.js';
 import { useToast } from '../../components/toast-context.js';
 import { SelectInput } from '../../components/select-input.js';
 import { PageHeader } from '../../components/page-header.js';
@@ -47,7 +46,7 @@ export function AcknowledgmentDocumentPage(): React.JSX.Element {
   }, [searchParams]);
 
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>('');
-  const [previewBlobUrl, setPreviewBlobUrl] = useState<string | null>(null);
+  const [previewPdf, setPreviewPdf] = useState<Blob | null>(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [activeDraft, setActiveDraft] = useState<DocumentDraftDto | null>(null);
   const [typeFilter, setTypeFilter] = useState<'ALL' | 'REGULATION' | 'ROLE'>('ALL');
@@ -108,13 +107,6 @@ export function AcknowledgmentDocumentPage(): React.JSX.Element {
       ),
     enabled: Boolean(session),
   });
-
-  // Clean up preview blob URL
-  useEffect(() => {
-    return () => {
-      if (previewBlobUrl) URL.revokeObjectURL(previewBlobUrl);
-    };
-  }, [previewBlobUrl]);
 
   // Selected employee object
   const selectedEmployee = activeEmployees.find((e) => e.id === selectedEmployeeId);
@@ -193,9 +185,7 @@ export function AcknowledgmentDocumentPage(): React.JSX.Element {
       }
 
       const blob = await api.getArtifactPreviewBlob(prepared.preparedArtifactId);
-      if (previewBlobUrl) URL.revokeObjectURL(previewBlobUrl);
-      const url = URL.createObjectURL(blob);
-      setPreviewBlobUrl(url);
+      setPreviewPdf(blob);
       setIsPreviewOpen(true);
     },
     onError: (err: unknown) => {
@@ -591,77 +581,16 @@ export function AcknowledgmentDocumentPage(): React.JSX.Element {
         </div>
       </div>
 
-      {/* PDF Preview Modal */}
-      {isPreviewOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col w-full max-w-4xl h-[90vh] overflow-hidden">
-            <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-800">
-              <div className="flex items-center gap-2">
-                <FileText className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                <div>
-                  <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                    Prévia do Termo de Ciência — {formatDisplayName(selectedEmployee?.name ?? '')}
-                  </h3>
-                  <p className="text-xs text-slate-500">
-                    Confira a formatação do termo para impressão e assinatura física.
-                  </p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsPreviewOpen(false)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="flex-1 bg-slate-100 dark:bg-slate-950 p-2 overflow-hidden flex items-center justify-center">
-              {previewBlobUrl ? (
-                <iframe
-                  src={previewBlobUrl}
-                  title="Prévia do Termo"
-                  className="w-full h-full rounded-lg border border-slate-300 dark:border-slate-800 bg-white"
-                />
-              ) : (
-                <div className="flex items-center gap-2 text-slate-400 text-sm">
-                  <RefreshCw className="w-5 h-5 animate-spin" />
-                  Carregando visualizador do documento...
-                </div>
-              )}
-            </div>
-
-            <div className="p-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-900/50">
-              <div className="text-xs text-slate-500">
-                O documento será registrado no arquivo oficial e contabilizado nos indicadores de
-                conformidade.
-              </div>
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => setIsPreviewOpen(false)}
-                  className="px-4 py-2 text-xs font-medium rounded-lg border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition-colors"
-                >
-                  Voltar e Editar
-                </button>
-                <button
-                  type="button"
-                  onClick={() => void confirmMutation.mutate()}
-                  disabled={confirmMutation.isPending}
-                  className="inline-flex items-center gap-2 px-5 py-2 text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition-colors"
-                >
-                  {confirmMutation.isPending ? (
-                    <RefreshCw className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <CheckCircle2 className="w-4 h-4" />
-                  )}
-                  Confirmar e Registrar Termo
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <DocumentPreviewDialog
+        isOpen={isPreviewOpen}
+        title={`Termo de Ciência — ${formatDisplayName(selectedEmployee?.name ?? '')}`}
+        description={'Confira o termo para impressão e assinatura física.'}
+        pdf={previewPdf}
+        confirmLabel="Registrar Termo"
+        isConfirming={confirmMutation.isPending}
+        onClose={() => setIsPreviewOpen(false)}
+        onConfirm={() => confirmMutation.mutateAsync()}
+      />
     </div>
   );
 }

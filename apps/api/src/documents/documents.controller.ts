@@ -52,14 +52,13 @@ export class DocumentsController {
     @Param('artifactId', new ParseUUIDPipe()) artifactId: string,
     @Res() res: Response,
   ): Promise<void> {
-    const { stream, fileSize } = await this.documentsService.getPreviewStream(artifactId);
+    const contents = await this.documentsService.getPreviewFile(artifactId);
 
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Length', fileSize);
-    res.setHeader('Content-Disposition', 'inline; filename="preview.pdf"');
-    res.setHeader('Cache-Control', 'private, no-cache');
-
-    stream.pipe(res);
+    res.setHeader('Content-Length', contents.length);
+    res.setHeader('Content-Disposition', 'inline; filename="previa.pdf"');
+    res.setHeader('Cache-Control', 'private, no-store');
+    res.end(contents);
   }
 
   @Get(':id')
@@ -78,14 +77,13 @@ export class DocumentsController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Res() res: Response,
   ): Promise<void> {
-    const { stream, filename, fileSize } = await this.documentsService.getDownloadStream(id);
+    const { contents, filename } = await this.documentsService.getDownloadFile(id);
 
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Length', fileSize);
+    res.setHeader('Content-Length', contents.length);
     res.setHeader('Content-Disposition', `inline; filename="${filename}"`);
-    res.setHeader('Cache-Control', 'private, no-cache');
-
-    stream.pipe(res);
+    res.setHeader('Cache-Control', 'private, no-store');
+    res.end(contents);
   }
 
   @Post(':id/void')

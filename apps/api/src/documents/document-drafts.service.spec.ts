@@ -5,6 +5,7 @@ import type { CompanyService } from '../company/company.service.js';
 import type { PrismaService } from '../database/prisma.service.js';
 import { DocumentType } from '../generated/prisma/client.js';
 import { DocumentDraftsService } from './document-drafts.service.js';
+import type { DocumentArchiveService } from './document-archive.service.js';
 import type { RenderJobsService } from './render-jobs.service.js';
 
 interface DraftsPrismaMock {
@@ -48,6 +49,7 @@ describe('DocumentDraftsService', () => {
   let auditMock: AuditMock;
   let companyServiceMock: CompanyServiceMock;
   let renderJobsMock: RenderJobsMock;
+  let archiveMock: { archive: ReturnType<typeof vi.fn>; discardPreview: ReturnType<typeof vi.fn> };
 
   const mockContext = {
     ipAddress: '127.0.0.1',
@@ -118,11 +120,17 @@ describe('DocumentDraftsService', () => {
       executeJob: vi.fn().mockResolvedValue({ id: 'artifact-1', fileSize: 54321 }),
     };
 
+    archiveMock = {
+      archive: vi.fn().mockResolvedValue(undefined),
+      discardPreview: vi.fn().mockResolvedValue(undefined),
+    };
+
     service = new DocumentDraftsService(
       prismaMock as unknown as PrismaService,
       auditMock as unknown as AuditService,
       companyServiceMock as unknown as CompanyService,
       renderJobsMock as unknown as RenderJobsService,
+      archiveMock as unknown as DocumentArchiveService,
     );
   });
 
@@ -207,6 +215,17 @@ describe('DocumentDraftsService', () => {
       expect(result.success).toBe(true);
     });
 
+    it('deletes the unconfirmed PDF preview of a discarded draft', async () => {
+      prismaMock.documentDraft.findUnique.mockResolvedValue({
+        ...mockDraft,
+        preparedArtifactId: 'artifact-old',
+      });
+
+      await service.discardDraft('admin-1', 'draft-1', mockContext);
+
+      expect(archiveMock.discardPreview).toHaveBeenCalledWith('artifact-old');
+    });
+
     it('throws ForbiddenException if actor is not the draft author', async () => {
       prismaMock.documentDraft.findUnique.mockResolvedValue(mockDraft);
 
@@ -243,6 +262,22 @@ describe('DocumentDraftsService', () => {
         }),
       );
       expect(result.preparedArtifactId).toBe('artifact-1');
+      expect(archiveMock.discardPreview).toHaveBeenCalledWith(null);
+    });
+
+    it('replaces the previous preview instead of keeping every rendered PDF', async () => {
+      prismaMock.documentDraft.findUnique.mockResolvedValue({
+        ...mockDraft,
+        preparedArtifactId: 'artifact-old',
+      });
+      prismaMock.documentDraft.update.mockResolvedValue({
+        ...mockDraft,
+        preparedArtifactId: 'artifact-1',
+      });
+
+      await service.prepareDraft('admin-1', 'draft-1', { expectedRevision: 1 }, mockContext);
+
+      expect(archiveMock.discardPreview).toHaveBeenCalledWith('artifact-old');
     });
 
     it('throws BadRequestException if payload fails complete schema validation', async () => {
@@ -314,6 +349,7 @@ describe('DocumentDraftsService', () => {
       expect(prismaMock.documentDraft.delete).toHaveBeenCalledWith({ where: { id: 'draft-1' } });
       expect(result.id).toBe('doc-1');
       expect(result.artifactId).toBe('artifact-1');
+      expect(archiveMock.archive).toHaveBeenCalledWith('artifact-1', generatedDoc.createdAt);
     });
 
     it('throws BadRequestException if preparedArtifactId does not match draft preparedArtifactId', async () => {

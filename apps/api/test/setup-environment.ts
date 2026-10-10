@@ -7,6 +7,7 @@ process.env.DATABASE_URL ??=
 process.env.API_BASE_URL ??= 'http://localhost:3333';
 process.env.JWT_SECRET ??= 'test-access-secret-with-at-least-32-characters';
 process.env.JWT_REFRESH_SECRET ??= 'test-refresh-secret-with-at-least-32-characters';
+process.env.DOCUMENTS_ENCRYPTION_KEY ??= 'dGVzdC1kb2N1bWVudHMta2V5LTMyLWJ5dGVzLWxvbmc=';
 process.env.INITIAL_ADMIN_USERNAME ??= 'admin';
 process.env.INITIAL_ADMIN_PASSWORD ??= 'test-bootstrap-password';
 process.env.AUTH_LOGIN_MAX_ATTEMPTS ??= '3';

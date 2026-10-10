@@ -9,6 +9,7 @@ const DEVELOPMENT_DEFAULTS = Object.freeze({
   API_BASE_URL: 'http://localhost:3000',
   JWT_SECRET: 'development-access-secret-change-before-production',
   JWT_REFRESH_SECRET: 'development-refresh-secret-change-before-production',
+  DOCUMENTS_ENCRYPTION_KEY: 'ZGV2ZWxvcG1lbnQtZG9jdW1lbnRzLWtleS0zMmJ5dGU=',
   INITIAL_ADMIN_USERNAME: 'admin',
   INITIAL_ADMIN_PASSWORD: 'development-bootstrap-password-change-me',
   UPLOAD_DIR: './data/uploads',

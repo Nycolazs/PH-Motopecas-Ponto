@@ -1,14 +1,23 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { NotificationKind, NotificationStatus } from '../generated/prisma/client.js';
-import { NotificationsService, retryDelayMs } from './notifications.service.js';
+import {
+  NotificationsService,
+  regulationToleranceMinutes,
+  retryDelayMs,
+} from './notifications.service.js';
 import { WhatsappGatewayError, type WhatsappGateway } from './whatsapp-gateway.js';
 
 const EMPLOYEE_ID = '10000000-0000-4000-8000-000000000001';
 const ADMIN_ID = '20000000-0000-4000-8000-000000000002';
 
-function createFixture(options: { settings?: unknown; recipients?: unknown[] } = {}) {
+function createFixture(
+  options: { settings?: unknown; recipients?: unknown[]; regulation?: unknown } = {},
+) {
   const prisma = {
+    companyRegulationVersion: {
+      findFirst: vi.fn().mockResolvedValue(options.regulation ?? null),
+    },
     appSetting: {
       findUnique: vi
         .fn()
@@ -70,8 +79,11 @@ describe('NotificationsService.onFirstClockIn', () => {
     expect(data[0].message).toContain('*Entrada:* 08:12 (previsto 08:00)');
   });
 
-  it('respects the configured tolerance and the on/off switch', async () => {
-    const onTime = createFixture({ settings: { enabled: true, toleranceMinutes: 15 } });
+  it('uses the tolerance of the Regimento Interno in effect and the on/off switch', async () => {
+    const onTime = createFixture({
+      settings: { enabled: true },
+      regulation: { versionNumber: 2, content: { workSchedule: { toleranceMinutes: 15 } } },
+    });
     await expect(
       onTime.service.onFirstClockIn({
         employeeId: EMPLOYEE_ID,
@@ -81,8 +93,13 @@ describe('NotificationsService.onFirstClockIn', () => {
       }),
     ).resolves.toBe(0);
     expect(onTime.prisma.notificationOutbox.createMany).not.toHaveBeenCalled();
+    expect(onTime.prisma.companyRegulationVersion.findFirst).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { effectiveDate: { lte: new Date('2026-10-09T12:00:00.000Z') } },
+      }),
+    );
 
-    const disabled = createFixture({ settings: { enabled: false, toleranceMinutes: 5 } });
+    const disabled = createFixture({ settings: { enabled: false } });
     await expect(
       disabled.service.onFirstClockIn({
         employeeId: EMPLOYEE_ID,
@@ -104,6 +121,35 @@ describe('NotificationsService.onFirstClockIn', () => {
       }),
     ).resolves.toBe(0);
     expect(prisma.notificationOutbox.createMany).not.toHaveBeenCalled();
+  });
+});
+
+describe('late-arrival tolerance', () => {
+  it('falls back to 5 minutes when no Regimento Interno is published', async () => {
+    const { service } = createFixture();
+    await expect(service.resolveTolerance('2026-10-09')).resolves.toEqual({
+      toleranceMinutes: 5,
+      source: 'DEFAULT',
+      regulationVersion: null,
+    });
+  });
+
+  it('reports the regulation version that defines the tolerance', async () => {
+    const { service } = createFixture({
+      regulation: { versionNumber: 3, content: { workSchedule: { toleranceMinutes: 10 } } },
+    });
+    await expect(service.resolveTolerance('2026-10-09')).resolves.toEqual({
+      toleranceMinutes: 10,
+      source: 'REGULATION',
+      regulationVersion: 3,
+    });
+  });
+
+  it('ignores malformed regulation content', () => {
+    expect(regulationToleranceMinutes({ workSchedule: { toleranceMinutes: '7' } })).toBeNull();
+    expect(regulationToleranceMinutes({ workSchedule: { toleranceMinutes: -1 } })).toBeNull();
+    expect(regulationToleranceMinutes(null)).toBeNull();
+    expect(regulationToleranceMinutes({ workSchedule: { toleranceMinutes: 0 } })).toBe(0);
   });
 });
 

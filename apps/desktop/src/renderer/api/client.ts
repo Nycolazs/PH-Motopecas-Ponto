@@ -427,7 +427,7 @@ export class ApiClient {
     });
   }
 
-  public updateLateArrivalSettings(input: LateArrivalSettings): Promise<LateArrivalSettings> {
+  public updateLateArrivalSettings(input: { enabled: boolean }): Promise<LateArrivalSettings> {
     return this.request('/notifications/late-arrival', lateArrivalSettingsSchema, {
       method: 'PUT',
       body: JSON.stringify(input),

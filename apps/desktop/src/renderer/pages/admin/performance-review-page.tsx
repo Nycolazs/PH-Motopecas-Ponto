@@ -3,7 +3,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   AlertCircle,
   Award,
-  CheckCircle2,
   Eye,
   FileText,
   History,
@@ -13,7 +12,6 @@ import {
   Star,
   Trash2,
   UserCheck,
-  X,
 } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 
@@ -32,6 +30,8 @@ import {
 import { useAuth } from '../../auth/use-auth.js';
 import { PageHeader, headerButton } from '../../components/page-header.js';
 import { DateInput } from '../../components/date-input.js';
+import { DocumentPreviewDialog } from '../../components/document-preview-dialog.js';
+import { DocumentViewerDialog } from '../../components/document-viewer-dialog.js';
 import { useToast } from '../../components/toast-context.js';
 import { Modal } from '../../components/modal.js';
 import { SelectInput } from '../../components/select-input.js';
@@ -90,7 +90,12 @@ export function PerformanceReviewPage(): React.JSX.Element {
   });
 
   const [activeDraft, setActiveDraft] = useState<DocumentDraftDto | null>(null);
-  const [previewBlobUrl, setPreviewBlobUrl] = useState<string | null>(null);
+  const [previewPdf, setPreviewPdf] = useState<Blob | null>(null);
+  const [archivedPdf, setArchivedPdf] = useState<{
+    pdf: Blob | null;
+    filename: string;
+    loadError: string | null;
+  } | null>(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isDiscardConfirmOpen, setIsDiscardConfirmOpen] = useState(false);
   const [isSupersedeModalOpen, setIsSupersedeModalOpen] = useState(false);
@@ -98,13 +103,6 @@ export function PerformanceReviewPage(): React.JSX.Element {
   const [manualSupersedeReason, setManualSupersedeReason] = useState('');
   const [formErrors, setFormErrors] = useState<string[]>([]);
   const [historyFilterEmployee, setHistoryFilterEmployee] = useState<string>('ALL');
-
-  // Cleanup preview blob
-  useEffect(() => {
-    return () => {
-      if (previewBlobUrl) URL.revokeObjectURL(previewBlobUrl);
-    };
-  }, [previewBlobUrl]);
 
   // Load employees
   const { data: employeesData } = useQuery({
@@ -318,9 +316,7 @@ export function PerformanceReviewPage(): React.JSX.Element {
       // 3. Load preview blob
       if (prepared.preparedArtifactId) {
         const blob = await api.getArtifactPreviewBlob(prepared.preparedArtifactId);
-        if (previewBlobUrl) URL.revokeObjectURL(previewBlobUrl);
-        const url = URL.createObjectURL(blob);
-        setPreviewBlobUrl(url);
+        setPreviewPdf(blob);
         setIsPreviewOpen(true);
       }
     },
@@ -411,15 +407,16 @@ export function PerformanceReviewPage(): React.JSX.Element {
       error('Esta avaliação não possui documento gerado associado.');
       return;
     }
+    setArchivedPdf({ pdf: null, filename: 'avaliacao_desempenho.pdf', loadError: null });
     try {
-      const doc = await api.getDocument(review.generatedDocumentId);
-      const blob = await api.getArtifactPreviewBlob(doc.artifactId);
-      if (previewBlobUrl) URL.revokeObjectURL(previewBlobUrl);
-      const url = URL.createObjectURL(blob);
-      setPreviewBlobUrl(url);
-      setIsPreviewOpen(true);
+      const { blob, filename } = await api.downloadDocumentBlob(review.generatedDocumentId);
+      setArchivedPdf({ pdf: blob, filename, loadError: null });
     } catch (err: unknown) {
-      error(err instanceof Error ? err.message : 'Falha ao abrir PDF da avaliação.');
+      setArchivedPdf({
+        pdf: null,
+        filename: 'avaliacao_desempenho.pdf',
+        loadError: err instanceof Error ? err.message : 'Falha ao abrir PDF da avaliação.',
+      });
     }
   };
 
@@ -978,81 +975,25 @@ export function PerformanceReviewPage(): React.JSX.Element {
         )}
       </div>
 
-      {/* PDF Preview & Confirmation Modal */}
-      {isPreviewOpen && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 w-full max-w-4xl h-[90vh] flex flex-col shadow-2xl overflow-hidden">
-            {/* Modal Header */}
-            <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-850">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-950 flex items-center justify-center text-blue-600 dark:text-blue-400">
-                  <FileText className="w-4 h-4" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                    Prévia do Laudo de Avaliação de Desempenho
-                  </h3>
-                  <p className="text-xs text-slate-500">
-                    {formatDisplayName(selectedEmployee?.name ?? '')} — {form.evaluationPeriod}
-                  </p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsPreviewOpen(false)}
-                className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Modal PDF Viewer Body */}
-            <div className="flex-1 bg-slate-100 dark:bg-slate-950 p-2 overflow-hidden flex items-center justify-center">
-              {previewBlobUrl ? (
-                <iframe
-                  src={previewBlobUrl}
-                  title="Prévia do Laudo de Avaliação de Desempenho"
-                  className="w-full h-full rounded-xl border border-slate-300 dark:border-slate-800 shadow-inner bg-white"
-                />
-              ) : (
-                <div className="text-xs text-slate-400 flex items-center gap-2">
-                  <RefreshCw className="w-4 h-4 animate-spin" /> Carregando prévia do laudo...
-                </div>
-              )}
-            </div>
-
-            {/* Modal Footer */}
-            <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-850 flex items-center justify-between">
-              <button
-                type="button"
-                onClick={() => setIsPreviewOpen(false)}
-                className="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-xl transition-colors"
-              >
-                Fechar e Continuar Editando
-              </button>
-
-              <button
-                type="button"
-                onClick={() => confirmMutation.mutate()}
-                disabled={confirmMutation.isPending}
-                className="px-5 py-2.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-xs flex items-center gap-2 transition-all disabled:opacity-50"
-              >
-                {confirmMutation.isPending ? (
-                  <>
-                    <RefreshCw className="w-4 h-4 animate-spin" />
-                    Confirmando Avaliação...
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle2 className="w-4 h-4" />
-                    Confirmar e Concluir Avaliação
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <DocumentViewerDialog
+        isOpen={archivedPdf !== null}
+        title="Laudo de Avaliação de Desempenho"
+        description="Documento arquivado"
+        pdf={archivedPdf?.pdf ?? null}
+        filename={archivedPdf?.filename ?? 'avaliacao_desempenho.pdf'}
+        loadError={archivedPdf?.loadError ?? null}
+        onClose={() => setArchivedPdf(null)}
+      />
+      <DocumentPreviewDialog
+        isOpen={isPreviewOpen}
+        title={'Laudo de Avaliação de Desempenho'}
+        description={`${formatDisplayName(selectedEmployee?.name ?? '')} — ${form.evaluationPeriod}`}
+        pdf={previewPdf}
+        confirmLabel="Concluir Avaliação"
+        isConfirming={confirmMutation.isPending}
+        onClose={() => setIsPreviewOpen(false)}
+        onConfirm={() => confirmMutation.mutateAsync()}
+      />
 
       {/* Discard Draft Modal */}
       {isDiscardConfirmOpen && (
