@@ -40,6 +40,12 @@ services:
       ADMIN_WEB_ORIGIN: ${ADMIN_WEB_ORIGIN:-http://localhost:5173}
       DESKTOP_DEV_ORIGIN: ${DESKTOP_DEV_ORIGIN:-http://localhost:5173}
       UPLOAD_DIR: /data/uploads
+      # Behind the Cloudflare Tunnel every request reaches the API from the Docker gateway;
+      # trusting it lets login rate limiting see each person's real address.
+      TRUST_PROXY_ADDRESSES: ${TRUST_PROXY_ADDRESSES:-}
+      AUTH_LOGIN_MAX_ATTEMPTS: ${AUTH_LOGIN_MAX_ATTEMPTS:-5}
+      AUTH_LOGIN_IP_MAX_ATTEMPTS: ${AUTH_LOGIN_IP_MAX_ATTEMPTS:-30}
+      AUTH_LOGIN_BLOCK_SECONDS: ${AUTH_LOGIN_BLOCK_SECONDS:-900}
       OPENWA_BASE_URL: ${OPENWA_BASE_URL:-http://openwa:2785}
       OPENWA_API_KEY: ${OPENWA_API_KEY:-}
     ports:
