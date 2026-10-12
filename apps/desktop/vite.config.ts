@@ -1,14 +1,22 @@
+import { readFileSync } from 'node:fs';
 import { fileURLToPath, URL } from 'node:url';
 
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 
+const desktopVersion = (
+  JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')) as {
+    version: string;
+  }
+).version;
+
 const sharedEntry = fileURLToPath(new URL('../../packages/shared/src/index.ts', import.meta.url));
 
 export default defineConfig({
   root: fileURLToPath(new URL('./src/renderer', import.meta.url)),
   base: '/',
+  define: { __DESKTOP_VERSION__: JSON.stringify(desktopVersion) },
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {

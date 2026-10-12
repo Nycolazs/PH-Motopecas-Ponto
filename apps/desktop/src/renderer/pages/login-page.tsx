@@ -5,6 +5,7 @@ import { z } from 'zod';
 
 import { useAuth } from '../auth/use-auth.js';
 import { authErrorMessage } from '../auth/auth-error.js';
+import { AppVersionBadge } from '../components/app-version-badge.js';
 import { Brand } from '../components/brand.js';
 import { ThemeButton } from '../components/theme-button.js';
 
@@ -155,7 +156,10 @@ export function LoginPage(): React.JSX.Element {
             {isSubmitting ? 'Entrando…' : 'Entrar'}
           </button>
         </form>
-        <p className="login-footer">Uso interno · PH Motopeças</p>
+        <footer className="login-footer">
+          {isDesktop && <AppVersionBadge />}
+          <p>Uso interno · PH Motopeças</p>
+        </footer>
       </section>
     </main>
   );

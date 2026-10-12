@@ -10,18 +10,34 @@ import {
   powerMonitor,
   protocol,
   session,
+  shell,
   type IpcMainInvokeEvent,
   type NativeImage,
 } from 'electron';
 import { PRODUCT_NAME } from '@ph-ponto/shared';
 
-import { APP_INFO_CHANNEL, type AppInfo } from '../shared/electron-api.js';
+import {
+  APP_INFO_CHANNEL,
+  UPDATE_CHECK_NOW_CHANNEL,
+  UPDATE_GET_STATUS_CHANNEL,
+  UPDATE_INSTALL_NOW_CHANNEL,
+  UPDATE_OPEN_DOWNLOAD_PAGE_CHANNEL,
+  UPDATE_STATUS_EVENT,
+  type AppInfo,
+  type UpdateStatus,
+} from '../shared/electron-api.js';
 import { resolveAppIcon } from './app-icon.js';
 import { AuthApiClient } from './auth-api-client.js';
 import { registerAuthIpc } from './auth-ipc.js';
 import { DesktopAuthSessionService } from './auth-session.service.js';
 import {
+  checkForUpdatesNow,
+  DOWNLOAD_PAGE_URL,
+  getUpdateStatus,
+  installUpdateNow,
   isSafeMomentToInstall,
+  onUpdateStatus,
+  recordLaunchedVersion,
   setupAutoUpdater,
   triggerBackgroundUpdateCheck,
 } from './auto-updater.js';
@@ -173,6 +189,31 @@ function registerIpc(): void {
     assertTrustedSender(event);
     triggerBackgroundUpdateCheck();
   });
+
+  ipcMain.handle(UPDATE_GET_STATUS_CHANNEL, (event): UpdateStatus => {
+    assertTrustedSender(event);
+    return getUpdateStatus();
+  });
+  ipcMain.handle(UPDATE_CHECK_NOW_CHANNEL, (event): UpdateStatus => {
+    assertTrustedSender(event);
+    return checkForUpdatesNow();
+  });
+  ipcMain.handle(UPDATE_INSTALL_NOW_CHANNEL, (event): void => {
+    assertTrustedSender(event);
+    installUpdateNow();
+  });
+  ipcMain.handle(UPDATE_OPEN_DOWNLOAD_PAGE_CHANNEL, async (event): Promise<void> => {
+    assertTrustedSender(event);
+    await shell.openExternal(DOWNLOAD_PAGE_URL);
+  });
+
+  // Push every status change to the application window only.
+  onUpdateStatus((status) => {
+    const window = mainWindow;
+    if (window === null || window.isDestroyed()) return;
+    if (!trustedWebContentsIds.has(window.webContents.id)) return;
+    window.webContents.send(UPDATE_STATUS_EVENT, status);
+  });
 }
 
 async function createMainWindow(): Promise<BrowserWindow> {
@@ -256,7 +297,12 @@ if (!hasSingleInstanceLock) {
     registerApplicationProtocol();
     configureSessionSecurity();
     registerIpc();
+    recordLaunchedVersion(join(app.getPath('userData'), 'last-version.json'), app.getVersion());
     setupAutoUpdater({
+      onResume: (callback) => {
+        powerMonitor.on('resume', callback);
+        powerMonitor.on('unlock-screen', callback);
+      },
       canInstallNow: () => {
         const window = mainWindow;
         const windowInUse =

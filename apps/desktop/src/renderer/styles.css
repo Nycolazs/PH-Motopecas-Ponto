@@ -419,7 +419,178 @@ button:disabled {
 }
 .login-footer {
   position: absolute;
+  right: 16px;
   bottom: 18px;
+  left: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 11px;
+  text-align: center;
+}
+.login-footer p {
+  margin: 0;
+}
+.login-form-panel:has(.app-version) {
+  padding-bottom: 116px;
+}
+
+/* Installed desktop version and automatic update state (login screen). */
+.app-version {
+  --tone: var(--muted);
+  --tone-soft: var(--surface-strong);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+}
+.app-version[data-tone='ok'] {
+  --tone: var(--success);
+  --tone-soft: var(--success-soft);
+}
+.app-version[data-tone='busy'],
+.app-version[data-tone='ready'] {
+  --tone: var(--blue);
+  --tone-soft: var(--blue-soft);
+}
+.app-version[data-tone='warn'] {
+  --tone: var(--warning);
+  --tone-soft: var(--warning-soft);
+}
+.app-version-pill {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  min-height: 34px;
+  padding: 5px 6px 5px 12px;
+  overflow: hidden;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  box-shadow: var(--shadow);
+  font-size: 12px;
+  line-height: 1.2;
+}
+.app-version-dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  background: var(--tone);
+  border-radius: 50%;
+  box-shadow: 0 0 0 3px var(--tone-soft);
+}
+.app-version-spinner {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  color: var(--tone);
+}
+.app-version-number {
+  white-space: nowrap;
+  color: var(--muted);
+}
+.app-version-number strong {
+  color: var(--text);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.app-version-separator {
+  flex: none;
+  width: 1px;
+  height: 14px;
+  background: var(--border-strong);
+}
+.app-version-state {
+  overflow: hidden;
+  color: var(--tone);
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-variant-numeric: tabular-nums;
+}
+.app-version-pill:not(:has(button)) {
+  padding-right: 14px;
+}
+.app-version-action,
+.app-version-icon-button {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  color: var(--text);
+  background: var(--surface-subtle);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+}
+.app-version-action {
+  height: 24px;
+  padding: 0 10px;
+}
+.app-version-icon-button {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  color: var(--muted);
+}
+.app-version-action svg,
+.app-version-icon-button svg {
+  width: 13px;
+  height: 13px;
+}
+.app-version-action:hover,
+.app-version-icon-button:hover {
+  background: var(--surface-strong);
+  border-color: var(--border-strong);
+}
+.app-version-action.primary {
+  /* Same fixed blue as the main "Entrar" button: white text stays readable in both themes. */
+  color: #fff;
+  background: #1d5fa7;
+  border-color: #1d5fa7;
+}
+.app-version-action.primary:hover {
+  background: #174f8d;
+  border-color: #174f8d;
+}
+.app-version-action:focus-visible,
+.app-version-icon-button:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.app-version-action:disabled,
+.app-version-icon-button:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+.app-version-progress {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background: var(--tone-soft);
+}
+.app-version-progress span {
+  display: block;
+  height: 100%;
+  background: var(--tone);
+  transition: width 0.4s ease;
+}
+.app-version-detail {
+  max-width: 360px;
   color: var(--muted);
   font-size: 11px;
 }

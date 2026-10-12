@@ -21,6 +21,7 @@ const { notificationSpy, electronApp, updaterMock } = vi.hoisted(() => {
 
   const appMock = {
     isPackaged: true,
+    getVersion: () => '0.1.8',
   };
 
   const listeners: Record<string, ((...args: unknown[]) => void)[]> = {};
@@ -69,9 +70,21 @@ vi.mock('electron-updater', () => ({
   autoUpdater: updaterMock,
 }));
 
+import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+
 import {
+  checkForUpdatesNow,
+  getUpdateStatus,
   getUpdater,
   IDLE_SECONDS_BEFORE_INSTALL,
+  installUpdateNow,
+  isUnsupportedPlatformError,
+  MANUAL_CHECK_THROTTLE_MS,
+  onUpdateStatus,
+  recordLaunchedVersion,
+  RETRY_AFTER_ERROR_MS,
   INSTALL_POLL_INTERVAL_MS,
   isSafeMomentToInstall,
   resetUpdaterInstanceForTesting,
@@ -203,5 +216,114 @@ describe('Electron Auto-Updater', () => {
   it('safely obtains updater instance through getUpdater', () => {
     const updater = getUpdater();
     expect(updater).toBe(updaterMock);
+  });
+
+  describe('status shown on the login screen', () => {
+    it('reports the whole lifecycle: checking, downloading with progress and ready', () => {
+      const seen: string[] = [];
+      onUpdateStatus((status) => seen.push(`${status.state}:${status.percent ?? '-'}`));
+      setupAutoUpdater({ canInstallNow: () => false });
+
+      expect(getUpdateStatus()).toMatchObject({ state: 'idle', currentVersion: '0.1.8' });
+      updaterMock.emit('checking-for-update');
+      updaterMock.emit('update-available', { version: '0.1.9' });
+      updaterMock.emit('download-progress', { percent: 41.7 });
+      updaterMock.emit('download-progress', { percent: 41.9 });
+      updaterMock.emit('update-downloaded', { version: '0.1.9' });
+
+      expect(seen).toEqual(['checking:-', 'downloading:0', 'downloading:41', 'ready:100']);
+      expect(getUpdateStatus()).toMatchObject({ state: 'ready', availableVersion: '0.1.9' });
+
+      // A later periodic check must not hide the ready update.
+      updaterMock.emit('checking-for-update');
+      updaterMock.emit('error', new Error('offline'));
+      expect(getUpdateStatus().state).toBe('ready');
+    });
+
+    it('marks the app as up to date with the time of the check', () => {
+      setupAutoUpdater();
+      updaterMock.emit('checking-for-update');
+      updaterMock.emit('update-not-available', { version: '0.1.8' });
+      expect(getUpdateStatus().state).toBe('up-to-date');
+      expect(getUpdateStatus().lastCheckedAt).not.toBeNull();
+    });
+
+    it('shows an error and retries sooner than the regular cycle', async () => {
+      setupAutoUpdater();
+      vi.advanceTimersByTime(15_000); // startup check
+      await Promise.resolve();
+      updaterMock.emit('error', new Error('net::ERR_INTERNET_DISCONNECTED'));
+      expect(getUpdateStatus().state).toBe('error');
+
+      updaterMock.checkForUpdates.mockClear();
+      vi.advanceTimersByTime(RETRY_AFTER_ERROR_MS);
+      await Promise.resolve();
+      expect(updaterMock.checkForUpdates).toHaveBeenCalledTimes(1);
+    });
+
+    it('asks for a manual download when macOS refuses an unsigned update', () => {
+      expect(
+        isUnsupportedPlatformError(
+          'darwin',
+          'Could not get code signature for running application',
+        ),
+      ).toBe(true);
+      expect(isUnsupportedPlatformError('win32', 'Could not get code signature')).toBe(false);
+      expect(isUnsupportedPlatformError('darwin', 'net::ERR_TIMED_OUT')).toBe(false);
+    });
+
+    it('installs on demand only when an update is ready', () => {
+      setupAutoUpdater({ canInstallNow: () => false });
+      expect(installUpdateNow()).toBe(false);
+      expect(updaterMock.quitAndInstall).not.toHaveBeenCalled();
+
+      updaterMock.emit('update-downloaded', { version: '0.1.9' });
+      expect(installUpdateNow()).toBe(true);
+      expect(updaterMock.quitAndInstall).toHaveBeenCalledWith(true, true);
+      expect(getUpdateStatus().state).toBe('installing');
+    });
+
+    it('lets the screen force a check, ignoring repeated clicks', async () => {
+      setupAutoUpdater();
+      checkForUpdatesNow();
+      checkForUpdatesNow();
+      await Promise.resolve();
+      expect(updaterMock.checkForUpdates).toHaveBeenCalledTimes(1);
+
+      vi.advanceTimersByTime(MANUAL_CHECK_THROTTLE_MS + 1);
+      checkForUpdatesNow();
+      await Promise.resolve();
+      expect(updaterMock.checkForUpdates).toHaveBeenCalledTimes(2);
+    });
+
+    it('checks again after the computer wakes up', async () => {
+      let resume: (() => void) | undefined;
+      setupAutoUpdater({ onResume: (callback) => (resume = callback) });
+      expect(resume).toBeDefined();
+      resume?.();
+      vi.advanceTimersByTime(20_000);
+      await Promise.resolve();
+      expect(updaterMock.checkForUpdates).toHaveBeenCalledTimes(1);
+    });
+
+    it('remembers the launched version to announce a completed update', () => {
+      const dir = mkdtempSync(join(tmpdir(), 'ph-ponto-version-'));
+      const marker = join(dir, 'last-version.json');
+
+      expect(recordLaunchedVersion(marker, '0.1.8')).toBeNull();
+      expect(recordLaunchedVersion(marker, '0.1.8')).toBeNull();
+      expect(getUpdateStatus().updatedFrom).toBeNull();
+
+      writeFileSync(marker, JSON.stringify({ version: '0.1.7' }));
+      expect(recordLaunchedVersion(marker, '0.1.8')).toBe('0.1.7');
+      expect(getUpdateStatus().updatedFrom).toBe('0.1.7');
+      expect(JSON.parse(readFileSync(marker, 'utf8'))).toEqual({ version: '0.1.8' });
+    });
+
+    it('reports development builds as disabled', () => {
+      electronApp.isPackaged = false;
+      resetUpdaterInstanceForTesting();
+      expect(getUpdateStatus().state).toBe('disabled');
+    });
   });
 });
