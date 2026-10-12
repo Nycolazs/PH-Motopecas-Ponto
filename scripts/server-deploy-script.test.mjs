@@ -17,3 +17,10 @@ test('a deploy is only recorded after the API and the web panel are healthy', ()
   assert.ok(recorded > source.indexOf('<title>PH-Ponto'), 'records after the web panel check');
   assert.match(source, /flock -n 9/);
 });
+
+test('the web panel check waits for nginx instead of trying once', () => {
+  const source = readFileSync(script, 'utf8');
+  const check = source.slice(source.indexOf('web_ok=""'), source.indexOf('[ -n "$web_ok" ]'));
+  assert.match(check, /for _ in \$\(seq 1 \d+\)/);
+  assert.match(check, /sleep \d/);
+});

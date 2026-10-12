@@ -63,7 +63,14 @@ for _ in $(seq 1 90); do
 done
 [ -n "$healthy" ] || fail "API não ficou saudável (último estado: ${status:-desconhecido}). Logs: docker logs $API_CONTAINER"
 
-grep -q "<title>PH-Ponto" <(curl -fsS -m 10 "$WEB_URL" 2>/dev/null) || fail "painel web não respondeu com o PH-Ponto em $WEB_URL"
+# nginx needs a few seconds after the container is recreated; poll instead of a single try
+# (a single try failed right after start and made every deploy retry every 10 minutes).
+web_ok=""
+for _ in $(seq 1 30); do
+  if grep -q "<title>PH-Ponto" <(curl -fsS -m 10 "$WEB_URL" 2>/dev/null); then web_ok="yes"; break; fi
+  sleep 2
+done
+[ -n "$web_ok" ] || fail "painel web não respondeu com o PH-Ponto em $WEB_URL"
 
 echo "$REMOTE_COMMIT" >"$STATE_DIR/deployed-commit"
 rm -f "$STATE_DIR/failed-commit"

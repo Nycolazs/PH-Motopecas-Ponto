@@ -20,6 +20,7 @@ COMPLETED — HR evolution in active local development on `feat/hr-evolution`. P
   - 43 screenshots (`assets/help/*.webp`, 2 MB, bundled so help works offline in the desktop app) captured from a separate demo database (`ph_ponto_demo`, fictitious company/people, never production data) in pt-BR; click to enlarge.
   - Contextual help: "Ajuda desta tela" in the admin top bar and F1 on any screen open the guide of the current route (`help-routes.ts`); 31 "?" hints (`HelpHint`, also `PageHeader help`) explain key features and link to the exact section. Hints sit next to headings, never inside labels, so accessible names are unchanged.
   - Also: the employee header wraps into two rows below 600 px (it overflowed horizontally on phones).
+  - Deploy fix: `ops/server/auto-deploy.sh` checked the web panel once right after recreating the container; the 0.1.9 deploy was marked failed although the site was up, which would have redeployed every 10 minutes. The check now polls for up to 60 s (test in `scripts/server-deploy-script.test.mjs`).
   - Tests: content integrity (unique slugs/sections, every screenshot shipped and used, every route/hint/page-header link resolves for the right audience, search answers everyday questions), search unit tests, help pages (search → section, zoom, audience filtering, "?" popover keyboard/escape, F1). Browser QA on the demo stack in light/dark and 420 px.
 
 - **Login lockout removed (2026-10-12, owner request)**:
