@@ -119,10 +119,6 @@ const rawEnvironmentSchema = z
       .min(3_600)
       .max(7_776_000)
       .default(2_592_000),
-    AUTH_LOGIN_WINDOW_SECONDS: z.coerce.number().int().min(60).max(3_600).default(900),
-    AUTH_LOGIN_MAX_ATTEMPTS: z.coerce.number().int().min(3).max(20).default(5),
-    AUTH_LOGIN_IP_MAX_ATTEMPTS: z.coerce.number().int().min(5).max(500).default(30),
-    AUTH_LOGIN_BLOCK_SECONDS: z.coerce.number().int().min(60).max(86_400).default(900),
     INITIAL_ADMIN_USERNAME: z.string().trim().min(3).max(64).optional(),
     INITIAL_ADMIN_PASSWORD: z.string().min(12).max(256).optional(),
     UPLOAD_DIR: z.string().trim().min(1).max(1_024),

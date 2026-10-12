@@ -220,20 +220,18 @@ describe('authentication and authorization with real PostgreSQL', () => {
     ).toBe(1);
   });
 
-  it('blocks brute-force attempts using privacy-preserving database buckets', async () => {
-    for (let attempt = 0; attempt < 3; attempt += 1) {
+  it('never locks a login out after wrong passwords (no "Muitas tentativas")', async () => {
+    for (let attempt = 0; attempt < 12; attempt += 1) {
       await request(app.getHttpServer())
         .post('/auth/login')
         .send({ login: 'employee.integration', password: 'senha-incorreta' })
         .expect(401);
     }
 
-    const blocked = await request(app.getHttpServer())
-      .post('/auth/login')
-      .send({ login: 'employee.integration', password: EMPLOYEE_PASSWORD })
-      .expect(429);
-    expect(blocked.body.code).toBe('LOGIN_RATE_LIMITED');
-    expect(await prisma.refreshSession.count({ where: { userId: employeeId } })).toBe(0);
-    expect(await prisma.loginThrottle.count()).toBe(2);
+    await login('employee.integration', EMPLOYEE_PASSWORD);
+    expect(await prisma.refreshSession.count({ where: { userId: employeeId } })).toBe(1);
+    expect(
+      await prisma.auditLog.count({ where: { action: AuditAction.LOGIN_FAILED } }),
+    ).toBeGreaterThanOrEqual(12);
   });
 });

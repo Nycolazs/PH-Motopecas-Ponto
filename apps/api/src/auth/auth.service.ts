@@ -15,7 +15,6 @@ import { AUTH_CLOCK, AUTH_CONFIGURATION } from './auth.constants.js';
 import { ClientContextService } from './client-context.service.js';
 import type { AuthClock } from './clock.js';
 import type { LoginDto } from './dto/login.dto.js';
-import { LoginRateLimiterService } from './login-rate-limiter.service.js';
 import { normalizeLogin } from './login-normalization.js';
 import { PasswordService } from './password.service.js';
 import { withSerializableRetry } from './prisma-retry.js';
@@ -97,7 +96,6 @@ export class AuthService {
     @Inject(PrismaService) private readonly prisma: PrismaService,
     @Inject(PasswordService) private readonly passwords: PasswordService,
     @Inject(TokenService) private readonly tokens: TokenService,
-    @Inject(LoginRateLimiterService) private readonly rateLimiter: LoginRateLimiterService,
     @Inject(SessionRevocationService)
     private readonly sessionRevocation: SessionRevocationService,
     @Inject(ClientContextService) private readonly clientContexts: ClientContextService,
@@ -112,13 +110,8 @@ export class AuthService {
     requiredRole?: UserRole,
   ): Promise<AuthResponse> {
     const normalizedLogin = normalizeLogin(input.login);
+    // Privacy-preserving login identifier for failed-login audit entries.
     const loginBucket = this.clientContexts.hashLoginBucket(normalizedLogin);
-    const ipBucket = this.clientContexts.hashIpBucket(context.ipHash);
-    const bucketHashes = [loginBucket, ipBucket];
-    await this.rateLimiter.consume([
-      { keyHash: loginBucket, maxAttempts: this.configuration.loginMaxAttempts },
-      { keyHash: ipBucket, maxAttempts: this.configuration.loginIpMaxAttempts },
-    ]);
 
     const user = await this.prisma.user.findUnique({
       where: { normalizedLogin },
@@ -235,9 +228,6 @@ export class AuthService {
             },
             transaction,
           );
-          await transaction.loginThrottle.deleteMany({
-            where: { keyHash: { in: bucketHashes } },
-          });
           return true;
         },
         { isolationLevel: 'Serializable' },

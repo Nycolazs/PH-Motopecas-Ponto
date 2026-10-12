@@ -36,12 +36,9 @@ export class ClientContextService {
     };
   }
 
+  /** Keyed hash of a login, so failed attempts can be audited without storing the login. */
   public hashLoginBucket(normalizedLogin: string): string {
     return this.hashSensitiveValue('login-throttle', normalizedLogin);
-  }
-
-  public hashIpBucket(ipHash: string): string {
-    return this.hashSensitiveValue('ip-throttle', ipHash);
   }
 
   private hashSensitiveValue(purpose: string, value: string): string {

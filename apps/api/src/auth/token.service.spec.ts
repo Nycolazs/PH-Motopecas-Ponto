@@ -12,9 +12,6 @@ const configuration: AuthConfiguration = {
   accessTtlSeconds: 300,
   refreshIdleTtlSeconds: 604_800,
   refreshAbsoluteTtlSeconds: 2_592_000,
-  loginWindowSeconds: 900,
-  loginMaxAttempts: 5,
-  loginBlockSeconds: 900,
 };
 
 describe('TokenService', () => {

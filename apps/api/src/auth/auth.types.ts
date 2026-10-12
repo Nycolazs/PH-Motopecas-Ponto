@@ -8,11 +8,6 @@ export interface AuthConfiguration {
   accessTtlSeconds: number;
   refreshIdleTtlSeconds: number;
   refreshAbsoluteTtlSeconds: number;
-  loginWindowSeconds: number;
-  loginMaxAttempts: number;
-  /** Failed attempts tolerated from one client IP (a whole store may share one). */
-  loginIpMaxAttempts: number;
-  loginBlockSeconds: number;
 }
 
 export interface AuthenticatedUser {

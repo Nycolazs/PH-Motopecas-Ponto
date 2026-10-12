@@ -26,10 +26,6 @@ const defaultProblems: Record<number, Pick<SafeExceptionPayload, 'code' | 'messa
   [HttpStatus.FORBIDDEN]: { code: 'FORBIDDEN', message: 'Você não tem permissão para esta ação.' },
   [HttpStatus.NOT_FOUND]: { code: 'RESOURCE_NOT_FOUND', message: 'Recurso não encontrado.' },
   [HttpStatus.CONFLICT]: { code: 'CONFLICT', message: 'A solicitação entrou em conflito.' },
-  [HttpStatus.TOO_MANY_REQUESTS]: {
-    code: 'RATE_LIMITED',
-    message: 'Muitas tentativas. Tente novamente em instantes.',
-  },
   [HttpStatus.PAYLOAD_TOO_LARGE]: {
     code: 'PAYLOAD_TOO_LARGE',
     message: 'O arquivo enviado excede o tamanho máximo permitido de 2 MB.',

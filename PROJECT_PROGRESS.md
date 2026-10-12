@@ -14,6 +14,12 @@ COMPLETED — HR evolution in active local development on `feat/hr-evolution`. P
 
 ## Active HR Implementation
 
+- **Login lockout removed (2026-10-12, owner request)**:
+  - "Muitas tentativas. Aguarde alguns instantes e tente novamente." no longer exists for employees or admins. Cause of the reports: failed passwords locked a login after 5 attempts and a whole store PC (shared IP) after 30, for 15 minutes; successful logins reset the counters.
+  - Removed `LoginRateLimiterService`, the `AUTH_LOGIN_*` settings (environment schema, `.env.example`, `docker-compose.yml`), the 429 mapping in the exception filter and the renderer messages; migration `20261012180000_remove_login_throttling` drops `login_throttles`. Failed logins are still written to the audit log with a hashed login. `AGENTS.md` updated so the lockout is not reintroduced.
+  - Trade-off accepted by the owner: passwords on the public login can be guessed without a delay; strong passwords matter more.
+  - Tests: unit specs updated; integration test asserts 12 wrong passwords followed by a successful login; compose test asserts no `AUTH_LOGIN_` settings remain.
+
 - **Desktop 0.1.8: visible automatic updates and installed version on the login screen (2026-10-12)**:
   - The updater (`src/main/auto-updater.ts`) now keeps an `UpdateStatus` (`disabled`/`idle`/`checking`/`up-to-date`/`downloading` with percent/`ready`/`installing`/`manual`/`error`) and pushes every change to the trusted window (`updater:status`); new IPC `updater:get-status`, `updater:check-now` (throttled 30 s), `updater:install-now` (only when an update is downloaded) and `updater:open-download-page` (fixed GitHub releases URL), all behind `assertTrustedSender`, exposed by the preload as `window.phPonto.updates`.
   - Behaviour: download in the background, silent install + relaunch when the window is hidden or the PC is idle for 3 min (unchanged), or immediately via "Atualizar agora"; a failed check is retried after 5 min; a check runs 20 s after the computer wakes up or is unlocked; a ready update is never hidden by later checks. Unsigned macOS builds (Squirrel.Mac requires an Apple signature) switch to `manual` and offer the download page. The launched version is recorded in `userData/last-version.json` so the first launch after an update shows "Atualizado agora (antes vX)".

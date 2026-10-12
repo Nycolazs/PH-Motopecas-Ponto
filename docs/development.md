@@ -44,7 +44,6 @@ pnpm db:seed
 - `JWT_SECRET` and `JWT_REFRESH_SECRET`: independent high-entropy signing secrets.
 - `JWT_ISSUER`, `JWT_AUDIENCE`, and `JWT_ACCESS_TTL_SECONDS`: strict access-token identity and bounded lifetime.
 - `REFRESH_IDLE_TTL_SECONDS` and `REFRESH_ABSOLUTE_TTL_SECONDS`: rotating-session idle and absolute limits.
-- `AUTH_LOGIN_WINDOW_SECONDS`, `AUTH_LOGIN_MAX_ATTEMPTS`, and `AUTH_LOGIN_BLOCK_SECONDS`: database-backed brute-force controls.
 - `APP_TIMEZONE`: required to be `America/Sao_Paulo` initially.
 - `INITIAL_ADMIN_USERNAME` and `INITIAL_ADMIN_PASSWORD`: seed-only initial admin input.
 - `API_BASE_URL`: renderer/API base URL selected per environment.

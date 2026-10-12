@@ -96,7 +96,6 @@ const environment = {
   INITIAL_ADMIN_PASSWORD: 'test-bootstrap-password',
   UPLOAD_DIR: uploadDirectory,
   SWAGGER_ENABLED: 'false',
-  AUTH_LOGIN_MAX_ATTEMPTS: '3',
   APP_TIMEZONE: 'America/Sao_Paulo',
 };
 

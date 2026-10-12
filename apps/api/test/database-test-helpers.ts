@@ -14,7 +14,6 @@ export async function clearApplicationData(prisma: PrismaService): Promise<void>
       "calendar_exceptions",
       "business_schedule_days",
       "business_schedule_versions",
-      "login_throttles",
       "refresh_sessions",
       "avatars",
       "users"

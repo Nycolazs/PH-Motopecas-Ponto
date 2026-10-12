@@ -10,7 +10,6 @@ import { authClockProvider } from './clock.js';
 import { AuthService } from './auth.service.js';
 import { ClientContextService } from './client-context.service.js';
 import { CurrentUserService } from './current-user.service.js';
-import { LoginRateLimiterService } from './login-rate-limiter.service.js';
 import { PasswordService } from './password.service.js';
 import { RolesGuard } from './roles.guard.js';
 import { SessionRevocationService } from './session-revocation.service.js';
@@ -27,7 +26,6 @@ import { WebAuthController } from './web-auth.controller.js';
     AuthService,
     ClientContextService,
     CurrentUserService,
-    LoginRateLimiterService,
     PasswordService,
     SessionRevocationService,
     TokenService,

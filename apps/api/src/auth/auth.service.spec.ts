@@ -1,4 +1,3 @@
-import { HttpException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -7,7 +6,6 @@ import type { PrismaService } from '../database/prisma.service.js';
 import { SessionRevocationReason } from '../generated/prisma/client.js';
 import { AuthService } from './auth.service.js';
 import { ClientContextService } from './client-context.service.js';
-import type { LoginRateLimiterService } from './login-rate-limiter.service.js';
 import type { PasswordService } from './password.service.js';
 import type { SessionRevocationService } from './session-revocation.service.js';
 import { TokenService } from './token.service.js';
@@ -21,9 +19,6 @@ const configuration: AuthConfiguration = {
   accessTtlSeconds: 300,
   refreshIdleTtlSeconds: 604_800,
   refreshAbsoluteTtlSeconds: 2_592_000,
-  loginWindowSeconds: 900,
-  loginMaxAttempts: 5,
-  loginBlockSeconds: 900,
 };
 
 const now = new Date('2026-08-14T12:00:00.000Z');
@@ -61,7 +56,6 @@ function createHarness(
   const refreshCreate = vi.fn().mockResolvedValue({});
   const refreshUpdateMany = vi.fn().mockResolvedValue({ count: options.claimedCount ?? 1 });
   const refreshDelete = vi.fn().mockResolvedValue({});
-  const throttleDeleteMany = vi.fn().mockResolvedValue({ count: 2 });
   const transaction = {
     user: {
       findUnique: vi.fn().mockResolvedValue(
@@ -82,7 +76,6 @@ function createHarness(
       updateMany: refreshUpdateMany,
       delete: refreshDelete,
     },
-    loginThrottle: { deleteMany: throttleDeleteMany },
   };
   const prismaShape = {
     user: { findUnique: userFindUnique },
@@ -96,10 +89,6 @@ function createHarness(
     verifyUnknownLogin: vi.fn().mockResolvedValue(undefined),
     hash: vi.fn().mockResolvedValue('$argon2id$replacement'),
   };
-  const rateLimiterShape = {
-    consume: vi.fn().mockResolvedValue(undefined),
-    clear: vi.fn().mockResolvedValue(undefined),
-  };
   const revocationShape = {
     revokeFamily: vi.fn().mockResolvedValue(2),
     revokeAllForUser: vi.fn().mockResolvedValue(2),
@@ -112,7 +101,6 @@ function createHarness(
     prismaShape as unknown as PrismaService,
     passwordShape as unknown as PasswordService,
     tokens,
-    rateLimiterShape as unknown as LoginRateLimiterService,
     revocationShape as unknown as SessionRevocationService,
     clientContexts,
     auditShape as unknown as AuditService,
@@ -129,9 +117,7 @@ function createHarness(
     refreshCreate,
     refreshUpdateMany,
     refreshDelete,
-    throttleDeleteMany,
     passwordShape,
-    rateLimiterShape,
     revocationShape,
     auditShape,
   };
@@ -158,7 +144,6 @@ describe('AuthService', () => {
         data: expect.objectContaining({ deviceName: 'Recepção', userId: activeUser.id }),
       }),
     );
-    expect(harness.throttleDeleteMany).toHaveBeenCalledOnce();
     expect(harness.auditShape.record).toHaveBeenCalledWith(
       expect.objectContaining({ action: 'LOGIN_SUCCEEDED', actorId: activeUser.id }),
       harness.transaction,
@@ -181,19 +166,6 @@ describe('AuthService', () => {
     expect(harness.auditShape.record).toHaveBeenCalledWith(
       expect.objectContaining({ action: 'LOGIN_FAILED', outcome: 'FAILURE' }),
     );
-  });
-
-  it('stops before credential lookup when a throttle bucket is blocked', async () => {
-    const harness = createHarness();
-    harness.rateLimiterShape.consume.mockRejectedValueOnce(
-      new HttpException({ code: 'LOGIN_RATE_LIMITED' }, 429),
-    );
-
-    await expect(
-      harness.service.login({ login: 'ana.souza', password: 'senha' }, context),
-    ).rejects.toMatchObject({ status: 429 });
-    expect(harness.userFindUnique).not.toHaveBeenCalled();
-    expect(harness.passwordShape.verify).not.toHaveBeenCalled();
   });
 
   it('does not create a session when the identity changes during password verification', async () => {

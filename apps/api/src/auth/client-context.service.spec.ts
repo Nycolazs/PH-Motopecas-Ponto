@@ -30,8 +30,9 @@ describe('ClientContextService', () => {
     expect(context.ipHash).not.toContain('203.0.113.8');
   });
 
-  it('domain-separates throttle buckets', () => {
-    const value = 'same-value';
-    expect(service.hashLoginBucket(value)).not.toBe(service.hashIpBucket(value));
+  it('hashes logins for audit without exposing them', () => {
+    const bucket = service.hashLoginBucket('ana.souza');
+    expect(bucket).toMatch(/^[a-f0-9]{64}$/);
+    expect(bucket).not.toContain('ana.souza');
   });
 });

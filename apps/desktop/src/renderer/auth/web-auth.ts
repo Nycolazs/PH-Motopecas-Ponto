@@ -76,16 +76,10 @@ async function handleApiResponse(response: Response): Promise<ApiAuthResponse> {
     }
 
     const isAuth = response.status === 401 || errorData?.code === 'INVALID_CREDENTIALS';
-    const isRate =
-      response.status === 429 ||
-      errorData?.code === 'RATE_LIMITED' ||
-      errorData?.code === 'LOGIN_RATE_LIMITED';
 
     const message = isAuth
       ? 'Login ou senha inválidos.'
-      : isRate
-        ? 'Muitas tentativas. Aguarde alguns instantes e tente novamente.'
-        : errorData?.message || 'Não foi possível entrar. Verifique os dados e tente novamente.';
+      : errorData?.message || 'Não foi possível entrar. Verifique os dados e tente novamente.';
 
     const error = new Error(message) as WebAuthError;
     error.status = response.status;

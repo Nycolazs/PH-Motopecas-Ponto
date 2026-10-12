@@ -9,9 +9,6 @@ export function authErrorMessage(error: unknown): string {
   if (/INVALID_CREDENTIALS|Login ou senha inválidos/i.test(searchable)) {
     return 'Login ou senha inválidos.';
   }
-  if (/RATE_LIMITED|LOGIN_RATE_LIMITED|Muitas tentativas/i.test(searchable)) {
-    return 'Muitas tentativas. Aguarde alguns instantes e tente novamente.';
-  }
   if (/Acesso restrito/i.test(searchable)) {
     return message;
   }

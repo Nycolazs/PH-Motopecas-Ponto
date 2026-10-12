@@ -39,7 +39,8 @@ Before inspecting or changing project code, read this file and `PROJECT_PROGRESS
 ## Security and data
 
 - Hash passwords with Argon2id. Never log credentials, tokens, hashes, or secret configuration.
-- Enforce inactive-user checks, rate limiting, rotating refresh sessions, logout revocation, RBAC, ownership checks, and last-active-admin protection in the API.
+- Enforce inactive-user checks, rotating refresh sessions, logout revocation, RBAC, ownership checks, and last-active-admin protection in the API.
+- Do not lock logins after failed attempts ("Muitas tentativas"): the owner removed login throttling for employees and admins on 2026-10-12. Failed logins are only audited.
 - Validate avatar content, MIME type, dimensions, size, generated filenames, and storage paths.
 - Audit important admin and authentication actions without exposing audit mutation through normal application operations.
 - Do not claim regulatory certification or REP-P compliance.

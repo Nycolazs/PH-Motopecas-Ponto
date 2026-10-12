@@ -10,7 +10,6 @@ process.env.JWT_REFRESH_SECRET ??= 'test-refresh-secret-with-at-least-32-charact
 process.env.DOCUMENTS_ENCRYPTION_KEY ??= 'dGVzdC1kb2N1bWVudHMta2V5LTMyLWJ5dGVzLWxvbmc=';
 process.env.INITIAL_ADMIN_USERNAME ??= 'admin';
 process.env.INITIAL_ADMIN_PASSWORD ??= 'test-bootstrap-password';
-process.env.AUTH_LOGIN_MAX_ATTEMPTS ??= '3';
 process.env.UPLOAD_DIR ??= join(tmpdir(), 'ph-ponto-api-integration-uploads');
 process.env.SWAGGER_ENABLED ??= 'false';
 process.env.APP_TIMEZONE = 'America/Sao_Paulo';

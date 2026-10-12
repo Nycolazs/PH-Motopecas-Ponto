@@ -16,9 +16,5 @@ export const authConfigurationProvider: FactoryProvider<AuthConfiguration> = {
     accessTtlSeconds: config.get('JWT_ACCESS_TTL_SECONDS', { infer: true }),
     refreshIdleTtlSeconds: config.get('REFRESH_IDLE_TTL_SECONDS', { infer: true }),
     refreshAbsoluteTtlSeconds: config.get('REFRESH_ABSOLUTE_TTL_SECONDS', { infer: true }),
-    loginWindowSeconds: config.get('AUTH_LOGIN_WINDOW_SECONDS', { infer: true }),
-    loginMaxAttempts: config.get('AUTH_LOGIN_MAX_ATTEMPTS', { infer: true }),
-    loginIpMaxAttempts: config.get('AUTH_LOGIN_IP_MAX_ATTEMPTS', { infer: true }),
-    loginBlockSeconds: config.get('AUTH_LOGIN_BLOCK_SECONDS', { infer: true }),
   }),
 };
