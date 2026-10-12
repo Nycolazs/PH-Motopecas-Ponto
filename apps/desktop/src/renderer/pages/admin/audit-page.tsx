@@ -22,6 +22,7 @@ import { Pagination } from '../../components/pagination.js';
 import { SelectInput } from '../../components/select-input.js';
 import { StatusBadge } from '../../components/status-badge.js';
 import { formatDateBR, formatDateTimeBR, formatDisplayName } from '../../lib/format.js';
+import { HelpHint } from '../../help/help-hint.js';
 
 export const ACTION_LABELS: Record<string, string> = {
   LOGIN_SUCCEEDED: 'Login efetuado com sucesso',
@@ -421,10 +422,20 @@ export function AdminAuditPage(): React.JSX.Element {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs">
         <div>
-          <h1 className="text-xl font-bold text-slate-900 dark:text-white flex items-center">
-            <ScrollText className="w-5 h-5 mr-2.5 text-blue-600 dark:text-blue-400" /> Registro de
-            Auditoria
-          </h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl font-bold text-slate-900 dark:text-white flex items-center">
+              <ScrollText className="w-5 h-5 mr-2.5 text-blue-600 dark:text-blue-400" /> Registro de
+              Auditoria
+            </h1>
+            <HelpHint
+              article="trilha-de-auditoria"
+              section="consultar"
+              title="Para que serve a auditoria?"
+            >
+              Registra quem fez cada ação importante, quando e por quê, como correções de ponto e
+              redefinições de senha. Ninguém consegue editar ou apagar esses registros.
+            </HelpHint>
+          </div>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
             Trilha completa e imutável de todas as ações administrativas, alterações de pontos e
             eventos de segurança

@@ -18,6 +18,7 @@ import {
 import { Link } from 'react-router-dom';
 
 import { RecentDocumentsPanel } from './recent-documents-panel.js';
+import { HelpHint } from '../../help/help-hint.js';
 
 export type TemplateCategory = 'EMPRESA' | 'ADMISSAO' | 'DISCIPLINA' | 'DESEMPENHO' | 'PONTO';
 
@@ -228,10 +229,20 @@ export function DocumentsHubPage(): React.JSX.Element {
       {/* Header */}
       <div className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900 lg:flex-row lg:items-center lg:justify-between">
         <div className="min-w-0">
-          <h1 className="flex items-center gap-2 text-xl font-bold text-slate-900 dark:text-white">
-            <FolderArchive className="h-5 w-5 text-blue-600" aria-hidden="true" />
-            Documentos & RH
-          </h1>
+          <div className="flex items-center gap-2">
+            <h1 className="flex items-center gap-2 text-xl font-bold text-slate-900 dark:text-white">
+              <FolderArchive className="h-5 w-5 text-blue-600" aria-hidden="true" />
+              Documentos & RH
+            </h1>
+            <HelpHint
+              article="documentos-e-rh"
+              section="previa"
+              title="Como funcionam os documentos?"
+            >
+              Preencha o modelo, clique em Visualizar para ver a prévia e depois salve ou use
+              Imprimir e Salvar. Só o que você salva fica no arquivo criptografado.
+            </HelpHint>
+          </div>
           <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
             Escolha o documento que deseja criar. Tudo o que for emitido fica guardado em Documentos
             emitidos.

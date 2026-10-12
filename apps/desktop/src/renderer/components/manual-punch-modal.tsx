@@ -7,6 +7,7 @@ import type { ManagedUser, DailyAttendance } from '../api/contracts.js';
 import { Modal } from './modal.js';
 import { SelectInput } from './select-input.js';
 import { formatDateBR, formatDisplayName } from '../lib/format.js';
+import { HelpHint } from '../help/help-hint.js';
 
 export interface ManualPunchModalProps {
   isOpen: boolean;
@@ -269,6 +270,14 @@ export function ManualPunchModal({
           <span className="text-[11px] text-slate-500 block -mt-1">
             O tipo de batida (Entrada/Saída) é calculado automaticamente pela sequência cronológica
             do dia.
+            <HelpHint
+              article="registros-de-ponto"
+              section="inserir-manual"
+              title="Entrada ou saída?"
+            >
+              Não precisa escolher: as batidas se alternam pela ordem do dia. A justificativa é
+              obrigatória e fica no histórico e na auditoria.
+            </HelpHint>
           </span>
 
           <div>

@@ -448,6 +448,12 @@ export function DisciplineDocumentPage(): React.JSX.Element {
     <div className="space-y-5 pb-6">
       <PageHeader
         title={pageTitle}
+        help={{
+          article: 'medidas-disciplinares',
+          section: 'emitir',
+          title: 'Qual medida usar?',
+          text: 'Advertência verbal para faltas leves, advertência escrita na reincidência e suspensão (até 30 dias) para faltas graves. Descreva os fatos com data e local.',
+        }}
         icon={ShieldAlert}
         backTo="/admin/documentos/gerar"
         backLabel="Documentos & RH"

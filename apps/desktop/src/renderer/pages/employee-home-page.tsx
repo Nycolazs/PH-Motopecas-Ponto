@@ -47,6 +47,7 @@ import { AvatarImage } from '../components/avatar-image.js';
 import { AvatarModal } from '../components/avatar-modal.js';
 import { RequestAdjustmentModal } from '../components/request-adjustment-modal.js';
 import { MyAdjustmentRequestsModal } from '../components/my-adjustment-requests-modal.js';
+import { HelpHint } from '../help/help-hint.js';
 
 function TodayTimeline({
   day,
@@ -279,7 +280,13 @@ export function EmployeeHomePage(): React.JSX.Element {
           <div>
             <p className="eyebrow">Status atual</p>
             <span className={`state-pill ${dailyStateTone(day)}`}>{dailyStateLabel(day)}</span>
-            <h2 id="punch-title">Registre seu horário</h2>
+            <div className="flex items-center gap-2">
+              <h2 id="punch-title">Registre seu horário</h2>
+              <HelpHint article="bater-ponto" section="registrar" title="Como bater o ponto?">
+                Clique em Bater ponto. Não precisa escolher entrada ou saída: o sistema alterna
+                sozinho. O horário é o do servidor da empresa.
+              </HelpHint>
+            </div>
             <p>O servidor confirma o horário oficial de cada registro.</p>
           </div>
           <button
@@ -322,7 +329,13 @@ export function EmployeeHomePage(): React.JSX.Element {
           <div className="panel-heading">
             <div>
               <p className="eyebrow">Linha do tempo</p>
-              <h2 id="timeline-title">Registros de hoje</h2>
+              <div className="flex items-center gap-2">
+                <h2 id="timeline-title">Registros de hoje</h2>
+                <HelpHint article="pedir-ajuste" section="pedir" title="Bati no horário errado">
+                  Clique no lápis ao lado da batida, informe o horário certo e o motivo. O
+                  administrador avalia e você acompanha em Minhas Solicitações.
+                </HelpHint>
+              </div>
             </div>
             <div className="flex items-center gap-2">
               <button

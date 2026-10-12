@@ -1400,6 +1400,29 @@ button:disabled {
   }
 }
 
+/* Narrow screens (employee web on a phone): logo and buttons on top, menu below. */
+@media (max-width: 600px) {
+  .app-header {
+    grid-template-columns: auto 1fr;
+    grid-template-areas:
+      'brand actions'
+      'nav nav';
+    row-gap: 8px;
+    padding: 10px 14px;
+  }
+  .app-header > :first-child {
+    grid-area: brand;
+  }
+  .app-header nav {
+    grid-area: nav;
+    justify-self: center;
+  }
+  .app-header .header-actions {
+    grid-area: actions;
+    gap: 6px;
+  }
+}
+
 @media (max-width: 470px) {
   .app-header nav a {
     font-size: 0;

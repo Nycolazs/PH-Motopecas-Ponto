@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Clock3, History, KeyRound, LogOut, RotateCw, WifiOff } from 'lucide-react';
+import { CircleHelp, Clock3, History, KeyRound, LogOut, RotateCw, WifiOff } from 'lucide-react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 
 import { useAuth } from '../auth/use-auth.js';
@@ -8,6 +8,7 @@ import { usePostPunchIdleLogout } from '../auth/use-post-punch-idle-logout.js';
 import { Brand } from './brand.js';
 import { ChangePasswordModal } from './change-password-modal.js';
 import { ThemeButton } from './theme-button.js';
+import { useHelpShortcut } from '../help/use-help-shortcut.js';
 import { useToast } from './toast-context.js';
 
 function useOnline(): boolean {
@@ -26,6 +27,7 @@ function useOnline(): boolean {
 }
 
 export function EmployeeLayout(): React.JSX.Element {
+  useHelpShortcut();
   const { logout, session } = useAuth();
   const location = useLocation();
   const onPunchSuccess = usePostPunchIdleLogout(
@@ -63,6 +65,9 @@ export function EmployeeLayout(): React.JSX.Element {
           </NavLink>
           <NavLink to="/historico">
             <History aria-hidden="true" /> Histórico
+          </NavLink>
+          <NavLink to="/ajuda">
+            <CircleHelp aria-hidden="true" /> Ajuda
           </NavLink>
         </nav>
         <div className="header-actions">

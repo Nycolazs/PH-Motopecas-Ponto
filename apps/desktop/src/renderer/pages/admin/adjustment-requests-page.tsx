@@ -14,6 +14,7 @@ import {
   formatInstantDateTime,
   formatInstantTime,
 } from '../../lib/format.js';
+import { HelpHint } from '../../help/help-hint.js';
 
 export function AdjustmentRequestsPage(): React.JSX.Element {
   const api = useApiClient();
@@ -114,9 +115,19 @@ export function AdjustmentRequestsPage(): React.JSX.Element {
       {/* Header */}
       <div className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <h1 className="text-xl font-bold text-slate-900 dark:text-white">
-            Solicitações de Ajuste de Ponto
-          </h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl font-bold text-slate-900 dark:text-white">
+              Solicitações de Ajuste de Ponto
+            </h1>
+            <HelpHint
+              article="solicitacoes-de-ajuste"
+              section="avaliar"
+              title="Como avaliar um pedido?"
+            >
+              Compare o horário atual com o solicitado e leia o motivo. Ao aprovar, o ponto é
+              corrigido e as horas são recalculadas; ao recusar, o ponto original continua valendo.
+            </HelpHint>
+          </div>
           <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
             Pedidos de correção de ponto enviados pelos colaboradores.
           </p>

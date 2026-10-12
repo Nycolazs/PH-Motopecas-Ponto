@@ -52,6 +52,7 @@ Before inspecting or changing project code, read this file and `PROJECT_PROGRESS
 - Run the smallest relevant checks during development and `pnpm check` before release.
 - Validate important UI states: loading, empty, error, offline, unavailable API, expired session, forbidden, saving, and success.
 - Review keyboard access, visible focus, semantic labels, contrast, and 1366x768 usability.
+- Keep the in-app help current: when a screen, button label or flow changes, update its guide in `apps/desktop/src/renderer/help/content/` and, if the screen looks different, recapture its screenshot from fictitious demo data (never production data). `help-content.test.ts` checks that every guide, section, "?" hint and screenshot still exists.
 
 ## Local project skills
 

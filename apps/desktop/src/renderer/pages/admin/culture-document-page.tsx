@@ -293,6 +293,12 @@ export function CultureDocumentPage(): React.JSX.Element {
     <div className="space-y-5">
       <PageHeader
         title="Manual de Cultura"
+        help={{
+          article: 'manual-de-cultura',
+          section: 'preencher',
+          title: 'Como montar o manual?',
+          text: 'Escreva a missão e a visão, adicione até 10 valores e clique em Visualizar Prévia em PDF. Ao publicar, uma nova versão é guardada no histórico.',
+        }}
         icon={Sparkles}
         backTo="/admin/documentos/gerar"
         backLabel="Documentos & RH"

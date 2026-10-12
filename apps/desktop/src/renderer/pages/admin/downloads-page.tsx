@@ -10,6 +10,7 @@ import {
   ShieldCheck,
   Terminal,
 } from 'lucide-react';
+import { HelpHint } from '../../help/help-hint.js';
 
 const CURRENT_VERSION = __DESKTOP_VERSION__;
 const GITHUB_REPO = 'Nycolazs/PH-Motopecas-Ponto';
@@ -270,9 +271,19 @@ export function AdminDownloadsPage(): React.JSX.Element {
             <RefreshCw className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-              Atualizações Automáticas
-            </h3>
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                Atualizações Automáticas
+              </h3>
+              <HelpHint
+                article="aplicativo-desktop"
+                section="atualizacoes"
+                title="Preciso atualizar cada computador?"
+              >
+                Não. O aplicativo baixa a versão nova sozinho e instala quando ninguém está usando o
+                computador. A tela de login mostra a versão instalada.
+              </HelpHint>
+            </div>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
               Verificação silenciosa em segundo plano e instalação automática para que o app esteja
               sempre na versão mais recente.

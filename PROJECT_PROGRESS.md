@@ -14,6 +14,14 @@ COMPLETED — HR evolution in active local development on `feat/hr-evolution`. P
 
 ## Active HR Implementation
 
+- **In-app help center, contextual help and screenshots (2026-10-12, desktop 0.1.9)**:
+  - Central de Ajuda for admins (`/admin/ajuda`, sidebar item) and employees (`/ajuda`, "Ajuda" in the app header): accent-insensitive search with everyday synonyms (funcionário ⇄ colaborador, apagar ⇄ anular…) that opens the guide at the matching section, categories, "Primeiros passos" roadmap.
+  - 30 guides (`help/content/*.ts`, pt-BR) covering every screen: onboarding, login, dashboard, painel operacional, registros/inserir/corrigir/anular ponto, solicitações, incompletos, cálculo de horas, colaboradores and ficha, relatórios/espelho, jornadas/feriados/férias, empresa, cargos, administradores, WhatsApp, auditoria, aplicativo/atualizações, every document flow, the employee app (bater ponto, pedir ajuste, histórico, senha) and two FAQs. Each guide has numbered steps, tips/warnings, related guides and an "Abrir <tela>" button; employees only see their guides.
+  - 43 screenshots (`assets/help/*.webp`, 2 MB, bundled so help works offline in the desktop app) captured from a separate demo database (`ph_ponto_demo`, fictitious company/people, never production data) in pt-BR; click to enlarge.
+  - Contextual help: "Ajuda desta tela" in the admin top bar and F1 on any screen open the guide of the current route (`help-routes.ts`); 31 "?" hints (`HelpHint`, also `PageHeader help`) explain key features and link to the exact section. Hints sit next to headings, never inside labels, so accessible names are unchanged.
+  - Also: the employee header wraps into two rows below 600 px (it overflowed horizontally on phones).
+  - Tests: content integrity (unique slugs/sections, every screenshot shipped and used, every route/hint/page-header link resolves for the right audience, search answers everyday questions), search unit tests, help pages (search → section, zoom, audience filtering, "?" popover keyboard/escape, F1). Browser QA on the demo stack in light/dark and 420 px.
+
 - **Login lockout removed (2026-10-12, owner request)**:
   - "Muitas tentativas. Aguarde alguns instantes e tente novamente." no longer exists for employees or admins. Cause of the reports: failed passwords locked a login after 5 attempts and a whole store PC (shared IP) after 30, for 15 minutes; successful logins reset the counters.
   - Removed `LoginRateLimiterService`, the `AUTH_LOGIN_*` settings (environment schema, `.env.example`, `docker-compose.yml`), the 429 mapping in the exception filter and the renderer messages; migration `20261012180000_remove_login_throttling` drops `login_throttles`. Failed logins are still written to the audit log with a hashed login. `AGENTS.md` updated so the lockout is not reintroduced.

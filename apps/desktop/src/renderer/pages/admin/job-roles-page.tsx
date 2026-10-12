@@ -40,6 +40,12 @@ export function JobRolesPage(): React.JSX.Element {
     <div className="space-y-5">
       <PageHeader
         title="Cargos e Funções"
+        help={{
+          article: 'cargos-e-funcoes',
+          section: 'versoes',
+          title: 'Por que cada mudança vira uma versão?',
+          text: 'Para que os termos de ciência já assinados continuem mostrando o cargo como era na época. A versão mais nova é a que vale para os próximos termos.',
+        }}
         icon={Briefcase}
         description="Atribuições e requisitos de cada cargo. Cada alteração gera uma nova versão, preservando o histórico."
         actions={

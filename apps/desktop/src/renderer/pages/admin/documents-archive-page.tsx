@@ -167,6 +167,12 @@ export function DocumentsArchivePage(): React.JSX.Element {
     <div className="space-y-5">
       <PageHeader
         title="Documentos emitidos"
+        help={{
+          article: 'documentos-emitidos',
+          section: 'anular',
+          title: 'Posso apagar um documento?',
+          text: 'Não. Se foi emitido por engano, use Anular e escreva o motivo: ele continua no arquivo, marcado como Anulado.',
+        }}
         icon={FolderArchive}
         backTo="/admin/documentos/gerar"
         backLabel="Documentos & RH"

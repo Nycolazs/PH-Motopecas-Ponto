@@ -122,6 +122,12 @@ export function CompanyPage(): React.JSX.Element {
     <div className="space-y-5">
       <PageHeader
         title="Minha Empresa"
+        help={{
+          article: 'minha-empresa',
+          section: 'preencher',
+          title: 'Onde esses dados aparecem?',
+          text: 'No cabeçalho de todos os documentos e espelhos de ponto. Documentos já emitidos não mudam; os próximos saem com os dados novos.',
+        }}
         icon={Building2}
         description="Dados cadastrais usados nos cabeçalhos de documentos e relatórios."
         badges={

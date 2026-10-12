@@ -12,6 +12,7 @@ import { PunchCorrectionModal } from '../../components/punch-correction-modal.js
 import { StatusBadge } from '../../components/status-badge.js';
 import { formatDateBR, formatDisplayName } from '../../lib/format.js';
 import { formatMinutesDuration } from '@ph-ponto/shared';
+import { HelpHint } from '../../help/help-hint.js';
 
 function formatTime(isoString?: string | null): string {
   if (!isoString) return '—';
@@ -68,9 +69,20 @@ export function AdminPunchesPage(): React.JSX.Element {
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs">
         <div>
-          <h1 className="text-xl font-bold text-slate-900 dark:text-white flex items-center">
-            <Clock className="w-5 h-5 mr-2 text-blue-600" /> Monitoramento e Ajustes de Ponto
-          </h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl font-bold text-slate-900 dark:text-white flex items-center">
+              <Clock className="w-5 h-5 mr-2 text-blue-600" /> Monitoramento e Ajustes de Ponto
+            </h1>
+            <HelpHint
+              article="registros-de-ponto"
+              section="inserir-manual"
+              title="Como inserir ou corrigir um ponto?"
+            >
+              Use Inserir Ponto Manual para uma batida esquecida e Corrigir (em Ver Batidas) para
+              mudar um horário. A justificativa fica no histórico e a batida original nunca é
+              apagada.
+            </HelpHint>
+          </div>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
             Visualize registros de batida, insira pontos manuais e efetue correções com histórico
           </p>

@@ -21,6 +21,7 @@ import { Link } from 'react-router-dom';
 import type { JobRoleDto } from '../../api/contracts.js';
 import { useAuth } from '../../auth/use-auth.js';
 import { formatDateBR, formatDisplayName, formatInstantTime } from '../../lib/format.js';
+import { HelpHint } from '../../help/help-hint.js';
 
 function formatCNPJ(cnpj?: string | null): string {
   if (!cnpj) return '';
@@ -351,9 +352,20 @@ export function SetupDashboardPage(): React.JSX.Element {
           <div>
             <div className="flex items-center gap-2">
               <Target className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-              <h2 className="text-lg font-bold text-slate-900 dark:text-white">
-                Metas & Indicadores de Gestão
-              </h2>
+              <div className="flex items-center gap-2">
+                <h2 className="text-lg font-bold text-slate-900 dark:text-white">
+                  Metas & Indicadores de Gestão
+                </h2>
+                <HelpHint
+                  article="inicio-e-metas"
+                  section="metas"
+                  title="Como são calculadas as metas?"
+                >
+                  Cada meta compara a situação atual da equipe com o alvo: presença do dia,
+                  registros sem pendências, termos assinados e avaliações feitas. Use os atalhos de
+                  cada meta para agir.
+                </HelpHint>
+              </div>
             </div>
             <p className="text-sm text-slate-500 dark:text-slate-400">
               Diretrizes operacionais e metas de excelência para a equipe da PH Motopeças

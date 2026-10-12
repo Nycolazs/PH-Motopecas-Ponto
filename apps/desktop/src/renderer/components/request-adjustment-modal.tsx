@@ -6,6 +6,7 @@ import { useAuth } from '../auth/use-auth.js';
 import { formatDateBR, formatInstantTime } from '../lib/format.js';
 import { Modal } from './modal.js';
 import { useToast } from './toast-context.js';
+import { HelpHint } from '../help/help-hint.js';
 
 interface RequestAdjustmentModalProps {
   isOpen: boolean;
@@ -97,6 +98,10 @@ export function RequestAdjustmentModal({
         <p className="text-xs text-slate-500 dark:text-slate-400">
           Caso tenha registrado o horário incorretamente, informe o horário real e a justificativa
           para avaliação da administração.
+          <HelpHint article="pedir-ajuste" section="esqueci" title="E se eu não bati nenhuma vez?">
+            Este pedido corrige uma batida que existe. Se você não bateu, avise o administrador para
+            ele inserir a batida que faltou.
+          </HelpHint>
         </p>
 
         {errorMessage && (

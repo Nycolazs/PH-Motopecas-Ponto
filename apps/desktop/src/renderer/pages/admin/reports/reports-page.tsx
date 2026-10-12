@@ -40,6 +40,7 @@ import {
   type ReportView,
 } from './report-model.js';
 import { TeamReportPanel } from './team-report-panel.js';
+import { HelpHint } from '../../../help/help-hint.js';
 
 type PrintJob =
   | { kind: 'team'; report: TimesheetReport }
@@ -327,10 +328,16 @@ export function AdminReportsPage(): React.JSX.Element {
         {/* Page header: title + actions for the current report */}
         <div className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900 lg:flex-row lg:items-center lg:justify-between">
           <div className="min-w-0">
-            <h1 className="flex items-center gap-2 text-xl font-bold text-slate-900 dark:text-white">
-              <FileText className="h-5 w-5 text-blue-600" aria-hidden="true" />
-              Relatórios de Ponto
-            </h1>
+            <div className="flex items-center gap-2">
+              <h1 className="flex items-center gap-2 text-xl font-bold text-slate-900 dark:text-white">
+                <FileText className="h-5 w-5 text-blue-600" aria-hidden="true" />
+                Relatórios de Ponto
+              </h1>
+              <HelpHint article="relatorios-e-espelho" section="equipe" title="Como fechar o mês?">
+                Escolha o mês, resolva as pendências e confira os saldos. Exportar planilha gera um
+                arquivo para o Excel e Imprimir espelhos gera os espelhos para assinatura.
+              </HelpHint>
+            </div>
             <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
               Feche as horas do período e emita espelhos de ponto para assinatura.
             </p>

@@ -10,6 +10,7 @@ import { Pagination } from '../../components/pagination.js';
 import { StatusBadge } from '../../components/status-badge.js';
 import { useToast } from '../../components/toast-context.js';
 import { formatDateBR } from '../../lib/format.js';
+import { HelpHint } from '../../help/help-hint.js';
 
 export function AdminUsersPage(): React.JSX.Element {
   const api = useApiClient();
@@ -147,9 +148,19 @@ export function AdminUsersPage(): React.JSX.Element {
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs">
         <div>
-          <h1 className="text-xl font-bold text-slate-900 dark:text-white flex items-center">
-            <ShieldCheck className="w-5 h-5 mr-2 text-blue-600" /> Contas de Administrador
-          </h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl font-bold text-slate-900 dark:text-white flex items-center">
+              <ShieldCheck className="w-5 h-5 mr-2 text-blue-600" /> Contas de Administrador
+            </h1>
+            <HelpHint
+              article="administradores"
+              section="senha-desativar"
+              title="Quem deve ser administrador?"
+            >
+              Todo administrador vê e altera tudo no sistema. Crie contas só para quem precisa. O
+              último administrador ativo não pode ser desativado.
+            </HelpHint>
+          </div>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
             Gerencie os acessos com privilégios administrativos ao sistema PH-Ponto
           </p>

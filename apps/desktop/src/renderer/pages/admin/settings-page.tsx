@@ -27,6 +27,7 @@ import { SelectInput } from '../../components/select-input.js';
 import { StatusBadge } from '../../components/status-badge.js';
 import { useToast } from '../../components/toast-context.js';
 import { formatDateBR, formatDisplayName } from '../../lib/format.js';
+import { HelpHint } from '../../help/help-hint.js';
 
 const WEEKDAYS = [
   { key: 'MONDAY', label: 'Segunda-feira', short: 'Segunda' },
@@ -673,9 +674,19 @@ export function AdminSettingsPage(): React.JSX.Element {
           className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-xs tab-transition"
         >
           <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-800">
-            <h2 className="text-base font-bold text-slate-900 dark:text-white">
-              Feriados e Exceções Cadastradas
-            </h2>
+            <div className="flex items-center gap-2">
+              <h2 className="text-base font-bold text-slate-900 dark:text-white">
+                Feriados e Exceções Cadastradas
+              </h2>
+              <HelpHint
+                article="jornadas-e-calendario"
+                section="feriados"
+                title="Feriado, fechado ou horário especial?"
+              >
+                Feriado e Fechado Administrativo zeram as horas esperadas do dia. Horário Especial
+                troca o horário só naquela data, por exemplo abrir só pela manhã.
+              </HelpHint>
+            </div>
             <p className="text-xs text-slate-500">
               Exceções por data sobrepõem os horários semanais padrão
             </p>
@@ -928,6 +939,14 @@ export function AdminSettingsPage(): React.JSX.Element {
               />
               <p className="text-[11px] text-slate-400 mt-1">
                 Data a partir da qual estes horários passam a valer
+                <HelpHint
+                  article="jornadas-e-calendario"
+                  section="nova-jornada"
+                  title="A jornada antiga é perdida?"
+                >
+                  Não. A nova jornada vale a partir desta data; os dias anteriores continuam
+                  calculados com a jornada anterior.
+                </HelpHint>
               </p>
             </div>
             <div>

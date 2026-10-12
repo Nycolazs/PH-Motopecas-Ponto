@@ -17,6 +17,7 @@ import { AvatarImage } from '../../components/avatar-image.js';
 import { MonthPicker } from '../../components/month-picker.js';
 import { formatDateBR, formatDisplayName } from '../../lib/format.js';
 import type { IncompleteAttendanceDayItem } from '../../api/contracts.js';
+import { HelpHint } from '../../help/help-hint.js';
 
 function formatPunchTime(isoString: string): string {
   try {
@@ -85,9 +86,20 @@ export function IncompletePunchesPage(): React.JSX.Element {
               <AlertTriangle className="w-5 h-5" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-slate-900 dark:text-white">
-                Batidas Incompletas
-              </h1>
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl font-bold text-slate-900 dark:text-white">
+                  Batidas Incompletas
+                </h1>
+                <HelpHint
+                  article="espelhos-incompletos"
+                  section="corrigir"
+                  title="O que é um dia incompleto?"
+                >
+                  É um dia com número ímpar de batidas, como entrada sem saída. As horas desse dia
+                  só entram no saldo depois de corrigido. Clique em Corrigir Ponto para inserir a
+                  batida que falta.
+                </HelpHint>
+              </div>
               <p className="text-xs text-slate-500 dark:text-slate-400">
                 Colaboradores com registros pendentes de finalização ou batidas ímpares
               </p>

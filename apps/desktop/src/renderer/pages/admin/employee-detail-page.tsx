@@ -56,6 +56,7 @@ import { Modal } from '../../components/modal.js';
 import { SelectInput } from '../../components/select-input.js';
 import { formatDateBR, formatDisplayName } from '../../lib/format.js';
 import { formatMinutesDuration } from '@ph-ponto/shared';
+import { HelpHint } from '../../help/help-hint.js';
 
 function formatTime(isoString?: string | null): string {
   if (!isoString) return '--:--';
@@ -564,6 +565,15 @@ export function AdminEmployeeDetailPage(): React.JSX.Element {
               </div>
               <span className="text-xs text-slate-400">
                 Atalhos rápidos para emissão de documentos oficiais
+                <HelpHint
+                  article="ficha-do-colaborador"
+                  section="abas"
+                  align="right"
+                  title="O que tem em cada aba?"
+                >
+                  Resumo, ponto do mês, histórico, documentos, avaliações e acesso ao aplicativo. Os
+                  atalhos ao lado já abrem cada documento com este colaborador escolhido.
+                </HelpHint>
               </span>
             </div>
 

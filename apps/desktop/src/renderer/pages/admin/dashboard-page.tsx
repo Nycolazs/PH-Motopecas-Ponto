@@ -24,6 +24,7 @@ import { ManualPunchModal } from '../../components/manual-punch-modal.js';
 import { StatusBadge } from '../../components/status-badge.js';
 import { formatDateBR, formatDisplayName } from '../../lib/format.js';
 import { formatMinutesDuration } from '@ph-ponto/shared';
+import { HelpHint } from '../../help/help-hint.js';
 
 export { formatDisplayName };
 
@@ -128,7 +129,13 @@ export function AdminDashboardPage(): React.JSX.Element {
       {/* Top Banner & Date Selector */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs">
         <div>
-          <h1 className="text-xl font-bold text-slate-900 dark:text-white">Painel Operacional</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl font-bold text-slate-900 dark:text-white">Painel Operacional</h1>
+            <HelpHint article="painel-operacional" section="quadro" title="O que mostra esta tela?">
+              A situação de cada colaborador agora: trabalhando, em almoço ou ainda não iniciou, com
+              as horas e o saldo do dia. Use os filtros para separar os grupos.
+            </HelpHint>
+          </div>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
             Acompanhamento em tempo real de presença, batidas e jornada de trabalho
           </p>

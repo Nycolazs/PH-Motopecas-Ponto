@@ -28,6 +28,7 @@ import { FeedbackPanel } from '../../components/feedback-panel.js';
 import { PageHeader, headerButton } from '../../components/page-header.js';
 import { useToast } from '../../components/toast-context.js';
 import { formatDisplayName, formatInstantDateTime } from '../../lib/format.js';
+import { HelpHint } from '../../help/help-hint.js';
 
 const CARD =
   'rounded-xl border border-slate-200 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900';
@@ -313,13 +314,19 @@ function LateArrivalCard({ settings }: { settings: LateArrivalSettings }): React
 
   return (
     <section aria-labelledby="late-title" className={CARD}>
-      <h2
-        id="late-title"
-        className="flex items-center gap-2 text-base font-bold text-slate-900 dark:text-white"
-      >
-        <Clock className="h-4 w-4 text-amber-600" aria-hidden="true" />
-        Regra do atraso
-      </h2>
+      <div className="flex items-center gap-2">
+        <h2
+          id="late-title"
+          className="flex items-center gap-2 text-base font-bold text-slate-900 dark:text-white"
+        >
+          <Clock className="h-4 w-4 text-amber-600" aria-hidden="true" />
+          Regra do atraso
+        </h2>
+        <HelpHint article="alertas-no-whatsapp" section="regra" title="Quando o alerta é enviado?">
+          Quando a primeira entrada do dia passa do horário de abertura mais a tolerância do
+          Regimento Interno. Folgas, feriados e férias não geram alerta.
+        </HelpHint>
+      </div>
       <label className="mt-4 flex cursor-pointer items-center gap-3 text-sm font-medium text-slate-800 dark:text-slate-100">
         <input
           type="checkbox"
@@ -379,13 +386,23 @@ function RecipientsCard({
 }): React.JSX.Element {
   return (
     <section aria-labelledby="recipients-title" className={CARD}>
-      <h2
-        id="recipients-title"
-        className="flex items-center gap-2 text-base font-bold text-slate-900 dark:text-white"
-      >
-        <Users className="h-4 w-4 text-blue-600" aria-hidden="true" />
-        Quem recebe os alertas
-      </h2>
+      <div className="flex items-center gap-2">
+        <h2
+          id="recipients-title"
+          className="flex items-center gap-2 text-base font-bold text-slate-900 dark:text-white"
+        >
+          <Users className="h-4 w-4 text-blue-600" aria-hidden="true" />
+          Quem recebe os alertas
+        </h2>
+        <HelpHint
+          article="alertas-no-whatsapp"
+          section="destinatarios"
+          title="Como cadastrar quem recebe?"
+        >
+          Informe o WhatsApp com DDD de cada administrador, marque Recebe alertas de atraso e salve.
+          Use Testar para confirmar que a mensagem chega.
+        </HelpHint>
+      </div>
       <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
         Informe o WhatsApp de cada administrador que deve ser avisado.
       </p>

@@ -17,6 +17,7 @@ import {
   type HistoryPreset,
 } from '../lib/business-date.js';
 import { formatDateBR, formatInstantTime, formatMinutes } from '../lib/format.js';
+import { HelpHint } from '../help/help-hint.js';
 
 const presetLabels: Record<HistoryPreset, string> = {
   TODAY: 'Hoje',
@@ -104,7 +105,13 @@ export function HistoryPage(): React.JSX.Element {
       <header className="employee-page-heading history-heading">
         <div>
           <p className="eyebrow">Minha jornada</p>
-          <h1>Histórico de pontos</h1>
+          <div className="flex items-center gap-2">
+            <h1>Histórico de pontos</h1>
+            <HelpHint article="meu-historico" section="status" title="O que significa cada status?">
+              Normal, Hora extra, Horas faltantes ou Ponto incompleto. Dias incompletos ficam fora
+              do saldo até serem corrigidos.
+            </HelpHint>
+          </div>
           <p>Consulte seus registros, horas esperadas e saldo por período.</p>
         </div>
         <div className="flex items-center gap-3">

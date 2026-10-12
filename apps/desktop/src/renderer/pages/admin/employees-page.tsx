@@ -23,6 +23,7 @@ import { Pagination } from '../../components/pagination.js';
 import { StatusBadge } from '../../components/status-badge.js';
 import { useToast } from '../../components/toast-context.js';
 import { formatDateBR, formatDisplayName } from '../../lib/format.js';
+import { HelpHint } from '../../help/help-hint.js';
 
 export function AdminEmployeesPage(): React.JSX.Element {
   const api = useApiClient();
@@ -154,9 +155,19 @@ export function AdminEmployeesPage(): React.JSX.Element {
       {/* Header with Search & Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs">
         <div>
-          <h1 className="text-xl font-bold text-slate-900 dark:text-white flex items-center">
-            <Users className="w-5 h-5 mr-2 text-blue-600" /> Gestão de Funcionários
-          </h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl font-bold text-slate-900 dark:text-white flex items-center">
+              <Users className="w-5 h-5 mr-2 text-blue-600" /> Gestão de Funcionários
+            </h1>
+            <HelpHint
+              article="colaboradores"
+              section="desativar"
+              title="Posso apagar um colaborador?"
+            >
+              Não: use Desativar. O acesso é bloqueado, mas as batidas e os documentos continuam
+              guardados. Para um desligamento formal, use Desligar Colaborador na ficha.
+            </HelpHint>
+          </div>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
             Cadastre, edite fotos, redefina senhas e controle o acesso da equipe
           </p>
@@ -423,6 +434,10 @@ export function AdminEmployeesPage(): React.JSX.Element {
             />
             <span className="text-[11px] text-slate-500 mt-1 block">
               Será utilizado pelo colaborador para entrar no PH-Ponto.
+              <HelpHint article="colaboradores" section="cadastrar" title="Como escolher o login?">
+                Use algo fácil de lembrar, como nome.sobrenome. A senha inicial pode ser simples:
+                peça para a pessoa trocá-la no aplicativo, pelo ícone de chave.
+              </HelpHint>
             </span>
           </div>
 

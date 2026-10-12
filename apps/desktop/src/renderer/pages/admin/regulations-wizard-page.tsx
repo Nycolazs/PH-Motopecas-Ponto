@@ -34,6 +34,7 @@ import { DateInput } from '../../components/date-input.js';
 import { formatDateBR } from '../../lib/format.js';
 import { DocumentPreviewDialog } from '../../components/document-preview-dialog.js';
 import { useToast } from '../../components/toast-context.js';
+import { HelpHint } from '../../help/help-hint.js';
 
 interface RegulationFormData {
   title: string;
@@ -845,6 +846,15 @@ export function RegulationsWizardPage(): React.JSX.Element {
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   Tolerância de Ponto (minutos) *
+                  <HelpHint
+                    article="regimento-interno"
+                    section="tolerancia"
+                    title="Onde a tolerância é usada?"
+                  >
+                    Nos alertas de atraso do WhatsApp, a partir do dia em que esta versão do
+                    Regimento for publicada. O saldo de horas continua sendo calculado minuto a
+                    minuto.
+                  </HelpHint>
                 </label>
                 <input
                   type="number"

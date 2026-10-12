@@ -424,6 +424,12 @@ export function PerformanceReviewPage(): React.JSX.Element {
     <div className="space-y-6">
       <PageHeader
         title="Avaliação de Desempenho"
+        help={{
+          article: 'avaliacao-de-desempenho',
+          section: 'avaliar',
+          title: 'Como avaliar?',
+          text: 'Dê uma nota de 1 a 5 em cada um dos 8 critérios, registre pontos fortes e o plano de desenvolvimento e gere o PDF. A média aparece em Resultado.',
+        }}
         icon={Award}
         backTo="/admin/documentos/gerar"
         backLabel="Documentos & RH"

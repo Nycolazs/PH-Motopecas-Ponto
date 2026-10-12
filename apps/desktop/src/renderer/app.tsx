@@ -33,6 +33,8 @@ import { DocumentsHubPage } from './pages/admin/documents-hub-page.js';
 import { DisciplineDocumentPage } from './pages/admin/discipline-document-page.js';
 import { PerformanceReviewPage } from './pages/admin/performance-review-page.js';
 import { EmployeeHomePage } from './pages/employee-home-page.js';
+import { HelpArticlePage } from './pages/help/help-article-page.js';
+import { HelpCenterPage } from './pages/help/help-center-page.js';
 import { HistoryPage } from './pages/history-page.js';
 import { LoginPage } from './pages/login-page.js';
 
@@ -77,6 +79,8 @@ function AppRoutes(): React.JSX.Element {
           <Route path="configuracoes" element={<AdminSettingsPage />} />
           <Route path="notificacoes" element={<AdminNotificationsPage />} />
           <Route path="auditoria" element={<AdminAuditPage />} />
+          <Route path="ajuda" element={<HelpCenterPage />} />
+          <Route path="ajuda/:slug" element={<HelpArticlePage />} />
         </Route>
         <Route path="*" element={<Navigate to="/admin" replace />} />
       </Routes>
@@ -89,6 +93,8 @@ function AppRoutes(): React.JSX.Element {
       <Route element={<EmployeeLayout />}>
         <Route index element={<EmployeeHomePage />} />
         <Route path="historico" element={<HistoryPage />} />
+        <Route path="ajuda" element={<HelpCenterPage />} />
+        <Route path="ajuda/:slug" element={<HelpArticlePage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

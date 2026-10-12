@@ -239,6 +239,12 @@ export function AcknowledgmentDocumentPage(): React.JSX.Element {
     <div className="space-y-5">
       <PageHeader
         title={pageTitle}
+        help={{
+          article: 'termos-de-ciencia',
+          section: 'emitir',
+          title: 'Como colher a ciência?',
+          text: 'Escolha o colaborador, visualize o termo e use Imprimir e Salvar. Peça para a pessoa assinar a via impressa.',
+        }}
         icon={FileCheck2}
         backTo="/admin/documentos/gerar"
         backLabel="Documentos & RH"

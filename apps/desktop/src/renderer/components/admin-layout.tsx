@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import {
+  CircleHelp,
+  LifeBuoy,
   AlertTriangle,
   Briefcase,
   Building2,
@@ -18,7 +20,7 @@ import {
   WifiOff,
   MessageCircle,
 } from 'lucide-react';
-import { NavLink, Outlet, useLocation } from 'react-router-dom';
+import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { BUSINESS_TIME_ZONE } from '@ph-ponto/shared';
 
@@ -26,6 +28,8 @@ import { useAuth } from '../auth/use-auth.js';
 import { AvatarImage } from './avatar-image.js';
 import { Brand } from './brand.js';
 import { ThemeButton } from './theme-button.js';
+import { HELP_ADMIN_BASE, helpPathForScreen } from '../help/help-routes.js';
+import { useHelpShortcut } from '../help/use-help-shortcut.js';
 
 function useOnline(): boolean {
   const [online, setOnline] = useState(() =>
@@ -89,6 +93,7 @@ export function AdminLayout(): React.JSX.Element {
   const businessClock = useBusinessClock();
   const location = useLocation();
   const pathname = location.pathname;
+  useHelpShortcut();
   const mainScrollRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -404,6 +409,22 @@ export function AdminLayout(): React.JSX.Element {
           </div>
         </nav>
 
+        <div className="px-3 pb-2">
+          <NavLink
+            to={HELP_ADMIN_BASE}
+            className={({ isActive }) =>
+              `flex items-center px-3 py-2 rounded-xl text-xs sm:text-sm font-medium transition-colors ${
+                isActive || pathname.startsWith(HELP_ADMIN_BASE)
+                  ? 'bg-blue-600 text-white shadow-xs font-semibold'
+                  : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
+              }`
+            }
+          >
+            <LifeBuoy className="w-4 h-4 mr-2.5 shrink-0" aria-hidden="true" />
+            Central de Ajuda
+          </NavLink>
+        </div>
+
         {/* User Profile & Logout */}
         <div className="p-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
           <div className="flex items-center justify-between p-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-2xs">
@@ -448,6 +469,16 @@ export function AdminLayout(): React.JSX.Element {
           </div>
 
           <div className="flex items-center space-x-3">
+            {!pathname.startsWith(HELP_ADMIN_BASE) && (
+              <Link
+                to={helpPathForScreen(HELP_ADMIN_BASE, pathname)}
+                title="Ajuda desta tela (F1)"
+                className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-600 transition-colors hover:border-blue-400 hover:text-blue-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:text-blue-300"
+              >
+                <CircleHelp className="h-4 w-4" aria-hidden="true" />
+                Ajuda desta tela
+              </Link>
+            )}
             <ThemeButton />
           </div>
         </header>

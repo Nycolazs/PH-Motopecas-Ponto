@@ -1,6 +1,8 @@
 import { ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
+import { HelpHint } from '../help/help-hint.js';
+
 interface PageHeaderProps {
   title: string;
   description?: React.ReactNode;
@@ -11,6 +13,8 @@ interface PageHeaderProps {
   actions?: React.ReactNode;
   backTo?: string;
   backLabel?: string;
+  /** "?" next to the title with a quick explanation and a link to the guide. */
+  help?: { article: string; section?: string; title: string; text: string };
 }
 
 /**
@@ -25,6 +29,7 @@ export function PageHeader({
   actions,
   backTo,
   backLabel = 'Voltar',
+  help,
 }: PageHeaderProps): React.JSX.Element {
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900">
@@ -44,6 +49,15 @@ export function PageHeader({
               {Icon && <Icon className="h-5 w-5 shrink-0 text-blue-600" aria-hidden="true" />}
               {title}
             </h1>
+            {help && (
+              <HelpHint
+                article={help.article}
+                {...(help.section ? { section: help.section } : {})}
+                title={help.title}
+              >
+                {help.text}
+              </HelpHint>
+            )}
             {badges}
           </div>
           {description && (

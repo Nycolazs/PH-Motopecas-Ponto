@@ -5,6 +5,7 @@ import { CheckCircle2, FileText, Lock, Printer, RefreshCw, X } from 'lucide-reac
 import { printPdfBlob } from '../lib/pdf.js';
 import { PdfViewer } from './pdf-viewer.js';
 import { useToast } from './toast-context.js';
+import { HelpHint } from '../help/help-hint.js';
 
 interface DocumentPreviewDialogProps {
   isOpen: boolean;
@@ -124,6 +125,14 @@ export function DocumentPreviewDialog({
             <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
             Esta é só uma prévia. O PDF é guardado no arquivo criptografado quando você salva ou
             imprime.
+            <HelpHint
+              article="documentos-e-rh"
+              section="criptografia"
+              title="Onde o PDF fica guardado?"
+            >
+              No servidor, criptografado e organizado por ano e mês. Prévias que não forem salvas
+              são apagadas sozinhas depois de 24 horas.
+            </HelpHint>
           </p>
           <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
             <button
