@@ -10,6 +10,7 @@ import {
   Post,
   Query,
   Req,
+  Res,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -20,7 +21,7 @@ import {
   ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
-import type { Request } from 'express';
+import type { Request, Response } from 'express';
 
 import { CurrentUser, Roles } from '../auth/auth.decorators.js';
 import type { AuthenticatedUser } from '../auth/auth.types.js';
@@ -29,6 +30,7 @@ import {
   CreateAbsenceJustificationDto,
   ListAbsenceJustificationsQueryDto,
   RevokeAbsenceJustificationDto,
+  UploadJustificationAttachmentDto,
 } from './absence-justification.dto.js';
 import {
   AbsenceJustificationListViewDto,
@@ -81,5 +83,46 @@ export class AbsenceJustificationsController {
     @Req() request: Request,
   ): Promise<AbsenceJustificationViewDto> {
     return this.justifications.revoke(actor, id, input, this.clientContext.fromRequest(request));
+  }
+
+  @Post(':id/attachments')
+  @ApiOperation({ summary: 'Anexa a foto ou o PDF de um atestado médico' })
+  @ApiParam({ name: 'id', format: 'uuid' })
+  @ApiBody({ type: UploadJustificationAttachmentDto })
+  @ApiCreatedResponse({ type: AbsenceJustificationViewDto })
+  public addAttachment(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() input: UploadJustificationAttachmentDto,
+    @Req() request: Request,
+  ): Promise<AbsenceJustificationViewDto> {
+    return this.justifications.addAttachment(
+      actor,
+      id,
+      input,
+      this.clientContext.fromRequest(request),
+    );
+  }
+
+  @Get(':id/attachments/:attachmentId')
+  @ApiOperation({ summary: 'Abre a foto ou o PDF de um atestado' })
+  @ApiParam({ name: 'id', format: 'uuid' })
+  @ApiParam({ name: 'attachmentId', format: 'uuid' })
+  @ApiOkResponse({ description: 'Conteúdo do arquivo' })
+  public async readAttachment(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('attachmentId', new ParseUUIDPipe()) attachmentId: string,
+    @Res() response: Response,
+  ): Promise<void> {
+    const file = await this.justifications.readAttachment(id, attachmentId);
+    response.setHeader('Content-Type', file.mimeType);
+    response.setHeader('Content-Length', String(file.contents.length));
+    response.setHeader(
+      'Content-Disposition',
+      `inline; filename="atestado"; filename*=UTF-8''${encodeURIComponent(file.fileName)}`,
+    );
+    response.setHeader('Cache-Control', 'no-store');
+    response.setHeader('X-Content-Type-Options', 'nosniff');
+    response.end(file.contents);
   }
 }

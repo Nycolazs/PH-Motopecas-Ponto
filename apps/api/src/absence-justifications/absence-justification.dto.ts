@@ -68,3 +68,19 @@ export class ListAbsenceJustificationsQueryDto {
   @Matches(DATE_REGEX, { message: 'Data final inválida.' })
   public to?: string;
 }
+
+export class UploadJustificationAttachmentDto {
+  @ApiProperty({ maxLength: 160, example: 'atestado.jpg' })
+  @Transform(trim)
+  @IsString({ message: 'Informe o nome do arquivo.' })
+  @MinLength(1, { message: 'Informe o nome do arquivo.' })
+  @MaxLength(160, { message: 'O nome do arquivo deve ter no máximo 160 caracteres.' })
+  public fileName!: string;
+
+  @ApiProperty({
+    description: 'Conteúdo em Base64 (JPG, PNG, WebP ou PDF; até 7 MB)',
+  })
+  @IsString({ message: 'Envie o conteúdo do arquivo.' })
+  @MinLength(8, { message: 'Envie o conteúdo do arquivo.' })
+  public dataBase64!: string;
+}

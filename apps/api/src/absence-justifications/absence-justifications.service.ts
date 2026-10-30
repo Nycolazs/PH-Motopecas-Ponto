@@ -25,7 +25,13 @@ import type {
   CreateAbsenceJustificationDto,
   ListAbsenceJustificationsQueryDto,
   RevokeAbsenceJustificationDto,
+  UploadJustificationAttachmentDto,
 } from './absence-justification.dto.js';
+import {
+  detectAttachmentMimeType,
+  JustificationAttachmentStorageService,
+  type AttachmentMimeType,
+} from './justification-attachment-storage.service.js';
 import {
   ABSENCE_JUSTIFICATION_INCLUDE,
   countDays,
@@ -36,6 +42,43 @@ import {
 
 /** Longest atestado registered at once; longer leaves go through the INSS. */
 export const MAX_JUSTIFIED_DAYS = 31;
+/** Photos are reduced in the browser; PDFs of scanned atestados rarely exceed this. */
+export const MAX_ATTACHMENT_BYTES = 7 * 1024 * 1024;
+export const MAX_ATTACHMENTS_PER_JUSTIFICATION = 5;
+
+/** Strict Base64 (optionally a data URL); anything else is rejected instead of guessed. */
+export function decodeAttachmentBase64(value: string): Buffer | null {
+  const base64 = value.replace(/^data:[\w/+.-]+;base64,/, '').replace(/\s+/g, '');
+  if (base64.length === 0 || base64.length % 4 !== 0 || !/^[A-Za-z0-9+/]+={0,2}$/.test(base64)) {
+    return null;
+  }
+  return Buffer.from(base64, 'base64');
+}
+
+/** Keeps the name readable but harmless in headers and on disk listings. */
+export function sanitizeAttachmentFileName(name: string, mimeType: AttachmentMimeType): string {
+  const extension =
+    mimeType === 'application/pdf'
+      ? 'pdf'
+      : mimeType === 'image/png'
+        ? 'png'
+        : mimeType === 'image/webp'
+          ? 'webp'
+          : 'jpg';
+  const withoutControls = Array.from(name.split(/[\\/]/).pop() ?? '', (char) => {
+    const code = char.charCodeAt(0);
+    return code < 32 || code === 127 ? ' ' : char;
+  }).join('');
+  const base = withoutControls
+    .normalize('NFC')
+    .replace(/[:*?"<>|]+/g, ' ')
+    .replace(/\.[^.]*$/, '')
+    .replace(/^[.\s]+/, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 150);
+  return `${base || 'atestado'}.${extension}`;
+}
 
 const KIND_LABEL: Record<AbsenceJustificationKind, string> = {
   ALLOWANCE: 'abono',
@@ -52,7 +95,135 @@ export class AbsenceJustificationsService {
   public constructor(
     @Inject(PrismaService) private readonly prisma: PrismaService,
     @Inject(AuditService) private readonly audit: AuditService,
+    @Inject(JustificationAttachmentStorageService)
+    private readonly attachments: JustificationAttachmentStorageService,
   ) {}
+
+  public async addAttachment(
+    actor: AuthenticatedUser,
+    justificationId: string,
+    input: UploadJustificationAttachmentDto,
+    context: ClientContext,
+  ): Promise<AbsenceJustificationViewDto> {
+    const contents = decodeAttachmentBase64(input.dataBase64);
+    if (contents === null || contents.length === 0) {
+      throw new BadRequestException({
+        code: 'INVALID_ATTACHMENT',
+        message: 'Não foi possível ler o arquivo enviado.',
+      });
+    }
+    if (contents.length > MAX_ATTACHMENT_BYTES) {
+      throw new BadRequestException({
+        code: 'ATTACHMENT_TOO_LARGE',
+        message: 'O arquivo pode ter no máximo 7 MB.',
+      });
+    }
+    const mimeType = detectAttachmentMimeType(contents);
+    if (mimeType === null) {
+      throw new BadRequestException({
+        code: 'UNSUPPORTED_ATTACHMENT_TYPE',
+        message: 'Envie uma foto (JPG, PNG ou WebP) ou um PDF.',
+      });
+    }
+
+    const justification = await this.prisma.absenceJustification.findUnique({
+      where: { id: justificationId },
+      select: { id: true, kind: true, revokedAt: true, employeeId: true },
+    });
+    if (justification === null) {
+      throw new NotFoundException({
+        code: 'JUSTIFICATION_NOT_FOUND',
+        message: 'Justificativa não encontrada.',
+      });
+    }
+    if (justification.kind !== AbsenceJustificationKind.MEDICAL_CERTIFICATE) {
+      throw new BadRequestException({
+        code: 'ATTACHMENT_ONLY_FOR_CERTIFICATES',
+        message: 'Arquivos podem ser anexados apenas a atestados médicos.',
+      });
+    }
+    if (justification.revokedAt !== null) {
+      throw new ConflictException({
+        code: 'JUSTIFICATION_ALREADY_REVOKED',
+        message: 'Este atestado foi cancelado; não é possível anexar arquivos.',
+      });
+    }
+
+    const fileName = sanitizeAttachmentFileName(input.fileName, mimeType);
+    const stored = await this.attachments.save(contents, new Date());
+    try {
+      await this.prisma.$transaction(
+        async (tx) => {
+          const count = await tx.absenceJustificationAttachment.count({
+            where: { justificationId },
+          });
+          if (count >= MAX_ATTACHMENTS_PER_JUSTIFICATION) {
+            throw new ConflictException({
+              code: 'TOO_MANY_ATTACHMENTS',
+              message: `Cada atestado aceita até ${MAX_ATTACHMENTS_PER_JUSTIFICATION} arquivos.`,
+            });
+          }
+          await tx.absenceJustificationAttachment.create({
+            data: {
+              id: stored.id,
+              justificationId,
+              fileName,
+              mimeType,
+              byteSize: stored.byteSize,
+              checksumSha256: stored.checksumSha256,
+              storagePath: stored.storagePath,
+              uploadedById: actor.id,
+            },
+          });
+          await this.audit.record(
+            {
+              actorId: actor.id,
+              action: AuditAction.ABSENCE_JUSTIFICATION_ATTACHMENT_ADDED,
+              targetType: AuditTargetType.ABSENCE_JUSTIFICATION,
+              targetId: justificationId,
+              ...context,
+              afterState: {
+                employeeId: justification.employeeId,
+                attachmentId: stored.id,
+                fileName,
+                mimeType,
+                byteSize: stored.byteSize,
+              },
+            },
+            tx,
+          );
+        },
+        { isolationLevel: 'Serializable' },
+      );
+    } catch (error) {
+      await this.attachments.discard(stored.storagePath);
+      throw error;
+    }
+
+    const updated = await this.prisma.absenceJustification.findUniqueOrThrow({
+      where: { id: justificationId },
+      include: ABSENCE_JUSTIFICATION_INCLUDE,
+    });
+    return toAbsenceJustificationView(updated);
+  }
+
+  public async readAttachment(
+    justificationId: string,
+    attachmentId: string,
+  ): Promise<{ contents: Buffer; mimeType: string; fileName: string }> {
+    const attachment = await this.prisma.absenceJustificationAttachment.findFirst({
+      where: { id: attachmentId, justificationId },
+      select: { id: true, storagePath: true, checksumSha256: true, mimeType: true, fileName: true },
+    });
+    if (attachment === null) {
+      throw new NotFoundException({
+        code: 'ATTACHMENT_NOT_FOUND',
+        message: 'Arquivo não encontrado.',
+      });
+    }
+    const contents = await this.attachments.read(attachment);
+    return { contents, mimeType: attachment.mimeType, fileName: attachment.fileName };
+  }
 
   public async create(
     actor: AuthenticatedUser,

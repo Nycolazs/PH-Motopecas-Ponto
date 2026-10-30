@@ -1,4 +1,6 @@
 import { randomUUID } from 'node:crypto';
+import { readdir, readFile } from 'node:fs/promises';
+import { join, resolve } from 'node:path';
 
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import { Test } from '@nestjs/testing';
@@ -287,5 +289,119 @@ describe('abono e atestado (absence justifications) with real PostgreSQL', () =>
       AuditAction.ABSENCE_JUSTIFIED,
       AuditAction.ABSENCE_JUSTIFICATION_REVOKED,
     ]);
+  });
+
+  it('stores atestado photos and PDFs encrypted and serves them back unchanged', async () => {
+    const certificate = await justify({
+      kind: 'MEDICAL_CERTIFICATE',
+      startDate: '2026-01-12',
+      endDate: '2026-01-13',
+      reason: 'Atestado com foto',
+    }).expect(201);
+    const id = certificate.body.id as string;
+    expect(certificate.body.attachments).toEqual([]);
+
+    // A tiny real JPEG and PDF; the type comes from the bytes, not from the name.
+    const jpeg = Buffer.from(
+      '/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wgALCAABAAEBAREA/8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPxA=',
+      'base64',
+    );
+    const pdf = Buffer.from('%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF\n', 'latin1');
+    const upload = (fileName: string, contents: Buffer, target = id) =>
+      asAdmin(http().post(`/absence-justifications/${target}/attachments`)).send({
+        fileName,
+        dataBase64: `data:application/octet-stream;base64,${contents.toString('base64')}`,
+      });
+
+    const withPhoto = await upload('Foto do atestado.HEIC', jpeg).expect(201);
+    expect(withPhoto.body.attachments).toHaveLength(1);
+    expect(withPhoto.body.attachments[0]).toMatchObject({
+      fileName: 'Foto do atestado.jpg',
+      mimeType: 'image/jpeg',
+      byteSize: jpeg.length,
+    });
+    const withPdf = await upload('../../etc/passwd.pdf', pdf).expect(201);
+    const pdfAttachment = withPdf.body.attachments[1];
+    expect(pdfAttachment).toMatchObject({ mimeType: 'application/pdf', fileName: 'passwd.pdf' });
+
+    const served = await asAdmin(
+      http().get(`/absence-justifications/${id}/attachments/${pdfAttachment.id}`),
+    )
+      .buffer(true)
+      .parse((res, done) => {
+        const chunks: Buffer[] = [];
+        res.on('data', (chunk: Buffer) => chunks.push(chunk));
+        res.on('end', () => done(null, Buffer.concat(chunks)));
+      })
+      .expect(200);
+    expect(served.headers['content-type']).toBe('application/pdf');
+    expect(served.headers['cache-control']).toBe('no-store');
+    expect(Buffer.compare(served.body as Buffer, pdf)).toBe(0);
+
+    // On disk the file is encrypted (no PDF header, no plaintext content).
+    const uploadRoot = resolve(process.env.UPLOAD_DIR ?? '', 'justifications');
+    const stored = await prisma.absenceJustificationAttachment.findUniqueOrThrow({
+      where: { id: pdfAttachment.id as string },
+    });
+    const onDisk = await readFile(join(uploadRoot, stored.storagePath));
+    expect(onDisk.subarray(0, 6).toString('ascii')).toBe('PHPDF1');
+    expect(onDisk.includes(Buffer.from('%PDF'))).toBe(false);
+    expect(stored.storagePath).toMatch(/^\d{4}\/\d{2}\/[0-9a-f-]{36}\.enc$/);
+    expect((await readdir(join(uploadRoot, stored.storagePath, '..'))).length).toBeGreaterThan(0);
+
+    await upload('virus.pdf', Buffer.from('MZ not really a pdf'))
+      .expect(400)
+      .expect(({ body }) => expect(body.code).toBe('UNSUPPORTED_ATTACHMENT_TYPE'));
+    await asAdmin(http().post(`/absence-justifications/${id}/attachments`))
+      .send({ fileName: 'x.jpg', dataBase64: 'não é base64!' })
+      .expect(400)
+      .expect(({ body }) => expect(body.code).toBe('INVALID_ATTACHMENT'));
+    await upload('grande.pdf', Buffer.concat([pdf, Buffer.alloc(7 * 1024 * 1024)]))
+      .expect(400)
+      .expect(({ body }) => expect(body.code).toBe('ATTACHMENT_TOO_LARGE'));
+
+    for (let index = 0; index < 3; index += 1) await upload(`extra-${index}.jpg`, jpeg).expect(201);
+    await upload('sexto.jpg', jpeg)
+      .expect(409)
+      .expect(({ body }) => expect(body.code).toBe('TOO_MANY_ATTACHMENTS'));
+
+    await http()
+      .get(`/absence-justifications/${id}/attachments/${pdfAttachment.id}`)
+      .auth(employeeToken, { type: 'bearer' })
+      .expect(403);
+    await asAdmin(http().get(`/absence-justifications/${id}/attachments/${randomUUID()}`)).expect(
+      404,
+    );
+
+    const allowance = await justify({
+      kind: 'ALLOWANCE',
+      startDate: '2026-01-14',
+      endDate: '2026-01-14',
+      reason: 'Abono',
+    }).expect(201);
+    await upload('abono.jpg', jpeg, allowance.body.id as string)
+      .expect(400)
+      .expect(({ body }) => expect(body.code).toBe('ATTACHMENT_ONLY_FOR_CERTIFICATES'));
+
+    await asAdmin(http().post(`/absence-justifications/${id}/revoke`))
+      .send({ reason: 'Teste de cancelamento' })
+      .expect(200);
+    await upload('depois.jpg', jpeg)
+      .expect(409)
+      .expect(({ body }) => expect(body.code).toBe('JUSTIFICATION_ALREADY_REVOKED'));
+    // Cancelling keeps the evidence.
+    const list = await asAdmin(http().get('/absence-justifications'))
+      .query({ employeeId })
+      .expect(200);
+    const cancelled = list.body.items.find((item: { id: string }) => item.id === id);
+    expect(cancelled.attachments).toHaveLength(5);
+    await expect(
+      prisma.absenceJustificationAttachment.delete({ where: { id: pdfAttachment.id as string } }),
+    ).rejects.toThrow();
+    expect(
+      await prisma.auditLog.count({
+        where: { targetId: id, action: AuditAction.ABSENCE_JUSTIFICATION_ATTACHMENT_ADDED },
+      }),
+    ).toBe(5);
   });
 });

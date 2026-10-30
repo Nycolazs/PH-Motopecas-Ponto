@@ -1,12 +1,29 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { BadgeCheck, CalendarCheck, Loader2, Plus, Stethoscope } from 'lucide-react';
+import {
+  BadgeCheck,
+  CalendarCheck,
+  FileText,
+  ImageIcon,
+  Loader2,
+  Paperclip,
+  Plus,
+  Stethoscope,
+} from 'lucide-react';
 
 import { ApiClientError } from '../api/client.js';
-import type { AbsenceJustification } from '../api/contracts.js';
+import type { AbsenceJustification, JustificationAttachment } from '../api/contracts.js';
 import { useApiClient } from '../auth/use-auth.js';
 import { HelpHint } from '../help/help-hint.js';
+import {
+  ATTACHMENT_ACCEPT,
+  AttachmentFileError,
+  formatFileSize,
+  MAX_ATTACHMENTS_PER_CERTIFICATE,
+  prepareAttachment,
+} from '../lib/attachment-files.js';
 import { formatDateBR, formatDisplayName, formatInstantDateTime } from '../lib/format.js';
+import { JustificationAttachmentViewer } from './justification-attachment-viewer.js';
 import { Modal } from './modal.js';
 import { useToast } from './toast-context.js';
 
@@ -30,6 +47,43 @@ export function AbsenceJustificationsCard({
   const [revoking, setRevoking] = useState<AbsenceJustification | null>(null);
   const [revokeReason, setRevokeReason] = useState('');
   const [revokeError, setRevokeError] = useState<string | null>(null);
+  const [viewing, setViewing] = useState<{
+    justificationId: string;
+    attachment: JustificationAttachment;
+  } | null>(null);
+  const [attachingTo, setAttachingTo] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const attach = useMutation({
+    mutationFn: async ({ justificationId, files }: { justificationId: string; files: File[] }) => {
+      for (const file of files) {
+        const prepared = await prepareAttachment(file);
+        await api.uploadJustificationAttachment(justificationId, {
+          fileName: prepared.fileName,
+          dataBase64: prepared.dataBase64,
+        });
+      }
+      return files.length;
+    },
+    onSuccess: (count) => {
+      toast.success(count === 1 ? 'Arquivo anexado ao atestado.' : `${count} arquivos anexados.`);
+      void queryClient.invalidateQueries({ queryKey: ['absence-justifications', employee.id] });
+    },
+    onError: (err) => {
+      toast.error(
+        err instanceof AttachmentFileError || err instanceof ApiClientError
+          ? err.message
+          : 'Não foi possível anexar o arquivo.',
+      );
+      void queryClient.invalidateQueries({ queryKey: ['absence-justifications', employee.id] });
+    },
+    onSettled: () => setAttachingTo(null),
+  });
+
+  const startAttach = (justificationId: string): void => {
+    setAttachingTo(justificationId);
+    fileInputRef.current?.click();
+  };
 
   const list = useQuery({
     queryKey: ['absence-justifications', employee.id],
@@ -121,6 +175,33 @@ export function AbsenceJustificationsCard({
                     <p className="mt-0.5 text-xs text-slate-600 dark:text-slate-300">
                       {item.reason}
                     </p>
+                    {item.attachments.length > 0 && (
+                      <ul
+                        className="mt-1.5 flex flex-wrap gap-1.5"
+                        aria-label="Arquivos do atestado"
+                      >
+                        {item.attachments.map((attachment) => {
+                          const FileIcon =
+                            attachment.mimeType === 'application/pdf' ? FileText : ImageIcon;
+                          return (
+                            <li key={attachment.id}>
+                              <button
+                                type="button"
+                                onClick={() => setViewing({ justificationId: item.id, attachment })}
+                                aria-label={`Abrir ${attachment.fileName}`}
+                                className="inline-flex max-w-[16rem] items-center gap-1.5 rounded-md border border-sky-200 bg-sky-50 px-2 py-1 text-[11px] font-medium text-sky-800 hover:border-sky-400 dark:border-sky-900 dark:bg-sky-950/40 dark:text-sky-200"
+                              >
+                                <FileIcon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                                <span className="truncate">{attachment.fileName}</span>
+                                <span className="shrink-0 text-sky-600/80 dark:text-sky-300/70">
+                                  {formatFileSize(attachment.byteSize)}
+                                </span>
+                              </button>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    )}
                     <p className="mt-0.5 text-[11px] text-slate-400">
                       Registrado por {formatDisplayName(item.createdBy.name)} em{' '}
                       {formatInstantDateTime(item.createdAt)}
@@ -135,24 +216,72 @@ export function AbsenceJustificationsCard({
                   </div>
                 </div>
                 {!cancelled && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setRevoking(item);
-                      setRevokeReason('');
-                      setRevokeError(null);
-                    }}
-                    aria-label={`Cancelar ${isAllowance ? 'abono' : 'atestado'} de ${periodLabel(item)}`}
-                    className="self-start rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:border-rose-300 hover:text-rose-600 dark:border-slate-700 dark:text-slate-300"
-                  >
-                    Cancelar
-                  </button>
+                  <div className="flex shrink-0 gap-2 self-start">
+                    {!isAllowance && item.attachments.length < MAX_ATTACHMENTS_PER_CERTIFICATE && (
+                      <button
+                        type="button"
+                        disabled={attach.isPending}
+                        onClick={() => startAttach(item.id)}
+                        aria-label={`Anexar arquivo ao atestado de ${periodLabel(item)}`}
+                        className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:border-blue-400 hover:text-blue-700 disabled:opacity-60 dark:border-slate-700 dark:text-slate-300"
+                      >
+                        {attach.isPending && attachingTo === item.id ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+                        ) : (
+                          <Paperclip className="h-3.5 w-3.5" aria-hidden="true" />
+                        )}
+                        Anexar
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRevoking(item);
+                        setRevokeReason('');
+                        setRevokeError(null);
+                      }}
+                      aria-label={`Cancelar ${isAllowance ? 'abono' : 'atestado'} de ${periodLabel(item)}`}
+                      className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:border-rose-300 hover:text-rose-600 dark:border-slate-700 dark:text-slate-300"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
                 )}
               </li>
             );
           })}
         </ul>
       )}
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept={ATTACHMENT_ACCEPT}
+        multiple
+        className="sr-only"
+        aria-label="Escolher arquivo para anexar ao atestado"
+        tabIndex={-1}
+        onChange={(event) => {
+          const selected = Array.from(event.target.files ?? []);
+          event.target.value = '';
+          const target = items.find((item) => item.id === attachingTo);
+          if (target === undefined || selected.length === 0) {
+            setAttachingTo(null);
+            return;
+          }
+          const room = MAX_ATTACHMENTS_PER_CERTIFICATE - target.attachments.length;
+          if (selected.length > room) {
+            toast.error(`Cada atestado aceita até ${MAX_ATTACHMENTS_PER_CERTIFICATE} arquivos.`);
+          }
+          attach.mutate({ justificationId: target.id, files: selected.slice(0, room) });
+        }}
+      />
+
+      <JustificationAttachmentViewer
+        justificationId={viewing?.justificationId ?? ''}
+        attachment={viewing?.attachment ?? null}
+        onClose={() => setViewing(null)}
+      />
 
       <Modal
         isOpen={revoking !== null}

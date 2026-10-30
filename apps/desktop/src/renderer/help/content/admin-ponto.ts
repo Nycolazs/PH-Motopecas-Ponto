@@ -397,6 +397,11 @@ export const ADMIN_PUNCH_ARTICLES: HelpArticle[] = [
       'consulta',
       'médico',
       'afastamento',
+      'foto',
+      'anexo',
+      'anexar',
+      'upload',
+      'arquivo',
     ],
     screen: { label: 'Colaboradores', path: '/admin/funcionarios' },
     sections: [
@@ -427,14 +432,15 @@ export const ADMIN_PUNCH_ARTICLES: HelpArticle[] = [
           {
             title: 'Escolha o tipo e o período',
             text: 'Abono pede só o dia. Atestado pede o primeiro dia e quantos dias de afastamento; o sistema mostra até quando ele vale.',
-            image: {
-              key: 'atestado-modal',
-              alt: 'Janela Justificar falta com atestado médico de 3 dias',
-            },
+          },
+          {
+            title: 'Anexe a foto ou o PDF do atestado',
+            text: 'No atestado, clique em Anexar foto ou PDF do atestado e escolha até 5 arquivos (JPG, PNG, WebP ou PDF de até 7 MB). Fotos grandes são reduzidas automaticamente sem perder a leitura.',
+            image: { key: 'atestado-anexo', alt: 'Atestado com a foto anexada antes de salvar' },
           },
           {
             title: 'Escreva o motivo e salve',
-            text: 'No atestado, anote o médico e o CRM. Clique em Abonar dia ou em Registrar atestado.',
+            text: 'Anote o médico e o CRM. Clique em Abonar dia ou em Registrar atestado. Os arquivos são enviados logo em seguida.',
           },
         ],
         tip: 'Em Registros de Ponto, ao filtrar um colaborador, o botão Justificar falta abre a mesma janela já com o dia escolhido.',
@@ -449,9 +455,17 @@ export const ADMIN_PUNCH_ARTICLES: HelpArticle[] = [
         ],
       },
       {
+        id: 'arquivos',
+        title: 'Ver e anexar arquivos depois',
+        image: { key: 'abonos-lista', alt: 'Quadro Abonos e atestados com o arquivo do atestado' },
+        paragraphs: [
+          'No quadro Abonos e atestados, cada atestado mostra seus arquivos. Clique em um deles para abrir: o PDF abre no visualizador de documentos e a foto abre ampliada, com o botão Baixar.',
+          'Esqueceu de anexar? Use Anexar na linha do atestado. Os arquivos ficam guardados no servidor, criptografados, e não podem ser apagados, nem quando o atestado é cancelado.',
+        ],
+      },
+      {
         id: 'cancelar',
         title: 'Cancelar uma justificativa',
-        image: { key: 'abonos-lista', alt: 'Quadro Abonos e atestados com um atestado e um abono' },
         paragraphs: [
           'No quadro Abonos e atestados da ficha, clique em Cancelar e escreva o motivo. O dia volta a contar como falta, mas o registro continua na lista, marcado como Cancelado, com quem cancelou e por quê. Tudo também fica na Trilha de Auditoria.',
         ],

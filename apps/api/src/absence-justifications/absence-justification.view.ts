@@ -14,6 +14,26 @@ export class AbsenceJustificationPersonViewDto {
   public login!: string;
 }
 
+export class AbsenceJustificationAttachmentViewDto {
+  @ApiProperty({ format: 'uuid' })
+  public id!: string;
+
+  @ApiProperty({ example: 'atestado.jpg' })
+  public fileName!: string;
+
+  @ApiProperty({ enum: ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'] })
+  public mimeType!: string;
+
+  @ApiProperty({ example: 845_120 })
+  public byteSize!: number;
+
+  @ApiProperty({ format: 'date-time' })
+  public createdAt!: string;
+
+  @ApiProperty({ type: AbsenceJustificationPersonViewDto })
+  public uploadedBy!: AbsenceJustificationPersonViewDto;
+}
+
 export class AbsenceJustificationViewDto {
   @ApiProperty({ format: 'uuid' })
   public id!: string;
@@ -50,6 +70,9 @@ export class AbsenceJustificationViewDto {
 
   @ApiPropertyOptional({ nullable: true })
   public revokeReason!: string | null;
+
+  @ApiProperty({ type: [AbsenceJustificationAttachmentViewDto] })
+  public attachments!: AbsenceJustificationAttachmentViewDto[];
 }
 
 export class AbsenceJustificationListViewDto {
@@ -75,12 +98,31 @@ export interface AbsenceJustificationEntity {
   employee: Person;
   createdBy: Person;
   revokedBy: Person | null;
+  attachments: {
+    id: string;
+    fileName: string;
+    mimeType: string;
+    byteSize: number;
+    createdAt: Date;
+    uploadedBy: Person;
+  }[];
 }
 
 export const ABSENCE_JUSTIFICATION_INCLUDE = {
   employee: { select: { id: true, name: true, login: true } },
   createdBy: { select: { id: true, name: true, login: true } },
   revokedBy: { select: { id: true, name: true, login: true } },
+  attachments: {
+    orderBy: { createdAt: 'asc' },
+    select: {
+      id: true,
+      fileName: true,
+      mimeType: true,
+      byteSize: true,
+      createdAt: true,
+      uploadedBy: { select: { id: true, name: true, login: true } },
+    },
+  },
 } as const;
 
 export function countDays(startDate: string, endDate: string): number {
@@ -109,5 +151,9 @@ export function toAbsenceJustificationView(
     revokedAt: entity.revokedAt?.toISOString() ?? null,
     revokedBy: entity.revokedBy,
     revokeReason: entity.revokeReason,
+    attachments: entity.attachments.map((attachment) => ({
+      ...attachment,
+      createdAt: attachment.createdAt.toISOString(),
+    })),
   };
 }

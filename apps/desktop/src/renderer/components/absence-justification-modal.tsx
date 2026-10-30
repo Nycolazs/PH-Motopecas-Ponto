@@ -1,10 +1,27 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { BadgeCheck, Info, Loader2, Stethoscope } from 'lucide-react';
+import {
+  BadgeCheck,
+  FileText,
+  ImageIcon,
+  Info,
+  Loader2,
+  Paperclip,
+  Stethoscope,
+  X,
+} from 'lucide-react';
 
 import { ApiClientError } from '../api/client.js';
 import type { AbsenceJustificationKind } from '../api/contracts.js';
 import { useApiClient } from '../auth/use-auth.js';
+import {
+  ATTACHMENT_ACCEPT,
+  AttachmentFileError,
+  formatFileSize,
+  MAX_ATTACHMENTS_PER_CERTIFICATE,
+  prepareAttachment,
+  type PreparedAttachment,
+} from '../lib/attachment-files.js';
 import { formatDateBR, formatDisplayName } from '../lib/format.js';
 import { DateInput } from './date-input.js';
 import { Modal } from './modal.js';
@@ -65,6 +82,10 @@ export function AbsenceJustificationModal({
   const [days, setDays] = useState('1');
   const [reason, setReason] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [files, setFiles] = useState<PreparedAttachment[]>([]);
+  const [preparing, setPreparing] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -75,7 +96,32 @@ export function AbsenceJustificationModal({
     setDays('1');
     setReason('');
     setError(null);
+    setFiles([]);
+    setUploadProgress(null);
   }, [isOpen, initialDate]);
+
+  const addFiles = async (selected: FileList | null): Promise<void> => {
+    if (selected === null || selected.length === 0) return;
+    const room = MAX_ATTACHMENTS_PER_CERTIFICATE - files.length;
+    const chosen = Array.from(selected).slice(0, Math.max(0, room));
+    setPreparing(true);
+    setError(null);
+    const prepared: PreparedAttachment[] = [];
+    try {
+      for (const file of chosen) prepared.push(await prepareAttachment(file));
+      if (selected.length > room) {
+        setError(`Cada atestado aceita até ${MAX_ATTACHMENTS_PER_CERTIFICATE} arquivos.`);
+      }
+    } catch (err) {
+      setError(
+        err instanceof AttachmentFileError ? err.message : 'Não foi possível ler o arquivo.',
+      );
+    } finally {
+      setFiles((current) => [...current, ...prepared]);
+      setPreparing(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
 
   const dayCount = kind === 'ALLOWANCE' ? 1 : Number(days);
   const daysValid =
@@ -84,26 +130,51 @@ export function AbsenceJustificationModal({
   const name = formatDisplayName(employee.name);
 
   const save = useMutation({
-    mutationFn: () =>
-      api.createAbsenceJustification({
+    mutationFn: async () => {
+      const created = await api.createAbsenceJustification({
         employeeId: employee.id,
         kind,
         startDate,
         endDate,
         reason: reason.trim(),
-      }),
-    onSuccess: () => {
+      });
+      // The atestado exists from here on: a failed file is reported, not a failed save.
+      const failed: string[] = [];
+      if (kind === 'MEDICAL_CERTIFICATE') {
+        for (const [index, file] of files.entries()) {
+          setUploadProgress(`Enviando arquivos (${index + 1}/${files.length})…`);
+          try {
+            await api.uploadJustificationAttachment(created.id, {
+              fileName: file.fileName,
+              dataBase64: file.dataBase64,
+            });
+          } catch (err) {
+            failed.push(
+              `${file.fileName}${err instanceof ApiClientError ? ` (${err.message})` : ''}`,
+            );
+          }
+        }
+      }
+      return failed;
+    },
+    onSuccess: (failed) => {
       toast.success(
         kind === 'ALLOWANCE'
           ? `Dia ${formatDateBR(startDate)} abonado para ${name}.`
-          : `Atestado de ${name} registrado.`,
+          : `Atestado de ${name} registrado${files.length > failed.length ? ' com o arquivo anexado' : ''}.`,
       );
+      if (failed.length > 0) {
+        toast.error(
+          `Não foi possível enviar: ${failed.join(', ')}. Anexe de novo pelo quadro Abonos e atestados.`,
+        );
+      }
       // Days, months, reports and dashboards all change.
       void queryClient.invalidateQueries();
       onClose();
     },
     onError: (err) =>
       setError(err instanceof ApiClientError ? err.message : 'Não foi possível salvar.'),
+    onSettled: () => setUploadProgress(null),
   });
 
   const submit = (): void => {
@@ -232,6 +303,72 @@ export function AbsenceJustificationModal({
           />
         </div>
 
+        {kind === 'MEDICAL_CERTIFICATE' && (
+          <div>
+            <p className="mb-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300">
+              Foto ou PDF do atestado{' '}
+              <span className="font-normal text-slate-500">(opcional, até 5 arquivos)</span>
+            </p>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept={ATTACHMENT_ACCEPT}
+              multiple
+              className="sr-only"
+              aria-label="Escolher foto ou PDF do atestado"
+              onChange={(event) => void addFiles(event.target.files)}
+            />
+            {files.length > 0 && (
+              <ul className="mb-2 space-y-1.5">
+                {files.map((file, index) => {
+                  const Icon = file.isImage ? ImageIcon : FileText;
+                  return (
+                    <li
+                      key={`${file.fileName}-${index}`}
+                      className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-xs dark:border-slate-700"
+                    >
+                      <Icon className="h-4 w-4 shrink-0 text-sky-600" aria-hidden="true" />
+                      <span className="min-w-0 flex-1 truncate font-medium text-slate-800 dark:text-slate-100">
+                        {file.fileName}
+                      </span>
+                      <span className="shrink-0 text-slate-500">
+                        {formatFileSize(file.byteSize)}
+                      </span>
+                      <button
+                        type="button"
+                        aria-label={`Remover ${file.fileName}`}
+                        onClick={() => setFiles((current) => current.filter((_, i) => i !== index))}
+                        className="rounded p-0.5 text-slate-400 hover:bg-slate-100 hover:text-rose-600 dark:hover:bg-slate-800"
+                      >
+                        <X className="h-3.5 w-3.5" aria-hidden="true" />
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+            {files.length < MAX_ATTACHMENTS_PER_CERTIFICATE && (
+              <button
+                type="button"
+                disabled={preparing}
+                onClick={() => fileInputRef.current?.click()}
+                className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-slate-300 px-3 py-3 text-xs font-semibold text-slate-600 hover:border-blue-400 hover:text-blue-700 disabled:opacity-60 dark:border-slate-700 dark:text-slate-300"
+              >
+                {preparing ? (
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                ) : (
+                  <Paperclip className="h-4 w-4" aria-hidden="true" />
+                )}
+                {files.length === 0 ? 'Anexar foto ou PDF do atestado' : 'Anexar outro arquivo'}
+              </button>
+            )}
+            <p className="mt-1 text-[11px] text-slate-500">
+              Fica guardado no servidor, criptografado. Fotos grandes são reduzidas sem perder a
+              leitura.
+            </p>
+          </div>
+        )}
+
         <p className="flex gap-2 rounded-lg bg-slate-50 p-3 text-xs leading-relaxed text-slate-600 dark:bg-slate-800/60 dark:text-slate-300">
           <Info className="mt-0.5 h-4 w-4 shrink-0 text-blue-500" aria-hidden="true" />
           As horas que faltaram {kind === 'ALLOWANCE' ? 'neste dia' : 'nesses dias'} não serão
@@ -255,11 +392,11 @@ export function AbsenceJustificationModal({
           </button>
           <button
             type="submit"
-            disabled={save.isPending}
+            disabled={save.isPending || preparing}
             className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
           >
             {save.isPending && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
-            {kind === 'ALLOWANCE' ? 'Abonar dia' : 'Registrar atestado'}
+            {uploadProgress ?? (kind === 'ALLOWANCE' ? 'Abonar dia' : 'Registrar atestado')}
           </button>
         </div>
       </form>

@@ -22,7 +22,7 @@ const DEFAULT_SIZE = { width: 1366, height: 768 } as const;
 /** Screenshots that are crops instead of a full 1366x768 window. */
 const SIZE_OVERRIDES: Record<string, { width: number; height: number }> = {
   'app-versao': { width: 385, height: 96 },
-  'abonos-lista': { width: 1078, height: 401 },
+  'abonos-lista': { width: 1078, height: 359 },
 };
 
 /** Intrinsic size, so the page does not jump while screenshots load. */

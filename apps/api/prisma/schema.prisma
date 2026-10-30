@@ -148,6 +148,7 @@ enum AuditAction {
   VACATION_DELETED
   ABSENCE_JUSTIFIED
   ABSENCE_JUSTIFICATION_REVOKED
+  ABSENCE_JUSTIFICATION_ATTACHMENT_ADDED
   COMPANY_UPDATED
   JOB_ROLE_CREATED
   JOB_ROLE_UPDATED
@@ -278,6 +279,7 @@ model User {
   absenceJustifications        AbsenceJustification[]           @relation("EmployeeAbsenceJustifications")
   createdAbsenceJustifications AbsenceJustification[]           @relation("AbsenceJustificationsCreatedBy")
   revokedAbsenceJustifications AbsenceJustification[]           @relation("AbsenceJustificationsRevokedBy")
+  uploadedJustificationFiles   AbsenceJustificationAttachment[] @relation("JustificationAttachmentsUploadedBy")
   punchVoids                   TimePunchVoid[]                  @relation("PunchVoidedBy")
   roleAssignments              EmployeeRoleAssignment[]         @relation("EmployeeRoleAssignments")
   createdRoleAssignments       EmployeeRoleAssignment[]         @relation("RoleAssignmentsCreatedBy")
@@ -608,12 +610,33 @@ model AbsenceJustification {
   revokedById  String?                  @map("revoked_by_id") @db.Uuid
   revokeReason String?                  @map("revoke_reason") @db.VarChar(500)
 
-  employee  User  @relation("EmployeeAbsenceJustifications", fields: [employeeId], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  createdBy User  @relation("AbsenceJustificationsCreatedBy", fields: [createdById], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  revokedBy User? @relation("AbsenceJustificationsRevokedBy", fields: [revokedById], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  employee    User                             @relation("EmployeeAbsenceJustifications", fields: [employeeId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  createdBy   User                             @relation("AbsenceJustificationsCreatedBy", fields: [createdById], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  revokedBy   User?                            @relation("AbsenceJustificationsRevokedBy", fields: [revokedById], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  attachments AbsenceJustificationAttachment[]
 
   @@index([employeeId, startDate, endDate])
   @@map("absence_justifications")
+}
+
+/// Photo or PDF of an atestado, stored encrypted under UPLOAD_DIR/justifications.
+/// Never deleted, like the justification it belongs to.
+model AbsenceJustificationAttachment {
+  id              String   @id @default(uuid()) @db.Uuid
+  justificationId String   @map("justification_id") @db.Uuid
+  fileName        String   @map("file_name") @db.VarChar(160)
+  mimeType        String   @map("mime_type") @db.VarChar(40)
+  byteSize        Int      @map("byte_size")
+  checksumSha256  String   @map("checksum_sha256") @db.Char(64)
+  storagePath     String   @unique @map("storage_path") @db.VarChar(255)
+  uploadedById    String   @map("uploaded_by_id") @db.Uuid
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  justification AbsenceJustification @relation(fields: [justificationId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  uploadedBy    User                 @relation("JustificationAttachmentsUploadedBy", fields: [uploadedById], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@index([justificationId, createdAt])
+  @@map("absence_justification_attachments")
 }
 
 model Company {

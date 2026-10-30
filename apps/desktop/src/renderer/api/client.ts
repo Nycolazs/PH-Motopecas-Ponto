@@ -1447,6 +1447,33 @@ export class ApiClient {
     );
   }
 
+  public uploadJustificationAttachment(
+    justificationId: string,
+    input: { fileName: string; dataBase64: string },
+  ): Promise<AbsenceJustification> {
+    return this.request(
+      `/absence-justifications/${encodeURIComponent(justificationId)}/attachments`,
+      absenceJustificationSchema,
+      {
+        method: 'POST',
+        body: JSON.stringify(input),
+        headers: { 'Content-Type': 'application/json' },
+      },
+    );
+  }
+
+  public async getJustificationAttachmentBlob(
+    justificationId: string,
+    attachmentId: string,
+    signal?: AbortSignal,
+  ): Promise<Blob> {
+    const res = await this.requestBlob(
+      `/absence-justifications/${encodeURIComponent(justificationId)}/attachments/${encodeURIComponent(attachmentId)}`,
+      { ...(signal === undefined ? {} : { signal }) },
+    );
+    return res.blob;
+  }
+
   public deleteVacation(id: string): Promise<{ success: boolean; message: string }> {
     return this.request(
       `/vacations/${encodeURIComponent(id)}`,

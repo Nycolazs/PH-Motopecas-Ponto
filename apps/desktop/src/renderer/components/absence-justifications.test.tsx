@@ -27,6 +27,7 @@ function justification(overrides: Record<string, unknown> = {}) {
     revokedAt: null,
     revokedBy: null,
     revokeReason: null,
+    attachments: [],
     ...overrides,
   };
 }
@@ -229,6 +230,113 @@ describe('abono e atestado', () => {
       expect(calls.find((call) => call.method === 'POST')).toMatchObject({
         url: expect.stringContaining('/revoke'),
         body: { reason: 'Lançado errado' },
+      }),
+    );
+  });
+
+  it('attaches the photo of the atestado right after registering it', async () => {
+    const calls = installFetch((call) =>
+      call.url.endsWith('/attachments')
+        ? jsonResponse(justification({ attachments: [] }), 201)
+        : jsonResponse(justification(), 201),
+    );
+    const onClose = vi.fn();
+    const user = userEvent.setup();
+    renderWithProviders(
+      <AbsenceJustificationModal
+        isOpen
+        onClose={onClose}
+        employee={EMPLOYEE}
+        initialDate="2026-10-27"
+      />,
+    );
+    const dialog = await screen.findByRole('dialog');
+    expect(
+      within(dialog).queryByLabelText('Escolher foto ou PDF do atestado'),
+    ).not.toBeInTheDocument();
+    await user.click(within(dialog).getByText('Atestado médico', { exact: true }));
+
+    const input = within(dialog).getByLabelText('Escolher foto ou PDF do atestado');
+    // A file picker filters by type, but a file can still arrive with another type.
+    await userEvent
+      .setup({ applyAccept: false })
+      .upload(input, new File(['nota'], 'nota.txt', { type: 'text/plain' }));
+    expect(await within(dialog).findByRole('alert')).toHaveTextContent('"nota.txt" não é aceito');
+
+    const photo = new File([new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 1, 2, 3])], 'IMG_2041.jpg', {
+      type: 'image/jpeg',
+    });
+    await user.upload(input, photo);
+    expect(await within(dialog).findByText('IMG_2041.jpg')).toBeInTheDocument();
+    expect(
+      within(dialog).getByRole('button', { name: 'Remover IMG_2041.jpg' }),
+    ).toBeInTheDocument();
+
+    await user.type(within(dialog).getByLabelText(/Detalhes do atestado/), 'Dra. Ana, CRM 123');
+    await user.click(within(dialog).getByRole('button', { name: 'Registrar atestado' }));
+    await waitFor(() => expect(onClose).toHaveBeenCalled());
+
+    const posts = calls.filter((call) => call.method === 'POST');
+    expect(posts.map((call) => call.url.replace(/^.*\/absence-justifications/, ''))).toEqual([
+      '',
+      '/11111111-2222-4333-8444-555555555555/attachments',
+    ]);
+    expect(posts[1]?.body).toMatchObject({
+      fileName: 'IMG_2041.jpg',
+      dataBase64: expect.stringMatching(/^data:image\/jpeg;base64,/),
+    });
+  });
+
+  it('shows the attached files, opens a photo and attaches more later', async () => {
+    const attachment = {
+      id: '33333333-2222-4333-8444-555555555555',
+      fileName: 'atestado.jpg',
+      mimeType: 'image/jpeg',
+      byteSize: 845_120,
+      createdAt: '2026-10-28T12:00:00.000Z',
+      uploadedBy: ADMIN,
+    };
+    const calls = installFetch((call) => {
+      if (call.url.includes(`/attachments/${attachment.id}`)) {
+        return new Response(new Uint8Array([0xff, 0xd8, 0xff]), {
+          headers: { 'Content-Type': 'image/jpeg' },
+        });
+      }
+      if (call.method === 'POST')
+        return jsonResponse(justification({ attachments: [attachment] }), 201);
+      return jsonResponse({ items: [justification({ attachments: [attachment] })] });
+    });
+    vi.stubGlobal(
+      'URL',
+      Object.assign(URL, {
+        createObjectURL: vi.fn(() => 'blob:atestado'),
+        revokeObjectURL: vi.fn(),
+      }),
+    );
+    const user = userEvent.setup();
+    renderWithProviders(<AbsenceJustificationsCard employee={EMPLOYEE} onJustify={vi.fn()} />);
+
+    const files = await screen.findByRole('list', { name: 'Arquivos do atestado' });
+    expect(within(files).getByRole('button', { name: 'Abrir atestado.jpg' })).toHaveTextContent(
+      '825 KB',
+    );
+    await user.click(within(files).getByRole('button', { name: 'Abrir atestado.jpg' }));
+    const viewer = await screen.findByRole('dialog', { name: 'atestado.jpg' });
+    expect(
+      await within(viewer).findByRole('img', { name: 'Atestado: atestado.jpg' }),
+    ).toHaveAttribute('src', 'blob:atestado');
+    await user.keyboard('{Escape}');
+    expect(viewer).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /^Anexar arquivo ao atestado/ }));
+    await user.upload(
+      screen.getByLabelText('Escolher arquivo para anexar ao atestado'),
+      new File(['%PDF-1.4'], 'verso.pdf', { type: 'application/pdf' }),
+    );
+    await waitFor(() =>
+      expect(calls.find((call) => call.method === 'POST')).toMatchObject({
+        url: expect.stringContaining('/attachments'),
+        body: { fileName: 'verso.pdf', dataBase64: expect.stringContaining('application/pdf') },
       }),
     );
   });

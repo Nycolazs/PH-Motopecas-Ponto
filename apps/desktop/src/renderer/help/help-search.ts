@@ -53,6 +53,7 @@ const SYNONYM_GROUPS: readonly (readonly string[])[] = [
   ['falta', 'faltou', 'faltar', 'ausencia', 'ausente'],
   ['abono', 'abonar', 'abonado', 'abonada'],
   ['atestado', 'atestados', 'afastamento'],
+  ['anexar', 'anexo', 'anexos', 'upload', 'enviar'],
 ];
 
 function variantsOf(token: string): string[] {

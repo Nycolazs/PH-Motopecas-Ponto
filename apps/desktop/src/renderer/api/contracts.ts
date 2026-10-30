@@ -634,6 +634,17 @@ const businessDateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 /** Abono (one day) or atestado médico (one or more days) excusing an absence. */
 export const absenceJustificationKindSchema = z.enum(['ALLOWANCE', 'MEDICAL_CERTIFICATE']);
 
+export const justificationAttachmentSchema = z
+  .object({
+    id: uuidSchema,
+    fileName: z.string(),
+    mimeType: z.enum(['image/jpeg', 'image/png', 'image/webp', 'application/pdf']),
+    byteSize: z.number().int().positive(),
+    createdAt: z.string().datetime({ offset: true }),
+    uploadedBy: vacationAuthorSchema,
+  })
+  .strict();
+
 export const absenceJustificationSchema = z
   .object({
     id: uuidSchema,
@@ -648,6 +659,7 @@ export const absenceJustificationSchema = z
     revokedAt: z.string().datetime({ offset: true }).nullable(),
     revokedBy: vacationAuthorSchema.nullable(),
     revokeReason: z.string().nullable(),
+    attachments: z.array(justificationAttachmentSchema),
   })
   .strict();
 
@@ -701,6 +713,7 @@ export type VacationList = z.infer<typeof vacationListSchema>;
 export type CreateVacationInput = z.infer<typeof createVacationInputSchema>;
 export type AbsenceJustificationKind = z.infer<typeof absenceJustificationKindSchema>;
 export type AbsenceJustification = z.infer<typeof absenceJustificationSchema>;
+export type JustificationAttachment = z.infer<typeof justificationAttachmentSchema>;
 export interface CreateAbsenceJustificationInput {
   employeeId: string;
   kind: AbsenceJustificationKind;
