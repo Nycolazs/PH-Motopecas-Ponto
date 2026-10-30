@@ -8,6 +8,8 @@ import { AvatarImage } from '../../components/avatar-image.js';
 import { DateInput } from '../../components/date-input.js';
 import { SelectInput } from '../../components/select-input.js';
 import { ManualPunchModal } from '../../components/manual-punch-modal.js';
+import { AbsenceJustificationModal } from '../../components/absence-justification-modal.js';
+import { isJustifiedStatus } from '../../attendance/presentation.js';
 import { PunchCorrectionModal } from '../../components/punch-correction-modal.js';
 import { StatusBadge } from '../../components/status-badge.js';
 import { formatDateBR, formatDisplayName } from '../../lib/format.js';
@@ -59,6 +61,8 @@ export function AdminPunchesPage(): React.JSX.Element {
     queryFn: () => api.getAdminEmployeeDay(selectedEmployeeId, selectedDate),
     enabled: Boolean(selectedEmployeeId),
   });
+
+  const [justifyOpen, setJustifyOpen] = useState(false);
 
   const selectedEmployeeObj = employeesList?.items.find(
     (e: ManagedUser) => e.id === selectedEmployeeId,
@@ -166,9 +170,24 @@ export function AdminPunchesPage(): React.JSX.Element {
                   <div className="text-slate-500">Status</div>
                   <StatusBadge status={employeeDay.status} workState={employeeDay.workState} />
                 </div>
+                {employeeDay.calendarStatus === null && employeeDay.expectedMinutes > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setJustifyOpen(true)}
+                    className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-slate-200 px-3 text-xs font-semibold text-slate-700 hover:border-blue-400 hover:text-blue-700 dark:border-slate-700 dark:text-slate-200"
+                  >
+                    Justificar falta
+                  </button>
+                )}
               </div>
             )}
           </div>
+          {employeeDay && isJustifiedStatus(employeeDay.calendarStatus) && (
+            <p className="mx-5 mb-4 rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-sky-900 dark:border-sky-900 dark:bg-sky-950/30 dark:text-sky-200">
+              Falta justificada — {employeeDay.exceptionName}. Para cancelar, use a ficha do
+              colaborador (aba Ponto &amp; Frequência).
+            </p>
+          )}
 
           {employeeDayLoading && (
             <div className="p-8 text-center text-slate-500">
@@ -327,6 +346,19 @@ export function AdminPunchesPage(): React.JSX.Element {
             </table>
           </div>
         </div>
+      )}
+
+      {selectedEmployeeObj && (
+        <AbsenceJustificationModal
+          isOpen={justifyOpen}
+          onClose={() => {
+            setJustifyOpen(false);
+            void refetchOverview();
+            void refetchEmployeeDay();
+          }}
+          employee={{ id: selectedEmployeeObj.id, name: selectedEmployeeObj.name }}
+          initialDate={selectedDate}
+        />
       )}
 
       {/* Manual Punch Modal */}

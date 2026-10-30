@@ -47,6 +47,11 @@ function incrementStatus(counts: AttendanceStatusCounts, status: AttendanceStatu
     case 'VACATION':
       counts.vacation += 1;
       break;
+    case 'ALLOWANCE':
+    case 'MEDICAL_LEAVE':
+      // Justified days have no own counter: adding one would change the response shape
+      // that installed desktop clients validate strictly.
+      break;
     case null:
       break;
   }

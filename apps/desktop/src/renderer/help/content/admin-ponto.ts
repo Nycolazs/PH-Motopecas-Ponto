@@ -378,6 +378,90 @@ export const ADMIN_PUNCH_ARTICLES: HelpArticle[] = [
     related: ['registros-de-ponto', 'relatorios-e-espelho'],
   },
   {
+    slug: 'abonos-e-atestados',
+    title: 'Abonar um dia ou registrar atestado',
+    summary:
+      'Justifique a falta de um colaborador: abono para um dia ou atestado médico para um ou mais dias. As horas que faltaram deixam de ser descontadas.',
+    category: 'ponto',
+    audience: ['admin'],
+    keywords: [
+      'abono',
+      'abonar',
+      'atestado',
+      'atestado médico',
+      'falta',
+      'faltou',
+      'justificar',
+      'justificativa',
+      'doente',
+      'consulta',
+      'médico',
+      'afastamento',
+    ],
+    screen: { label: 'Colaboradores', path: '/admin/funcionarios' },
+    sections: [
+      {
+        id: 'quando-usar',
+        title: 'Abono ou atestado?',
+        bullets: [
+          'Abono: a empresa decide perdoar a falta de um dia, por exemplo uma liberação da gerência. Vale para um dia; para vários dias, registre um abono por dia.',
+          'Atestado médico: o colaborador trouxe atestado. Pode cobrir de 1 a 31 dias seguidos.',
+        ],
+      },
+      {
+        id: 'registrar',
+        title: 'Justificar uma falta',
+        steps: [
+          {
+            title: 'Abra a ficha do colaborador',
+            text: 'Em Colaboradores, clique em Detalhes & Pontos e vá na aba Ponto & Frequência.',
+          },
+          {
+            title: 'Clique no dia da falta',
+            text: 'No calendário, escolha o dia e clique em Justificar falta deste dia (abono ou atestado). Também dá para usar o botão Justificar falta do quadro Abonos e atestados.',
+            image: {
+              key: 'justificar-dia',
+              alt: 'Dia selecionado no calendário com o botão Justificar falta',
+            },
+          },
+          {
+            title: 'Escolha o tipo e o período',
+            text: 'Abono pede só o dia. Atestado pede o primeiro dia e quantos dias de afastamento; o sistema mostra até quando ele vale.',
+            image: {
+              key: 'atestado-modal',
+              alt: 'Janela Justificar falta com atestado médico de 3 dias',
+            },
+          },
+          {
+            title: 'Escreva o motivo e salve',
+            text: 'No atestado, anote o médico e o CRM. Clique em Abonar dia ou em Registrar atestado.',
+          },
+        ],
+        tip: 'Em Registros de Ponto, ao filtrar um colaborador, o botão Justificar falta abre a mesma janela já com o dia escolhido.',
+      },
+      {
+        id: 'como-conta',
+        title: 'O que muda no saldo',
+        paragraphs: [
+          'As horas que faltaram nos dias justificados não são descontadas: o saldo do dia fica zerado e o dia aparece como Abonado ou Atestado no espelho, nos relatórios e no histórico do colaborador.',
+          'Se o colaborador trabalhou parte do dia (por exemplo, chegou e saiu para o médico), essas horas continuam contando, e o que passar da jornada continua sendo hora extra.',
+          'Dias de folga, feriado ou férias não mudam, porque já não esperam trabalho. Nos dias justificados também não sai alerta de atraso no WhatsApp.',
+        ],
+      },
+      {
+        id: 'cancelar',
+        title: 'Cancelar uma justificativa',
+        image: { key: 'abonos-lista', alt: 'Quadro Abonos e atestados com um atestado e um abono' },
+        paragraphs: [
+          'No quadro Abonos e atestados da ficha, clique em Cancelar e escreva o motivo. O dia volta a contar como falta, mas o registro continua na lista, marcado como Cancelado, com quem cancelou e por quê. Tudo também fica na Trilha de Auditoria.',
+        ],
+        warning:
+          'Não é possível registrar duas justificativas para o mesmo dia, nem justificar dias de férias. Cancele a anterior se precisar mudar.',
+      },
+    ],
+    related: ['ficha-do-colaborador', 'calculo-de-horas', 'relatorios-e-espelho'],
+  },
+  {
     slug: 'calculo-de-horas',
     title: 'Como as horas são calculadas',
     summary:
@@ -387,6 +471,8 @@ export const ADMIN_PUNCH_ARTICLES: HelpArticle[] = [
     keywords: [
       'saldo',
       'banco de horas',
+      'abono',
+      'atestado',
       'hora extra',
       'atraso',
       'falta',
@@ -419,6 +505,7 @@ export const ADMIN_PUNCH_ARTICLES: HelpArticle[] = [
         title: 'Folgas, feriados e férias',
         paragraphs: [
           'Em folgas, feriados e férias o esperado é zero. Se alguém trabalhar nesses dias, todo o tempo conta como saldo positivo.',
+          'Em dias com abono ou atestado, as horas que faltaram não são descontadas: o saldo do dia fica zerado, e só o que passar da jornada vira hora extra.',
           'Os dias anteriores ao cadastro do colaborador não contam.',
         ],
       },
@@ -430,6 +517,11 @@ export const ADMIN_PUNCH_ARTICLES: HelpArticle[] = [
         ],
       },
     ],
-    related: ['jornadas-e-calendario', 'relatorios-e-espelho', 'alertas-no-whatsapp'],
+    related: [
+      'jornadas-e-calendario',
+      'abonos-e-atestados',
+      'relatorios-e-espelho',
+      'alertas-no-whatsapp',
+    ],
   },
 ];

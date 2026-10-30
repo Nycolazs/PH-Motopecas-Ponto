@@ -50,6 +50,8 @@ const attendanceStatusSchema = z.enum([
   'DAY_OFF',
   'CLOSED',
   'VACATION',
+  'ALLOWANCE',
+  'MEDICAL_LEAVE',
 ]);
 const workStateSchema = z.enum(['NOT_STARTED', 'WORKING', 'LUNCH', 'OFF_DUTY']);
 const expectationSourceSchema = z.enum([
@@ -59,7 +61,14 @@ const expectationSourceSchema = z.enum([
   'SPECIAL_HOURS',
   'VACATION',
 ]);
-const calendarStatusSchema = z.enum(['HOLIDAY', 'DAY_OFF', 'CLOSED', 'VACATION']);
+const calendarStatusSchema = z.enum([
+  'HOLIDAY',
+  'DAY_OFF',
+  'CLOSED',
+  'VACATION',
+  'ALLOWANCE',
+  'MEDICAL_LEAVE',
+]);
 const integrityCodeSchema = z.enum([
   'PUNCH_OUTSIDE_BUSINESS_DATE',
   'ADJUSTMENT_SEQUENCE_GAP',
@@ -620,6 +629,32 @@ export const vacationListSchema = z
   })
   .strict();
 
+const businessDateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+
+/** Abono (one day) or atestado médico (one or more days) excusing an absence. */
+export const absenceJustificationKindSchema = z.enum(['ALLOWANCE', 'MEDICAL_CERTIFICATE']);
+
+export const absenceJustificationSchema = z
+  .object({
+    id: uuidSchema,
+    employee: vacationAuthorSchema,
+    kind: absenceJustificationKindSchema,
+    startDate: businessDateSchema,
+    endDate: businessDateSchema,
+    daysCount: z.number().int().positive(),
+    reason: z.string(),
+    createdBy: vacationAuthorSchema,
+    createdAt: z.string().datetime({ offset: true }),
+    revokedAt: z.string().datetime({ offset: true }).nullable(),
+    revokedBy: vacationAuthorSchema.nullable(),
+    revokeReason: z.string().nullable(),
+  })
+  .strict();
+
+export const absenceJustificationListSchema = z
+  .object({ items: z.array(absenceJustificationSchema) })
+  .strict();
+
 export const createVacationInputSchema = z
   .object({
     employeeId: uuidSchema,
@@ -664,6 +699,15 @@ export type ReviewAdjustmentResponse = z.infer<typeof reviewAdjustmentResponseSc
 export type Vacation = z.infer<typeof vacationSchema>;
 export type VacationList = z.infer<typeof vacationListSchema>;
 export type CreateVacationInput = z.infer<typeof createVacationInputSchema>;
+export type AbsenceJustificationKind = z.infer<typeof absenceJustificationKindSchema>;
+export type AbsenceJustification = z.infer<typeof absenceJustificationSchema>;
+export interface CreateAbsenceJustificationInput {
+  employeeId: string;
+  kind: AbsenceJustificationKind;
+  startDate: string;
+  endDate: string;
+  reason: string;
+}
 export type IncompleteAttendanceDayItem = z.infer<typeof incompleteAttendanceDayItemSchema>;
 export type IncompleteAttendance = z.infer<typeof incompleteAttendanceSchema>;
 

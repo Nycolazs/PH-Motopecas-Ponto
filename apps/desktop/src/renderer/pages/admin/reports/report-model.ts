@@ -129,6 +129,12 @@ export function describeDay(day: DailyAttendance): DayStatus {
   if (day.status === 'VACATION' || day.calendarStatus === 'VACATION') {
     return { label: 'Férias', tone: 'off' };
   }
+  if (day.status === 'MEDICAL_LEAVE') {
+    return { label: 'Atestado médico', tone: 'off' };
+  }
+  if (day.status === 'ALLOWANCE') {
+    return { label: 'Abonado', tone: 'off' };
+  }
   if (day.status === 'HOLIDAY' || (day.calendarStatus === 'HOLIDAY' && day.punchCount === 0)) {
     return { label: withName('Feriado', name), tone: 'off' };
   }

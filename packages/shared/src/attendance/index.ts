@@ -1,4 +1,8 @@
-export { calculateDailyAttendance } from './daily.js';
+export {
+  applyAbsenceJustification,
+  calculateDailyAttendance,
+  isJustifiedAbsence,
+} from './daily.js';
 export type { CalculateDailyAttendanceInput } from './daily.js';
 export {
   assertBusinessDate,
@@ -22,6 +26,7 @@ export type { AggregateMonthlyAttendanceInput } from './period.js';
 export { buildPunchChronology, resolveEffectivePunches } from './punches.js';
 export type { ResolveEffectivePunchesInput } from './punches.js';
 export {
+  ABSENCE_JUSTIFICATION_KINDS,
   ATTENDANCE_INTEGRITY_CODES,
   ATTENDANCE_PUNCH_KINDS,
   ATTENDANCE_STATUSES,
@@ -33,6 +38,8 @@ export {
   WEEKDAYS,
 } from './types.js';
 export type {
+  AbsenceJustificationInfo,
+  AbsenceJustificationKind,
   AttendanceAdjustment,
   AttendanceIntegrityCode,
   AttendanceIntegrityIssue,

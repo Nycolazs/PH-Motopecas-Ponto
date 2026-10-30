@@ -58,8 +58,24 @@ export const EXPECTATION_SOURCES = [
 ] as const;
 export type ExpectationSource = (typeof EXPECTATION_SOURCES)[number];
 
-export const CALENDAR_STATUSES = ['HOLIDAY', 'DAY_OFF', 'CLOSED', 'VACATION'] as const;
+export const CALENDAR_STATUSES = [
+  'HOLIDAY',
+  'DAY_OFF',
+  'CLOSED',
+  'VACATION',
+  'ALLOWANCE',
+  'MEDICAL_LEAVE',
+] as const;
 export type CalendarStatus = (typeof CALENDAR_STATUSES)[number];
+
+/** Ways an administrator justifies an employee's absence on a working day. */
+export const ABSENCE_JUSTIFICATION_KINDS = ['ALLOWANCE', 'MEDICAL_CERTIFICATE'] as const;
+export type AbsenceJustificationKind = (typeof ABSENCE_JUSTIFICATION_KINDS)[number];
+
+export interface AbsenceJustificationInfo {
+  kind: AbsenceJustificationKind;
+  reason: string | null;
+}
 
 export interface EmployeeVacationInfo {
   id: string;
@@ -157,6 +173,8 @@ export const ATTENDANCE_STATUSES = [
   'DAY_OFF',
   'CLOSED',
   'VACATION',
+  'ALLOWANCE',
+  'MEDICAL_LEAVE',
 ] as const;
 export type AttendanceStatus = (typeof ATTENDANCE_STATUSES)[number];
 

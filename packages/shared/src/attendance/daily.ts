@@ -1,12 +1,45 @@
 import { AttendanceConfigurationError, AttendanceInputError } from './errors.js';
 import { buildPunchChronology, resolveEffectivePunches } from './punches.js';
 import type {
+  AbsenceJustificationInfo,
   AttendancePunch,
+  CalendarStatus,
   AttendanceStatus,
   DailyAttendanceSummary,
   ProvisionalWorkState,
   ResolvedExpectation,
 } from './types.js';
+
+/** Calendar statuses of a working day whose absence was justified (abono or atestado). */
+export function isJustifiedAbsence(calendarStatus: CalendarStatus | null): boolean {
+  return calendarStatus === 'ALLOWANCE' || calendarStatus === 'MEDICAL_LEAVE';
+}
+
+/**
+ * Marks a working day as justified. Only regular working days are affected: days off,
+ * holidays, closures and vacations already expect no work.
+ */
+export function applyAbsenceJustification(
+  expectation: ResolvedExpectation,
+  justification: AbsenceJustificationInfo | null,
+): ResolvedExpectation {
+  if (
+    justification === null ||
+    expectation.expectedMinutes === 0 ||
+    expectation.calendarStatus !== null
+  ) {
+    return expectation;
+  }
+  const label = justification.kind === 'ALLOWANCE' ? 'Abono' : 'Atestado médico';
+  const reason = justification.reason?.trim();
+  return {
+    ...expectation,
+    calendarStatus: justification.kind === 'ALLOWANCE' ? 'ALLOWANCE' : 'MEDICAL_LEAVE',
+    // Nobody is expected at the store: no late-arrival alert, not counted as missing today.
+    isOpen: false,
+    exceptionName: reason ? `${label}: ${reason}` : label,
+  };
+}
 
 function balanceStatus(balanceMinutes: number): AttendanceStatus {
   if (balanceMinutes > 0) {
@@ -57,6 +90,11 @@ export function calculateDailyAttendance({
   let status: AttendanceStatus | null;
   let workState: ProvisionalWorkState | null;
   let balanceMinutes: number | null;
+  // On a justified day the absent time is forgiven: only the hours actually worked are
+  // expected, so the balance never goes negative while overtime still counts.
+  const expectedMinutes = isJustifiedAbsence(expectation.calendarStatus)
+    ? Math.min(expectation.expectedMinutes, chronology.workedMinutes)
+    : expectation.expectedMinutes;
 
   if (isFinalized) {
     workState = null;
@@ -65,7 +103,7 @@ export function calculateDailyAttendance({
       status = 'INCOMPLETE';
       balanceMinutes = null;
     } else {
-      balanceMinutes = chronology.workedMinutes - expectation.expectedMinutes;
+      balanceMinutes = chronology.workedMinutes - expectedMinutes;
       status = expectation.calendarStatus ?? balanceStatus(balanceMinutes);
     }
   } else {
@@ -91,7 +129,7 @@ export function calculateDailyAttendance({
       status = expectation.calendarStatus;
       balanceMinutes = null;
     } else {
-      balanceMinutes = chronology.workedMinutes - expectation.expectedMinutes;
+      balanceMinutes = chronology.workedMinutes - expectedMinutes;
       status = expectation.calendarStatus ?? balanceStatus(balanceMinutes);
     }
   }
@@ -101,7 +139,7 @@ export function calculateDailyAttendance({
     isFinalized,
     status,
     workState,
-    expectedMinutes: expectation.expectedMinutes,
+    expectedMinutes,
     workedMinutes: chronology.workedMinutes,
     balanceMinutes,
     punchCount: chronology.punchCount,

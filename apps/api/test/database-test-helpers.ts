@@ -3,6 +3,7 @@ import type { PrismaService } from '../src/database/prisma.service.js';
 export async function clearApplicationData(prisma: PrismaService): Promise<void> {
   await prisma.$executeRawUnsafe(`
     TRUNCATE TABLE
+      "absence_justifications",
       "notification_outbox",
       "admin_notification_preferences",
       "app_settings",

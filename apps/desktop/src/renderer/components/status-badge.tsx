@@ -54,6 +54,18 @@ const STATUS_LABELS: Record<string, { label: string; className: string; dotClass
       'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border-slate-200 dark:border-slate-700',
     dotClass: 'bg-slate-400',
   },
+  ALLOWANCE: {
+    label: 'Abonado',
+    className:
+      'bg-cyan-50 text-cyan-800 dark:bg-cyan-950/40 dark:text-cyan-300 border-cyan-200 dark:border-cyan-800',
+    dotClass: 'bg-cyan-500',
+  },
+  MEDICAL_LEAVE: {
+    label: 'Atestado',
+    className:
+      'bg-sky-50 text-sky-800 dark:bg-sky-950/40 dark:text-sky-300 border-sky-200 dark:border-sky-800',
+    dotClass: 'bg-sky-500',
+  },
   VACATION: {
     label: 'Férias',
     className:
@@ -150,6 +162,8 @@ export function StatusBadge({
     key = 'LUNCH';
   } else if (status === 'VACATION') {
     key = 'VACATION';
+  } else if (status === 'ALLOWANCE' || status === 'MEDICAL_LEAVE') {
+    key = status;
   } else if (status === 'HOLIDAY') {
     key = 'HOLIDAY';
   } else if (status === 'DAY_OFF') {

@@ -167,6 +167,7 @@ export const EMPLOYEE_ARTICLES: HelpArticle[] = [
           'Hora extra: trabalhou mais que o esperado.',
           'Horas faltantes: trabalhou menos que o esperado.',
           'Ponto incompleto: falta uma batida (por exemplo, a saída). Peça um ajuste.',
+          'Abonado ou Atestado: a empresa justificou a falta desse dia; as horas que faltaram não são descontadas.',
           'Folga, Feriado, Férias, Fechado ou Horário especial: dias com jornada diferente da normal.',
         ],
       },

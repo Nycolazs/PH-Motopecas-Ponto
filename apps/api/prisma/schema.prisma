@@ -146,6 +146,8 @@ enum AuditAction {
   REPORT_EXPORTED
   VACATION_CREATED
   VACATION_DELETED
+  ABSENCE_JUSTIFIED
+  ABSENCE_JUSTIFICATION_REVOKED
   COMPANY_UPDATED
   JOB_ROLE_CREATED
   JOB_ROLE_UPDATED
@@ -187,6 +189,7 @@ enum AuditTargetType {
   SETTING
   REPORT
   VACATION
+  ABSENCE_JUSTIFICATION
   COMPANY
   JOB_ROLE
   JOB_ROLE_VERSION
@@ -257,46 +260,49 @@ model User {
   createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt       DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  avatar                      Avatar?
-  employeeProfile             EmployeeProfile?
-  refreshSessions             RefreshSession[]
-  createdScheduleVersions     BusinessScheduleVersion[]        @relation("ScheduleCreatedBy")
-  createdExceptionRevisions   CalendarExceptionRevision[]      @relation("ExceptionCreatedBy")
-  employeePunches             TimePunch[]                      @relation("EmployeePunches")
-  insertedPunches             TimePunch[]                      @relation("PunchInsertedBy")
-  timeAdjustments             TimeAdjustment[]                 @relation("AdjustmentAdmin")
-  adjustmentRequests          TimePunchAdjustmentRequest[]     @relation("AdjustmentRequester")
-  reviewedAdjustmentRequests  TimePunchAdjustmentRequest[]     @relation("AdjustmentReviewer")
-  idempotencyRecords          IdempotencyRecord[]
-  auditEvents                 AuditLog[]                       @relation("AuditActor")
-  updatedSettings             AppSetting[]                     @relation("SettingUpdatedBy")
-  vacations                   Vacation[]                       @relation("EmployeeVacations")
-  createdVacations            Vacation[]                       @relation("VacationsCreatedBy")
-  punchVoids                  TimePunchVoid[]                  @relation("PunchVoidedBy")
-  roleAssignments             EmployeeRoleAssignment[]         @relation("EmployeeRoleAssignments")
-  createdRoleAssignments      EmployeeRoleAssignment[]         @relation("RoleAssignmentsCreatedBy")
-  createdRoleVersions         JobRoleVersion[]                 @relation("RoleVersionsCreatedBy")
-  draftsCreated               DocumentDraft[]                  @relation("DraftAuthor")
-  employeeDrafts              DocumentDraft[]                  @relation("DraftEmployee")
-  documentsAuthored           GeneratedDocument[]              @relation("DocumentAuthor")
-  employeeDocuments           GeneratedDocument[]              @relation("EmployeeDocuments")
-  voidedDocuments             GeneratedDocument[]              @relation("DocumentVoidedBy")
-  createdCultureVersions      CultureProfileVersion[]          @relation("CultureVersionsCreatedBy")
-  createdRegulationVersions   CompanyRegulationVersion[]       @relation("RegulationVersionsCreatedBy")
-  interviewsEvaluated         HiringInterview[]                @relation("InterviewEvaluator")
-  createdAcknowledgments      EmployeeDocumentAcknowledgment[] @relation("AcknowledgmentsCreatedBy")
-  employeeAcknowledgments     EmployeeDocumentAcknowledgment[] @relation("EmployeeAcknowledgments")
-  employmentEvents            EmploymentEvent[]                @relation("EmployeeEmploymentEvents")
-  createdEmploymentEvents     EmploymentEvent[]                @relation("EmploymentEventsCreatedBy")
-  disciplinaryActionsReceived DisciplinaryAction[]             @relation("DisciplinaryEmployee")
-  disciplinaryActionsIssued   DisciplinaryAction[]             @relation("DisciplinaryIssuer")
-  disciplinaryActionsVoided   DisciplinaryAction[]             @relation("DisciplinaryVoidedBy")
-  performanceReviewsReceived  PerformanceReview[]              @relation("PerformanceReviewEmployee")
-  performanceReviewsEvaluated PerformanceReview[]              @relation("PerformanceReviewEvaluator")
-  createdPerformanceCriteria  PerformanceEvaluationCriteria[]  @relation("PerformanceCriteriaCreatedBy")
-  notificationPreference      AdminNotificationPreference?     @relation("AdminNotificationPreference")
-  notificationsReceived       NotificationOutbox[]             @relation("NotificationRecipient")
-  notificationsAbout          NotificationOutbox[]             @relation("NotificationSubject")
+  avatar                       Avatar?
+  employeeProfile              EmployeeProfile?
+  refreshSessions              RefreshSession[]
+  createdScheduleVersions      BusinessScheduleVersion[]        @relation("ScheduleCreatedBy")
+  createdExceptionRevisions    CalendarExceptionRevision[]      @relation("ExceptionCreatedBy")
+  employeePunches              TimePunch[]                      @relation("EmployeePunches")
+  insertedPunches              TimePunch[]                      @relation("PunchInsertedBy")
+  timeAdjustments              TimeAdjustment[]                 @relation("AdjustmentAdmin")
+  adjustmentRequests           TimePunchAdjustmentRequest[]     @relation("AdjustmentRequester")
+  reviewedAdjustmentRequests   TimePunchAdjustmentRequest[]     @relation("AdjustmentReviewer")
+  idempotencyRecords           IdempotencyRecord[]
+  auditEvents                  AuditLog[]                       @relation("AuditActor")
+  updatedSettings              AppSetting[]                     @relation("SettingUpdatedBy")
+  vacations                    Vacation[]                       @relation("EmployeeVacations")
+  createdVacations             Vacation[]                       @relation("VacationsCreatedBy")
+  absenceJustifications        AbsenceJustification[]           @relation("EmployeeAbsenceJustifications")
+  createdAbsenceJustifications AbsenceJustification[]           @relation("AbsenceJustificationsCreatedBy")
+  revokedAbsenceJustifications AbsenceJustification[]           @relation("AbsenceJustificationsRevokedBy")
+  punchVoids                   TimePunchVoid[]                  @relation("PunchVoidedBy")
+  roleAssignments              EmployeeRoleAssignment[]         @relation("EmployeeRoleAssignments")
+  createdRoleAssignments       EmployeeRoleAssignment[]         @relation("RoleAssignmentsCreatedBy")
+  createdRoleVersions          JobRoleVersion[]                 @relation("RoleVersionsCreatedBy")
+  draftsCreated                DocumentDraft[]                  @relation("DraftAuthor")
+  employeeDrafts               DocumentDraft[]                  @relation("DraftEmployee")
+  documentsAuthored            GeneratedDocument[]              @relation("DocumentAuthor")
+  employeeDocuments            GeneratedDocument[]              @relation("EmployeeDocuments")
+  voidedDocuments              GeneratedDocument[]              @relation("DocumentVoidedBy")
+  createdCultureVersions       CultureProfileVersion[]          @relation("CultureVersionsCreatedBy")
+  createdRegulationVersions    CompanyRegulationVersion[]       @relation("RegulationVersionsCreatedBy")
+  interviewsEvaluated          HiringInterview[]                @relation("InterviewEvaluator")
+  createdAcknowledgments       EmployeeDocumentAcknowledgment[] @relation("AcknowledgmentsCreatedBy")
+  employeeAcknowledgments      EmployeeDocumentAcknowledgment[] @relation("EmployeeAcknowledgments")
+  employmentEvents             EmploymentEvent[]                @relation("EmployeeEmploymentEvents")
+  createdEmploymentEvents      EmploymentEvent[]                @relation("EmploymentEventsCreatedBy")
+  disciplinaryActionsReceived  DisciplinaryAction[]             @relation("DisciplinaryEmployee")
+  disciplinaryActionsIssued    DisciplinaryAction[]             @relation("DisciplinaryIssuer")
+  disciplinaryActionsVoided    DisciplinaryAction[]             @relation("DisciplinaryVoidedBy")
+  performanceReviewsReceived   PerformanceReview[]              @relation("PerformanceReviewEmployee")
+  performanceReviewsEvaluated  PerformanceReview[]              @relation("PerformanceReviewEvaluator")
+  createdPerformanceCriteria   PerformanceEvaluationCriteria[]  @relation("PerformanceCriteriaCreatedBy")
+  notificationPreference       AdminNotificationPreference?     @relation("AdminNotificationPreference")
+  notificationsReceived        NotificationOutbox[]             @relation("NotificationRecipient")
+  notificationsAbout           NotificationOutbox[]             @relation("NotificationSubject")
 
   @@index([role, isActive])
   @@index([role, accessEnabled])
@@ -580,6 +586,34 @@ model Vacation {
 
   @@index([employeeId, startDate, endDate])
   @@map("vacations")
+}
+
+/// Abono (one day) or atestado médico (one or more days) excusing an employee's absence.
+/// Never deleted: cancelling keeps the record with who cancelled it and why.
+enum AbsenceJustificationKind {
+  ALLOWANCE
+  MEDICAL_CERTIFICATE
+}
+
+model AbsenceJustification {
+  id           String                   @id @default(uuid()) @db.Uuid
+  employeeId   String                   @map("employee_id") @db.Uuid
+  kind         AbsenceJustificationKind
+  startDate    DateTime                 @map("start_date") @db.Date
+  endDate      DateTime                 @map("end_date") @db.Date
+  reason       String                   @db.VarChar(500)
+  createdById  String                   @map("created_by_id") @db.Uuid
+  createdAt    DateTime                 @default(now()) @map("created_at") @db.Timestamptz(6)
+  revokedAt    DateTime?                @map("revoked_at") @db.Timestamptz(6)
+  revokedById  String?                  @map("revoked_by_id") @db.Uuid
+  revokeReason String?                  @map("revoke_reason") @db.VarChar(500)
+
+  employee  User  @relation("EmployeeAbsenceJustifications", fields: [employeeId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  createdBy User  @relation("AbsenceJustificationsCreatedBy", fields: [createdById], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  revokedBy User? @relation("AbsenceJustificationsRevokedBy", fields: [revokedById], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@index([employeeId, startDate, endDate])
+  @@map("absence_justifications")
 }
 
 model Company {

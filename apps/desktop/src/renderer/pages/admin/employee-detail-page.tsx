@@ -57,6 +57,9 @@ import { SelectInput } from '../../components/select-input.js';
 import { formatDateBR, formatDisplayName } from '../../lib/format.js';
 import { formatMinutesDuration } from '@ph-ponto/shared';
 import { HelpHint } from '../../help/help-hint.js';
+import { AbsenceJustificationModal } from '../../components/absence-justification-modal.js';
+import { AbsenceJustificationsCard } from '../../components/absence-justifications-card.js';
+import { isJustifiedStatus } from '../../attendance/presentation.js';
 
 function formatTime(isoString?: string | null): string {
   if (!isoString) return '--:--';
@@ -168,6 +171,8 @@ export function AdminEmployeeDetailPage(): React.JSX.Element {
   // Modals state
   const [avatarOpen, setAvatarOpen] = useState(false);
   const [manualPunchOpen, setManualPunchOpen] = useState(false);
+  // Date to justify (abono/atestado); `null` keeps the dialog closed.
+  const [justifyDate, setJustifyDate] = useState<string | null>(null);
   const [correctPunch, setCorrectPunch] = useState<{
     id: string;
     occurredAt: string;
@@ -1852,6 +1857,28 @@ export function AdminEmployeeDetailPage(): React.JSX.Element {
                       )}
                     </div>
 
+                    {isJustifiedStatus(selectedDay.calendarStatus) ? (
+                      <div className="rounded-lg border border-sky-200 bg-sky-50 p-3 text-xs text-sky-900 dark:border-sky-900 dark:bg-sky-950/30 dark:text-sky-200">
+                        <p className="font-semibold">Falta justificada</p>
+                        <p className="mt-0.5">{selectedDay.exceptionName}</p>
+                        <p className="mt-1 text-sky-800/80 dark:text-sky-300/80">
+                          Para desfazer, use Cancelar em Abonos e atestados, abaixo.
+                        </p>
+                      </div>
+                    ) : (
+                      selectedDay.calendarStatus === null &&
+                      selectedDay.expectedMinutes > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => setJustifyDate(selectedDay.businessDate)}
+                          className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-blue-300 px-3 py-2 text-xs font-semibold text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-300 dark:hover:bg-blue-950/30"
+                        >
+                          <Plus className="h-4 w-4" aria-hidden="true" />
+                          Justificar falta deste dia (abono ou atestado)
+                        </button>
+                      )
+                    )}
+
                     <div className="pt-3 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-500 space-y-1">
                       <div>
                         Horas previstas na jornada:{' '}
@@ -1945,6 +1972,17 @@ export function AdminEmployeeDetailPage(): React.JSX.Element {
               </div>
             </div>
           )}
+
+          <AbsenceJustificationsCard
+            employee={{ id: employeeId, name: employee?.name ?? '' }}
+            onJustify={() => setJustifyDate(selectedDay?.businessDate ?? '')}
+          />
+          <AbsenceJustificationModal
+            isOpen={justifyDate !== null}
+            onClose={() => setJustifyDate(null)}
+            employee={{ id: employeeId, name: employee?.name ?? '' }}
+            initialDate={justifyDate || undefined}
+          />
         </div>
       )}
 

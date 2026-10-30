@@ -143,6 +143,8 @@ describe('help content', () => {
     expect(top('ferias')?.article.slug).toBe('jornadas-e-calendario');
     expect(top('advertencia')?.article.slug).toBe('medidas-disciplinares');
     expect(top('whatsapp')?.article.slug).toBe('alertas-no-whatsapp');
+    expect(top('funcionario faltou com atestado')?.article.slug).toBe('abonos-e-atestados');
+    expect(top('abonar')?.article.slug).toBe('abonos-e-atestados');
     expect(top('trocar senha', 'employee')?.article.slug).toBe('trocar-minha-senha');
     expect(top('bater ponto', 'employee')?.article.slug).toBe('bater-ponto');
   });

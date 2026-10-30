@@ -2,11 +2,13 @@ import { BadRequestException, Inject, Injectable, NotFoundException } from '@nes
 import {
   aggregateAttendancePeriod,
   aggregateMonthlyAttendance,
+  applyAbsenceJustification,
   businessDateFromInstant,
   calculateDailyAttendance,
   classifyBusinessDate,
   instantRangeForBusinessDate,
   resolveExpectation,
+  type AbsenceJustificationInfo,
   type AttendancePeriodSummary,
   type AttendancePunch,
   type CalendarExceptionRevision,
@@ -206,6 +208,18 @@ export class AttendanceService implements AttendanceSummaryResolver {
           vacationByEmployee.set(v.employeeId, v.note ?? 'Férias');
         }
 
+        const todayJustifications = await tx.absenceJustification.findMany({
+          where: {
+            revokedAt: null,
+            startDate: { lte: businessDateToDatabaseDate(businessDate) },
+            endDate: { gte: businessDateToDatabaseDate(businessDate) },
+          },
+          select: { employeeId: true, kind: true, reason: true },
+        });
+        const justificationByEmployee = new Map<string, AbsenceJustificationInfo>(
+          todayJustifications.map((j) => [j.employeeId, { kind: j.kind, reason: j.reason }]),
+        );
+
         const targetEmployees = activeEmployees.filter((emp) => {
           if (!emp.createdAt) return true;
           const empHireDate = businessDateFromInstant(emp.createdAt);
@@ -241,6 +255,11 @@ export class AttendanceService implements AttendanceSummaryResolver {
               exceptionName: vacationNote,
             };
           }
+
+          empExpectation = applyAbsenceJustification(
+            empExpectation,
+            justificationByEmployee.get(emp.id) ?? null,
+          );
 
           const daily = calculateDailyAttendance({
             businessDate,
@@ -576,7 +595,7 @@ export class AttendanceService implements AttendanceSummaryResolver {
       throw invalidDate();
     }
 
-    const [userRecord, expectation, punches, vacation] = await Promise.all([
+    const [userRecord, expectation, punches, vacation, justification] = await Promise.all([
       transaction.user.findUnique({
         where: { id: employeeId },
         select: { createdAt: true },
@@ -590,6 +609,15 @@ export class AttendanceService implements AttendanceSummaryResolver {
           endDate: { gte: businessDateToDatabaseDate(businessDate) },
         },
         select: { id: true, note: true },
+      }),
+      transaction.absenceJustification.findFirst({
+        where: {
+          employeeId,
+          revokedAt: null,
+          startDate: { lte: businessDateToDatabaseDate(businessDate) },
+          endDate: { gte: businessDateToDatabaseDate(businessDate) },
+        },
+        select: { kind: true, reason: true },
       }),
     ]);
 
@@ -620,6 +648,8 @@ export class AttendanceService implements AttendanceSummaryResolver {
         exceptionName: vacation.note ?? 'Férias',
       };
     }
+
+    effectiveExpectation = applyAbsenceJustification(effectiveExpectation, justification);
 
     return calculateDailyAttendance({
       businessDate,
@@ -746,93 +776,108 @@ export class AttendanceService implements AttendanceSummaryResolver {
 
     return this.prisma.$transaction(
       async (transaction) => {
-        const [userRecord, scheduleRecords, exceptionRecords, punchRecords, vacationRecords] =
-          await Promise.all([
-            transaction.user.findUnique({
-              where: { id: employeeId },
-              select: { createdAt: true },
-            }),
-            transaction.businessScheduleVersion.findMany({
-              where: { effectiveDate: { lte: businessDateToDatabaseDate(to) } },
-              orderBy: { effectiveDate: 'asc' },
+        const [
+          userRecord,
+          scheduleRecords,
+          exceptionRecords,
+          punchRecords,
+          vacationRecords,
+          justificationRecords,
+        ] = await Promise.all([
+          transaction.user.findUnique({
+            where: { id: employeeId },
+            select: { createdAt: true },
+          }),
+          transaction.businessScheduleVersion.findMany({
+            where: { effectiveDate: { lte: businessDateToDatabaseDate(to) } },
+            orderBy: { effectiveDate: 'asc' },
+            select: {
+              id: true,
+              effectiveDate: true,
+              days: {
+                select: {
+                  weekday: true,
+                  isOpen: true,
+                  openingMinute: true,
+                  closingMinute: true,
+                  lunchEnabled: true,
+                  lunchStartMinute: true,
+                  lunchEndMinute: true,
+                },
+              },
+            },
+          }),
+          transaction.calendarException.findMany({
+            where: {
+              businessDate: {
+                gte: businessDateToDatabaseDate(from),
+                lte: businessDateToDatabaseDate(to),
+              },
+            },
+            select: {
+              businessDate: true,
+              revisions: {
+                orderBy: { sequence: 'asc' },
+                select: {
+                  id: true,
+                  sequence: true,
+                  operation: true,
+                  kind: true,
+                  name: true,
+                  openingMinute: true,
+                  closingMinute: true,
+                  lunchEnabled: true,
+                  lunchStartMinute: true,
+                  lunchEndMinute: true,
+                },
+              },
+            },
+          }),
+          (() => {
+            const { start } = instantRangeForBusinessDate(from);
+            const { endExclusive } = instantRangeForBusinessDate(to);
+            return transaction.timePunch.findMany({
+              where: { employeeId, occurredAt: { gte: start, lt: endExclusive }, void: null },
+              orderBy: [{ occurredAt: 'asc' }, { id: 'asc' }],
               select: {
                 id: true,
-                effectiveDate: true,
-                days: {
-                  select: {
-                    weekday: true,
-                    isOpen: true,
-                    openingMinute: true,
-                    closingMinute: true,
-                    lunchEnabled: true,
-                    lunchStartMinute: true,
-                    lunchEndMinute: true,
-                  },
-                },
-              },
-            }),
-            transaction.calendarException.findMany({
-              where: {
-                businessDate: {
-                  gte: businessDateToDatabaseDate(from),
-                  lte: businessDateToDatabaseDate(to),
-                },
-              },
-              select: {
-                businessDate: true,
-                revisions: {
+                kind: true,
+                occurredAt: true,
+                adjustments: {
                   orderBy: { sequence: 'asc' },
                   select: {
                     id: true,
                     sequence: true,
-                    operation: true,
-                    kind: true,
-                    name: true,
-                    openingMinute: true,
-                    closingMinute: true,
-                    lunchEnabled: true,
-                    lunchStartMinute: true,
-                    lunchEndMinute: true,
+                    previousOccurredAt: true,
+                    correctedOccurredAt: true,
                   },
                 },
               },
-            }),
-            (() => {
-              const { start } = instantRangeForBusinessDate(from);
-              const { endExclusive } = instantRangeForBusinessDate(to);
-              return transaction.timePunch.findMany({
-                where: { employeeId, occurredAt: { gte: start, lt: endExclusive }, void: null },
-                orderBy: [{ occurredAt: 'asc' }, { id: 'asc' }],
-                select: {
-                  id: true,
-                  kind: true,
-                  occurredAt: true,
-                  adjustments: {
-                    orderBy: { sequence: 'asc' },
-                    select: {
-                      id: true,
-                      sequence: true,
-                      previousOccurredAt: true,
-                      correctedOccurredAt: true,
-                    },
-                  },
-                },
-              });
-            })(),
-            transaction.vacation.findMany({
-              where: {
-                employeeId,
-                startDate: { lte: businessDateToDatabaseDate(to) },
-                endDate: { gte: businessDateToDatabaseDate(from) },
-              },
-              select: {
-                id: true,
-                startDate: true,
-                endDate: true,
-                note: true,
-              },
-            }),
-          ]);
+            });
+          })(),
+          transaction.vacation.findMany({
+            where: {
+              employeeId,
+              startDate: { lte: businessDateToDatabaseDate(to) },
+              endDate: { gte: businessDateToDatabaseDate(from) },
+            },
+            select: {
+              id: true,
+              startDate: true,
+              endDate: true,
+              note: true,
+            },
+          }),
+          transaction.absenceJustification.findMany({
+            where: {
+              employeeId,
+              revokedAt: null,
+              startDate: { lte: businessDateToDatabaseDate(to) },
+              endDate: { gte: businessDateToDatabaseDate(from) },
+            },
+            select: { kind: true, reason: true, startDate: true, endDate: true },
+          }),
+        ]);
 
         const hireBusinessDate = userRecord?.createdAt
           ? businessDateFromInstant(userRecord.createdAt)
@@ -889,12 +934,20 @@ export class AttendanceService implements AttendanceSummaryResolver {
               }
             : null;
 
-          const expectation = resolveExpectation({
-            businessDate,
-            scheduleVersions,
-            exceptionRevisions,
-            vacation: vacationInfo,
-          });
+          const justification = justificationRecords.find(
+            (j) =>
+              compareBusinessDates(databaseDateToBusinessDate(j.startDate), businessDate) <= 0 &&
+              compareBusinessDates(businessDate, databaseDateToBusinessDate(j.endDate)) <= 0,
+          );
+          const expectation = applyAbsenceJustification(
+            resolveExpectation({
+              businessDate,
+              scheduleVersions,
+              exceptionRevisions,
+              vacation: vacationInfo,
+            }),
+            justification ? { kind: justification.kind, reason: justification.reason } : null,
+          );
 
           return calculateDailyAttendance({
             businessDate,

@@ -28,6 +28,7 @@ import { TimeAdjustmentsModule } from './time-adjustments/time-adjustments.modul
 import { TimePunchesModule } from './time-punches/time-punches.module.js';
 import { UsersModule } from './users/users.module.js';
 import { VacationsModule } from './vacations/vacations.module.js';
+import { AbsenceJustificationsModule } from './absence-justifications/absence-justifications.module.js';
 
 @Module({
   imports: [
@@ -61,6 +62,7 @@ import { VacationsModule } from './vacations/vacations.module.js';
     TimeAdjustmentsModule,
     AdjustmentRequestsModule,
     VacationsModule,
+    AbsenceJustificationsModule,
     HealthModule,
   ],
 })

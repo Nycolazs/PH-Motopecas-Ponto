@@ -29,6 +29,8 @@ import {
   notificationOutboxSchema,
   userListSchema,
   vacationListSchema,
+  absenceJustificationListSchema,
+  absenceJustificationSchema,
   vacationSchema,
   type AdjustmentRequest,
   type AdjustmentRequestList,
@@ -38,6 +40,8 @@ import {
   type AuditLogList,
   type CalendarException,
   type CalendarExceptionList,
+  type AbsenceJustification,
+  type CreateAbsenceJustificationInput,
   type CreateVacationInput,
   type DailyAttendance,
   type IncompleteAttendance,
@@ -1403,6 +1407,44 @@ export class ApiClient {
       body: JSON.stringify(data),
       headers: { 'Content-Type': 'application/json' },
     });
+  }
+
+  public getAbsenceJustifications(
+    params: { employeeId?: string; from?: string; to?: string },
+    signal?: AbortSignal,
+  ): Promise<AbsenceJustification[]> {
+    const q = new URLSearchParams();
+    if (params.employeeId) q.set('employeeId', params.employeeId);
+    if (params.from) q.set('from', params.from);
+    if (params.to) q.set('to', params.to);
+    const qs = q.toString();
+    return this.request(
+      `/absence-justifications${qs ? `?${qs}` : ''}`,
+      absenceJustificationListSchema,
+      signal === undefined ? {} : { signal },
+    ).then((list) => list.items);
+  }
+
+  public createAbsenceJustification(
+    input: CreateAbsenceJustificationInput,
+  ): Promise<AbsenceJustification> {
+    return this.request('/absence-justifications', absenceJustificationSchema, {
+      method: 'POST',
+      body: JSON.stringify(input),
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  public revokeAbsenceJustification(id: string, reason: string): Promise<AbsenceJustification> {
+    return this.request(
+      `/absence-justifications/${encodeURIComponent(id)}/revoke`,
+      absenceJustificationSchema,
+      {
+        method: 'POST',
+        body: JSON.stringify({ reason }),
+        headers: { 'Content-Type': 'application/json' },
+      },
+    );
   }
 
   public deleteVacation(id: string): Promise<{ success: boolean; message: string }> {

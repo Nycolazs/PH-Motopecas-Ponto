@@ -107,7 +107,7 @@ export const ADMIN_TEAM_ARTICLES: HelpArticle[] = [
         title: 'As abas da ficha',
         bullets: [
           'Resumo: dados pessoais, vínculo e cargo, atalhos para emitir documentos e a escala disciplinar.',
-          'Ponto & Frequência: calendário do mês com o status de cada dia. Clique em um dia para ver e corrigir as batidas.',
+          'Ponto & Frequência: calendário do mês com o status de cada dia. Clique em um dia para ver e corrigir as batidas ou justificar a falta (abono ou atestado).',
           'Histórico: linha do tempo com admissão, mudanças de cargo, documentos, férias, acessos e medidas disciplinares.',
           'Documentos: todos os PDFs emitidos para a pessoa, com visualização e download.',
           'Avaliações: as avaliações de desempenho registradas.',
@@ -129,7 +129,7 @@ export const ADMIN_TEAM_ARTICLES: HelpArticle[] = [
         ],
       },
     ],
-    related: ['colaboradores', 'registros-de-ponto', 'documentos-e-rh'],
+    related: ['colaboradores', 'abonos-e-atestados', 'registros-de-ponto', 'documentos-e-rh'],
   },
   {
     slug: 'relatorios-e-espelho',

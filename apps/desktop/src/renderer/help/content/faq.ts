@@ -17,6 +17,13 @@ export const FAQ_ARTICLES: HelpArticle[] = [
         ],
       },
       {
+        id: 'faltou-com-atestado',
+        title: 'O colaborador faltou e trouxe atestado (ou a falta foi liberada)',
+        paragraphs: [
+          'Na ficha dele, aba Ponto & Frequência, clique no dia e use Justificar falta: escolha Atestado médico (com a quantidade de dias) ou Abono (um dia). As horas que faltaram deixam de ser descontadas.',
+        ],
+      },
+      {
         id: 'bateu-duas-vezes',
         title: 'Alguém bateu o ponto duas vezes sem querer',
         paragraphs: [
@@ -75,7 +82,12 @@ export const FAQ_ARTICLES: HelpArticle[] = [
         ],
       },
     ],
-    related: ['registros-de-ponto', 'relatorios-e-espelho', 'aplicativo-desktop'],
+    related: [
+      'registros-de-ponto',
+      'abonos-e-atestados',
+      'relatorios-e-espelho',
+      'aplicativo-desktop',
+    ],
   },
   {
     slug: 'duvidas-do-colaborador',

@@ -50,6 +50,9 @@ const SYNONYM_GROUPS: readonly (readonly string[])[] = [
   ['imprimir', 'impressao'],
   ['planilha', 'excel', 'csv', 'exportar'],
   ['atraso', 'atrasado', 'atrasou'],
+  ['falta', 'faltou', 'faltar', 'ausencia', 'ausente'],
+  ['abono', 'abonar', 'abonado', 'abonada'],
+  ['atestado', 'atestados', 'afastamento'],
 ];
 
 function variantsOf(token: string): string[] {

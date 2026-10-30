@@ -9,7 +9,14 @@ export const attendanceStatusLabels = {
   DAY_OFF: 'Folga',
   CLOSED: 'Fechado',
   VACATION: 'Férias',
+  ALLOWANCE: 'Abonado',
+  MEDICAL_LEAVE: 'Atestado',
 } as const;
+
+/** Days whose absence an administrator excused with an abono or an atestado. */
+export function isJustifiedStatus(status: string | null | undefined): boolean {
+  return status === 'ALLOWANCE' || status === 'MEDICAL_LEAVE';
+}
 
 export const workStateLabels = {
   NOT_STARTED: 'Ainda não iniciou',
@@ -19,6 +26,12 @@ export const workStateLabels = {
 } as const;
 
 export function dailyStateLabel(day: DailyAttendance): string {
+  if (
+    isJustifiedStatus(day.status) &&
+    (day.workState === null || day.workState === 'NOT_STARTED')
+  ) {
+    return attendanceStatusLabels[day.status!];
+  }
   if (day.workState !== null) return workStateLabels[day.workState];
   if (day.status !== null) return attendanceStatusLabels[day.status];
   return 'Em andamento';
