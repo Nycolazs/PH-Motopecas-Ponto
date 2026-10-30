@@ -14,6 +14,10 @@ COMPLETED — HR evolution in active local development on `feat/hr-evolution`. P
 
 ## Active HR Implementation
 
+- **Escala 5x2 / end of 6x1 — branch `feat/escala-5x2` (2026-10-31, not merged)**:
+  - Study of EC 141/2026 (42 h with two rest days from the transition start, 40 h one year later, no salary cut; without a collective agreement the 42 h stage is effectively 40 h) and the store rules that still apply (11 h between days, breaks, Sunday rest in commerce). Full analysis, data model, API, screens, worked example for PH Motopeças, rollout and open decisions in `docs/escala-5x2.md`.
+  - Implemented and tested in this branch: pure scheduling engine `packages/shared/src/scheduling` (regime timeline, per-employee 1–4 week patterns and overrides, compliance checks with pt-BR messages, store coverage, balanced/rotating second day off, troca de folga simulation) with 13 tests. No database, API or UI change yet; production behaviour unchanged.
+
 - **Only absences can be justified, desktop 0.1.12 (2026-10-31)**:
   - Rule (owner request): an abono/atestado is accepted only for days without any punch or with status MISSING_HOURS (e.g. worked in the morning and left with an atestado, or arrived late). Normal/overtime days are refused, incomplete punches must be fixed first, and an employee still clocked in today must clock out first. For an atestado range every day must qualify.
   - API: `AbsenceJustificationsService.create` resolves each day with the shared attendance resolver inside the transaction and rejects with `DAY_NOT_ABSENT` and a pt-BR message naming the day. UI: `canJustifyDay` hides "Justificar falta deste dia" (profile) and "Justificar falta" (Registros de Ponto) on other days; the help guide lists which days qualify.

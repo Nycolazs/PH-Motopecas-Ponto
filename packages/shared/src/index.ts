@@ -20,3 +20,4 @@ export type {
 export { formatDurationMinutes, formatMinutesDuration } from './duration.js';
 export * from './attendance/index.js';
 export * from './hr/index.js';
+export * from './scheduling/index.js';
