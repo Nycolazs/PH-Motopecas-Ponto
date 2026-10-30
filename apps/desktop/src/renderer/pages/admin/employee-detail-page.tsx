@@ -59,7 +59,7 @@ import { formatMinutesDuration } from '@ph-ponto/shared';
 import { HelpHint } from '../../help/help-hint.js';
 import { AbsenceJustificationModal } from '../../components/absence-justification-modal.js';
 import { AbsenceJustificationsCard } from '../../components/absence-justifications-card.js';
-import { isJustifiedStatus } from '../../attendance/presentation.js';
+import { canJustifyDay, isJustifiedStatus } from '../../attendance/presentation.js';
 
 function formatTime(isoString?: string | null): string {
   if (!isoString) return '--:--';
@@ -1866,8 +1866,7 @@ export function AdminEmployeeDetailPage(): React.JSX.Element {
                         </p>
                       </div>
                     ) : (
-                      selectedDay.calendarStatus === null &&
-                      selectedDay.expectedMinutes > 0 && (
+                      canJustifyDay(selectedDay) && (
                         <button
                           type="button"
                           onClick={() => setJustifyDate(selectedDay.businessDate)}

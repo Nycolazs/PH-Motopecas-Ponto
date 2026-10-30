@@ -414,6 +414,16 @@ export const ADMIN_PUNCH_ARTICLES: HelpArticle[] = [
         ],
       },
       {
+        id: 'quais-dias',
+        title: 'Quais dias podem ser justificados',
+        bullets: [
+          'Dias sem nenhuma batida: falta do dia inteiro, ou dias futuros cobertos por um atestado.',
+          'Dias com Horas faltantes: por exemplo, o colaborador trabalhou de manhã e saiu com atestado.',
+          'Não é possível justificar dias trabalhados normalmente ou com hora extra. Se o ponto estiver incompleto, corrija as batidas antes.',
+        ],
+        tip: 'No atestado de vários dias, todos os dias precisam se encaixar nessa regra.',
+      },
+      {
         id: 'registrar',
         title: 'Justificar uma falta',
         steps: [

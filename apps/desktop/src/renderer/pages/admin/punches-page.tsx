@@ -9,7 +9,7 @@ import { DateInput } from '../../components/date-input.js';
 import { SelectInput } from '../../components/select-input.js';
 import { ManualPunchModal } from '../../components/manual-punch-modal.js';
 import { AbsenceJustificationModal } from '../../components/absence-justification-modal.js';
-import { isJustifiedStatus } from '../../attendance/presentation.js';
+import { canJustifyDay, isJustifiedStatus } from '../../attendance/presentation.js';
 import { PunchCorrectionModal } from '../../components/punch-correction-modal.js';
 import { StatusBadge } from '../../components/status-badge.js';
 import { formatDateBR, formatDisplayName } from '../../lib/format.js';
@@ -170,7 +170,7 @@ export function AdminPunchesPage(): React.JSX.Element {
                   <div className="text-slate-500">Status</div>
                   <StatusBadge status={employeeDay.status} workState={employeeDay.workState} />
                 </div>
-                {employeeDay.calendarStatus === null && employeeDay.expectedMinutes > 0 && (
+                {canJustifyDay(employeeDay) && (
                   <button
                     type="button"
                     onClick={() => setJustifyOpen(true)}

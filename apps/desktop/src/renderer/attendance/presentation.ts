@@ -18,6 +18,23 @@ export function isJustifiedStatus(status: string | null | undefined): boolean {
   return status === 'ALLOWANCE' || status === 'MEDICAL_LEAVE';
 }
 
+/**
+ * Same rule as the API: only absences can be justified — a working day without any
+ * punch, or a day with missing hours (worked part of it and left).
+ */
+export function canJustifyDay(day: {
+  calendarStatus: string | null;
+  expectedMinutes: number;
+  punchCount: number;
+  status: string | null;
+}): boolean {
+  return (
+    day.calendarStatus === null &&
+    day.expectedMinutes > 0 &&
+    (day.punchCount === 0 || day.status === 'MISSING_HOURS')
+  );
+}
+
 export const workStateLabels = {
   NOT_STARTED: 'Ainda não iniciou',
   WORKING: 'Trabalhando',

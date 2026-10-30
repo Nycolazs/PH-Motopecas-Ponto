@@ -5,7 +5,17 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { compareBusinessDates, isBusinessDate } from '../attendance/business-date.js';
+import type { DailyAttendanceSummary } from '@ph-ponto/shared';
+
+import {
+  compareBusinessDates,
+  enumerateBusinessDates,
+  isBusinessDate,
+} from '../attendance/business-date.js';
+import {
+  ATTENDANCE_SUMMARY_RESOLVER,
+  type AttendanceSummaryResolver,
+} from '../time-punches/attendance-summary.port.js';
 
 import { AuditService } from '../audit/audit.service.js';
 import type { AuthenticatedUser, ClientContext } from '../auth/auth.types.js';
@@ -90,6 +100,27 @@ function formatDate(date: Date): string {
   return `${day}/${month}/${year}`;
 }
 
+/**
+ * Only absences can be justified: a day without any punch, or a day with missing hours
+ * (e.g. worked in the morning and left with an atestado). Returns why a day is refused.
+ */
+export function absenceJustificationBlocker(summary: DailyAttendanceSummary): string | null {
+  if (summary.punchCount === 0 || summary.status === 'MISSING_HOURS') return null;
+  const day = formatBusinessDate(summary.businessDate);
+  if (!summary.isFinalized && summary.chronology.hasOpenInterval) {
+    return `O colaborador ainda está trabalhando em ${day}. Justifique depois que ele registrar a saída.`;
+  }
+  if (summary.status === 'INCOMPLETE' || summary.chronology.isIncomplete) {
+    return `O ponto de ${day} está incompleto. Corrija as batidas antes de justificar a falta.`;
+  }
+  return `Não há falta para justificar em ${day}: o colaborador bateu ponto e não tem horas faltando.`;
+}
+
+function formatBusinessDate(date: string): string {
+  const [year, month, day] = date.split('-');
+  return `${day}/${month}/${year}`;
+}
+
 @Injectable()
 export class AbsenceJustificationsService {
   public constructor(
@@ -97,6 +128,8 @@ export class AbsenceJustificationsService {
     @Inject(AuditService) private readonly audit: AuditService,
     @Inject(JustificationAttachmentStorageService)
     private readonly attachments: JustificationAttachmentStorageService,
+    @Inject(ATTENDANCE_SUMMARY_RESOLVER)
+    private readonly attendance: AttendanceSummaryResolver,
   ) {}
 
   public async addAttachment(
@@ -301,6 +334,24 @@ export class AbsenceJustificationsService {
             code: 'JUSTIFICATION_DURING_VACATION',
             message: `O colaborador está de férias de ${formatDate(vacation.startDate)} a ${formatDate(vacation.endDate)}; esses dias já não contam como falta.`,
           });
+        }
+
+        const evaluationInstant = new Date();
+        for (const businessDate of enumerateBusinessDates(
+          input.startDate,
+          input.endDate,
+          MAX_JUSTIFIED_DAYS,
+        )) {
+          const summary = await this.attendance.resolveDaily({
+            employeeId: input.employeeId,
+            businessDate,
+            evaluationInstant,
+            transaction: tx,
+          });
+          const blocker = absenceJustificationBlocker(summary);
+          if (blocker !== null) {
+            throw new BadRequestException({ code: 'DAY_NOT_ABSENT', message: blocker });
+          }
         }
 
         const justification = await tx.absenceJustification.create({

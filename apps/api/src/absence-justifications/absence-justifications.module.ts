@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 
+import { AttendanceModule } from '../attendance/attendance.module.js';
 import { AuditModule } from '../audit/audit.module.js';
 import { AuthModule } from '../auth/auth.module.js';
 import { DatabaseModule } from '../database/database.module.js';
@@ -8,7 +9,7 @@ import { AbsenceJustificationsService } from './absence-justifications.service.j
 import { JustificationAttachmentStorageService } from './justification-attachment-storage.service.js';
 
 @Module({
-  imports: [DatabaseModule, AuthModule, AuditModule],
+  imports: [DatabaseModule, AuthModule, AuditModule, AttendanceModule],
   controllers: [AbsenceJustificationsController],
   providers: [AbsenceJustificationsService, JustificationAttachmentStorageService],
 })

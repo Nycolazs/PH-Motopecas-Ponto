@@ -174,6 +174,58 @@ describe('abono e atestado (absence justifications) with real PostgreSQL', () =>
     expect(day.body.status).toBe('MEDICAL_LEAVE');
   });
 
+  it('only justifies absences: days without punches or with missing hours', async () => {
+    const punch = (occurredAt: string) =>
+      asAdmin(http().post('/time-punches/manual'))
+        .set('Idempotency-Key', randomUUID())
+        .send({ employeeId, occurredAt, reason: 'Registro de teste.' })
+        .expect(201);
+    // Thu 2026-01-08: full day (08-12, 13-17). Fri 2026-01-09: only a clock-in.
+    for (const at of ['11:00', '15:00', '16:00', '20:00']) await punch(`2026-01-08T${at}:00.000Z`);
+    await punch('2026-01-09T11:00:00.000Z');
+
+    await justify({
+      kind: 'ALLOWANCE',
+      startDate: '2026-01-08',
+      endDate: '2026-01-08',
+      reason: 'Dia normal',
+    })
+      .expect(400)
+      .expect(({ body }) => {
+        expect(body.code).toBe('DAY_NOT_ABSENT');
+        expect(body.message).toBe(
+          'Não há falta para justificar em 08/01/2026: o colaborador bateu ponto e não tem horas faltando.',
+        );
+      });
+    await justify({
+      kind: 'ALLOWANCE',
+      startDate: '2026-01-09',
+      endDate: '2026-01-09',
+      reason: 'Incompleto',
+    })
+      .expect(400)
+      .expect(({ body }) =>
+        expect(body.message).toContain('O ponto de 09/01/2026 está incompleto'),
+      );
+    // A range is refused as a whole when one of its days was worked.
+    await justify({
+      kind: 'MEDICAL_CERTIFICATE',
+      startDate: '2026-01-07',
+      endDate: '2026-01-08',
+      reason: 'Atestado',
+    })
+      .expect(400)
+      .expect(({ body }) => expect(body.message).toContain('08/01/2026'));
+    // Days without punches (past or future) are accepted.
+    await justify({
+      kind: 'MEDICAL_CERTIFICATE',
+      startDate: '2026-01-06',
+      endDate: '2026-01-07',
+      reason: 'Atestado',
+    }).expect(201);
+    expect(await prisma.absenceJustification.count()).toBe(1);
+  });
+
   it('enforces one day per abono, no overlaps and no vacation days', async () => {
     await justify({
       kind: 'ALLOWANCE',

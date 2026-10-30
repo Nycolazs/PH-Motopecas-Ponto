@@ -14,6 +14,11 @@ COMPLETED — HR evolution in active local development on `feat/hr-evolution`. P
 
 ## Active HR Implementation
 
+- **Only absences can be justified, desktop 0.1.12 (2026-10-31)**:
+  - Rule (owner request): an abono/atestado is accepted only for days without any punch or with status MISSING_HOURS (e.g. worked in the morning and left with an atestado, or arrived late). Normal/overtime days are refused, incomplete punches must be fixed first, and an employee still clocked in today must clock out first. For an atestado range every day must qualify.
+  - API: `AbsenceJustificationsService.create` resolves each day with the shared attendance resolver inside the transaction and rejects with `DAY_NOT_ABSENT` and a pt-BR message naming the day. UI: `canJustifyDay` hides "Justificar falta deste dia" (profile) and "Justificar falta" (Registros de Ponto) on other days; the help guide lists which days qualify.
+  - Verified: integration test (worked day, incomplete day, range containing a worked day refused; empty days accepted), renderer unit tests, local browser run on the demo database.
+
 - **Atestado attachments (photo/PDF), desktop 0.1.11 (2026-10-31)**:
   - `AbsenceJustificationAttachment` (migration `20261031120000_absence_justification_attachments`): up to 5 files per atestado médico (not abono), JPEG/PNG/WebP/PDF detected from the bytes, ≤ 7 MB, sanitized display name (base name, extension of the real type); immutable rows (trigger), audit action `ABSENCE_JUSTIFICATION_ATTACHMENT_ADDED`; refused on cancelled atestados but kept when an atestado is cancelled.
   - Storage: `UPLOAD_DIR/justifications/<yyyy>/<mm>/<id>.enc`, AES-256-GCM with `DOCUMENTS_ENCRYPTION_KEY` and the attachment id as AAD, SHA-256 verified on every read, files 0600/dirs 0700, written before the DB row and discarded if the row fails. Production keeps it in the `ph-ponto_uploads_data` volume (same as PDFs); the off-server backup still covers only the database.
