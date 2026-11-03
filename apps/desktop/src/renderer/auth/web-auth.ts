@@ -27,7 +27,12 @@ function getApiBaseUrl(): string {
     typeof import.meta.env.VITE_API_BASE_URL === 'string' &&
     import.meta.env.VITE_API_BASE_URL.length > 0
   ) {
-    return import.meta.env.VITE_API_BASE_URL.replace(/\/+$/, '');
+    const configured = import.meta.env.VITE_API_BASE_URL.replace(/\/+$/, '');
+    // A path such as "/api" is served by the same origin that serves the panel (reverse proxy).
+    if (configured.startsWith('/') && typeof window !== 'undefined') {
+      return `${window.location.origin}${configured}`;
+    }
+    return configured;
   }
   if (typeof window !== 'undefined' && window.location?.hostname) {
     const hostname = window.location.hostname;

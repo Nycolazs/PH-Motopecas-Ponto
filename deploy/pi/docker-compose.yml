@@ -1,0 +1,93 @@
+# PH-Ponto presentation demo for the Raspberry Pi (linux/arm64).
+# Images are built by .github/workflows/demo-pi.yml; this host only pulls them.
+#   docker compose pull && docker compose up -d
+#   docker compose --profile seed run --rm seed     # (re)load the demo data
+name: ph-ponto-demo
+
+x-api-environment: &api-environment
+  NODE_ENV: production
+  DATABASE_URL: postgresql://ph_ponto:${POSTGRES_PASSWORD}@postgres:5432/ph_ponto?schema=public
+  API_PORT: 3000
+  JWT_SECRET: ${JWT_SECRET}
+  JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+  DOCUMENTS_ENCRYPTION_KEY: ${DOCUMENTS_ENCRYPTION_KEY}
+  APP_TIMEZONE: America/Fortaleza
+  INITIAL_ADMIN_USERNAME: admin
+  INITIAL_ADMIN_PASSWORD: ${INITIAL_ADMIN_PASSWORD}
+  API_BASE_URL: https://ponto.yacacode.com/api
+  ADMIN_WEB_ORIGIN: https://ponto.yacacode.com
+  UPLOAD_DIR: /data/uploads
+  SWAGGER_ENABLED: 'true'
+  # Requests arrive through nginx (and cloudflared) on private Docker/host addresses.
+  TRUST_PROXY_ADDRESSES: loopback,uniquelocal
+
+services:
+  postgres:
+    image: postgres:18-alpine
+    command: ['postgres', '-c', 'timezone=UTC', '-c', 'shared_buffers=128MB']
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ph_ponto
+      POSTGRES_USER: ph_ponto
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      TZ: UTC
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ph_ponto -d ph_ponto']
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  api:
+    image: ghcr.io/nycolazs/ph-ponto-demo-api:latest
+    restart: unless-stopped
+    init: true
+    environment: *api-environment
+    volumes:
+      - uploads_data:/data/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000/health/ready').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
+
+  web:
+    image: ghcr.io/nycolazs/ph-ponto-demo-web:latest
+    restart: unless-stopped
+    ports:
+      - '0.0.0.0:8080:80' # panel + API at /api
+      - '0.0.0.0:3000:81' # API only (accepts /api/... and /...)
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'wget', '-q', '--spider', 'http://127.0.0.1:80/']
+      interval: 10s
+      timeout: 5s
+      retries: 6
+
+  seed:
+    image: ghcr.io/nycolazs/ph-ponto-demo-seed:latest
+    profiles: ['seed']
+    environment: *api-environment
+    working_dir: /app/apps/api
+    command:
+      - sh
+      - -c
+      - node_modules/.bin/tsx src/database/seed.ts && node_modules/.bin/tsx src/database/seed-demo-presentation.ts
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  uploads_data:
