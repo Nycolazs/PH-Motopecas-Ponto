@@ -1,7 +1,9 @@
 # PH-Ponto presentation demo for the Raspberry Pi (linux/arm64).
 # Images are built by .github/workflows/demo-pi.yml; this host only pulls them.
 #   docker compose pull && docker compose up -d
-#   docker compose --profile seed run --rm seed     # (re)load the demo data
+#   docker compose --profile seed run --rm -T seed         # load the demo data (idempotent)
+#   docker compose --profile seed run --rm -T render-docs  # real PDFs for the demo documents
+#   docker compose --profile seed run --rm -T live         # top up today's punches (cron, every 10 min)
 name: ph-ponto-demo
 
 x-api-environment: &api-environment
@@ -84,6 +86,29 @@ services:
       - sh
       - -c
       - node_modules/.bin/tsx src/database/seed.ts && node_modules/.bin/tsx src/database/seed-demo-presentation.ts
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+
+  live:
+    image: ghcr.io/nycolazs/ph-ponto-demo-seed:latest
+    profiles: ['seed']
+    environment: *api-environment
+    working_dir: /app/apps/api
+    command: ['node_modules/.bin/tsx', 'src/database/seed-demo-presentation.ts']
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  render-docs:
+    image: ghcr.io/nycolazs/ph-ponto-demo-api:latest
+    profiles: ['seed']
+    environment: *api-environment
+    entrypoint: []
+    command: ['node', 'dist/database/render-demo-documents.js']
+    volumes:
+      - uploads_data:/data/uploads
     depends_on:
       postgres:
         condition: service_healthy

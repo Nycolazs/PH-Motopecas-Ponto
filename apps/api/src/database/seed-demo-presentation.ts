@@ -1,10 +1,14 @@
 /**
  * Presentation-only demo data, layered on top of `seed.ts` (run that first).
  *
- * Adds a few more fictitious employees and roughly six weeks of realistic time punches
- * (relative to the moment the script runs) so dashboards, reports and pending items have
- * something to show. Every person, CPF and address here is synthetic. Idempotent: days
- * that already have punches for an employee are skipped.
+ * Adds a few more fictitious employees and realistic time punches from DEMO_HISTORY_START
+ * up to the moment the script runs, so dashboards, reports and pending items have something
+ * to show. Every person, CPF and address here is synthetic.
+ *
+ * Idempotent and incremental: for each employee/day only the planned punches that are
+ * already in the past and still missing are added. Run it every few minutes (cron) and the
+ * current day fills in live, as if the team were clocking in. A day whose existing punches
+ * differ from the plan (someone punched for real during the demo) is left untouched.
  */
 import { createHash } from 'node:crypto';
 
@@ -24,7 +28,8 @@ import {
 } from '../generated/prisma/client.js';
 
 const TIME_ZONE_OFFSET_HOURS = 3; // America/Sao_Paulo / America/Fortaleza (no DST)
-const HISTORY_DAYS = 42;
+const DEMO_HISTORY_START = '2026-09-01';
+const MS_PER_DAY = 86_400_000;
 
 const EXTRA_EMPLOYEES = [
   {
@@ -106,6 +111,11 @@ function localInstant(businessDate: string, minuteOfDay: number): Date {
   return new Date(midnightUtc + (minuteOfDay + TIME_ZONE_OFFSET_HOURS * 60) * 60_000);
 }
 
+function nextDate(businessDate: string): string {
+  const next = new Date(new Date(`${businessDate}T12:00:00.000Z`).getTime() + MS_PER_DAY);
+  return next.toISOString().slice(0, 10);
+}
+
 function weekday(businessDate: string): number {
   return new Date(`${businessDate}T12:00:00.000Z`).getUTCDay(); // 0 = Sunday
 }
@@ -174,17 +184,18 @@ async function main(): Promise<void> {
     }
 
     // Extra employees.
-    const passwordHash = await hash('funcionario123', {
-      type: argon2id,
-      memoryCost: 65_536,
-      timeCost: 3,
-      parallelism: 1,
-      hashLength: 32,
-    });
+    let passwordHash: string | undefined;
     for (const employee of EXTRA_EMPLOYEES) {
       const normalizedLogin = employee.login.toLowerCase();
       let user = await prisma.user.findUnique({ where: { normalizedLogin } });
       if (!user) {
+        passwordHash ??= await hash('funcionario123', {
+          type: argon2id,
+          memoryCost: 65_536,
+          timeCost: 3,
+          parallelism: 1,
+          hashLength: 32,
+        });
         user = await prisma.user.create({
           data: {
             name: employee.name,
@@ -258,38 +269,71 @@ async function main(): Promise<void> {
       }
     }
 
-    // Punch history.
-    const holidayDates = new Set(HOLIDAYS.map((h) => h.date));
+    // Attendance is counted from users.created_at, so backdate every demo account to the
+    // start of its punch history (otherwise reports ignore every day before the seed ran).
     const employees = await prisma.user.findMany({
       where: { role: UserRole.EMPLOYEE, isActive: true },
       include: { employeeProfile: true },
     });
+    for (const employee of employees) {
+      const hired = employee.employeeProfile?.hireDate?.toISOString().slice(0, 10);
+      const start = hired && hired > DEMO_HISTORY_START ? hired : DEMO_HISTORY_START;
+      const target = localInstant(start, 0);
+      if (employee.createdAt > target) {
+        await prisma.user.update({ where: { id: employee.id }, data: { createdAt: target } });
+        employee.createdAt = target;
+      }
+    }
+    if (admin.createdAt > localInstant(DEMO_HISTORY_START, 0)) {
+      await prisma.user.update({
+        where: { id: admin.id },
+        data: { createdAt: localInstant(DEMO_HISTORY_START, 0) },
+      });
+    }
+
+    // Punch history, filled incrementally up to now.
+    const holidayDates = new Set(HOLIDAYS.map((h) => h.date));
     const now = new Date();
     const today = localDateString(now);
     let created = 0;
+    let untouchedDays = 0;
 
     for (const employee of employees) {
-      const hired = employee.employeeProfile?.hireDate?.toISOString().slice(0, 10) ?? '1970-01-01';
-      for (let offset = HISTORY_DAYS; offset >= 0; offset -= 1) {
-        const businessDate = localDateString(new Date(now.getTime() - offset * 86_400_000));
-        if (businessDate < hired || holidayDates.has(businessDate)) continue;
+      const firstDay = localDateString(employee.createdAt);
+      for (
+        let businessDate = firstDay;
+        businessDate <= today;
+        businessDate = nextDate(businessDate)
+      ) {
+        if (holidayDates.has(businessDate)) continue;
 
-        const dayStart = localInstant(businessDate, 0);
-        const dayEnd = localInstant(businessDate, 24 * 60);
-        const already = await prisma.timePunch.count({
-          where: { employeeId: employee.id, occurredAt: { gte: dayStart, lt: dayEnd } },
+        const planned = plannedPunches(employee.normalizedLogin, businessDate)
+          .map((minute) => localInstant(businessDate, minute))
+          .filter((instant) => instant <= now);
+        if (planned.length === 0) continue;
+
+        const existing = await prisma.timePunch.findMany({
+          where: {
+            employeeId: employee.id,
+            occurredAt: {
+              gte: localInstant(businessDate, 0),
+              lt: localInstant(businessDate, 24 * 60),
+            },
+          },
+          orderBy: { occurredAt: 'asc' },
+          select: { occurredAt: true },
         });
-        if (already > 0) continue;
-
-        // Today only gets the punches that already "happened"; one person is still pending.
-        let minutes = plannedPunches(employee.normalizedLogin, businessDate);
-        if (businessDate === today) {
-          if (employee.normalizedLogin === 'mariana.costa') minutes = [];
-          minutes = minutes.filter((minute) => localInstant(businessDate, minute) <= now);
+        if (existing.length >= planned.length) continue;
+        const matchesPlan = existing.every(
+          (punch, index) => punch.occurredAt.getTime() === planned[index]?.getTime(),
+        );
+        if (!matchesPlan) {
+          untouchedDays += 1;
+          continue;
         }
 
-        for (const [index, minute] of minutes.entries()) {
-          const occurredAt = localInstant(businessDate, minute);
+        for (let index = existing.length; index < planned.length; index += 1) {
+          const occurredAt = planned[index]!;
           const key = `demo-punch-${employee.id}-${occurredAt.toISOString()}`;
           const record = await prisma.idempotencyRecord.create({
             data: {
@@ -300,7 +344,7 @@ async function main(): Promise<void> {
               status: IdempotencyStatus.COMPLETED,
               responseStatus: 201,
               responseBody: { success: true },
-              expiresAt: new Date(Date.now() + 86_400_000),
+              expiresAt: new Date(Date.now() + MS_PER_DAY),
             },
           });
           await prisma.timePunch.create({
@@ -318,7 +362,7 @@ async function main(): Promise<void> {
     }
 
     console.info(
-      `PH-Ponto presentation seed complete: ${employees.length} employees, ${created} punches added.`,
+      `PH-Ponto presentation seed complete: ${employees.length} employees, ${created} punches added, ${untouchedDays} days left as edited.`,
     );
   } finally {
     await prisma.$disconnect();
