@@ -19,3 +19,7 @@ PH-Motopeças-Ponto-Frontend
 PH-Motopeças-Ponto-Backend
 .vercel_frontend
 scratch
+
+# nginx snippets (not a format prettier understands)
+deploy/pi/*.inc
+deploy/pi/*.conf
