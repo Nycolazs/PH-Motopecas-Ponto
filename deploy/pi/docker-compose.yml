@@ -11,10 +11,10 @@ x-api-environment: &api-environment
   JWT_SECRET: ${JWT_SECRET}
   JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
   DOCUMENTS_ENCRYPTION_KEY: ${DOCUMENTS_ENCRYPTION_KEY}
-  APP_TIMEZONE: America/Fortaleza
+  APP_TIMEZONE: America/Sao_Paulo
   INITIAL_ADMIN_USERNAME: admin
   INITIAL_ADMIN_PASSWORD: ${INITIAL_ADMIN_PASSWORD}
-  API_BASE_URL: https://ponto.yacacode.com/api
+  API_BASE_URL: https://ponto.yacacode.com
   ADMIN_WEB_ORIGIN: https://ponto.yacacode.com
   UPLOAD_DIR: /data/uploads
   SWAGGER_ENABLED: 'true'
