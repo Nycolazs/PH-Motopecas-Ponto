@@ -134,7 +134,7 @@ export function AdjustmentRequestsPage(): React.JSX.Element {
         </div>
 
         {/* Status Filters */}
-        <div className="inline-flex rounded-xl bg-slate-100 dark:bg-slate-800/80 p-1 border border-slate-200 dark:border-slate-700/60 shadow-sm self-start">
+        <div className="inline-flex max-w-full flex-wrap rounded-xl bg-slate-100 dark:bg-slate-800/80 p-1 border border-slate-200 dark:border-slate-700/60 shadow-sm self-start">
           <button
             type="button"
             onClick={() => {

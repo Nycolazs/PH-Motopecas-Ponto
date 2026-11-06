@@ -515,7 +515,7 @@ export function AdminSettingsPage(): React.JSX.Element {
       </div>
 
       {/* Tabs */}
-      <div className="flex bg-slate-200/70 dark:bg-slate-800/80 p-1 rounded-xl border border-slate-300/60 dark:border-slate-700/60">
+      <div className="flex flex-wrap bg-slate-200/70 dark:bg-slate-800/80 p-1 rounded-xl border border-slate-300/60 dark:border-slate-700/60">
         <button
           type="button"
           onClick={() => setActiveTab('SCHEDULES')}
