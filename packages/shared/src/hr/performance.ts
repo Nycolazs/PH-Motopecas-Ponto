@@ -84,7 +84,7 @@ export const CANONICAL_PERFORMANCE_CRITERIA: readonly CanonicalCriterion[] = [
     order: 3,
     title: 'Conhecimento Técnico e Qualidade',
     description:
-      'Domínio técnico de peças, procedimentos mecânicos ou sistemas, com atenção aos detalhes e qualidade no acabamento.',
+      'Domínio técnico dos processos, ferramentas e sistemas do trabalho, com atenção aos detalhes e qualidade nas entregas.',
   },
   {
     key: 'TEAMWORK_COOPERATION',
@@ -112,7 +112,7 @@ export const CANONICAL_PERFORMANCE_CRITERIA: readonly CanonicalCriterion[] = [
     order: 7,
     title: 'Organização e Ferramentas',
     description:
-      'Zelo e cuidado com ferramental, peças, veículos de clientes, maquinários e preservação da limpeza do posto de trabalho.',
+      'Zelo e cuidado com equipamentos, ferramentas, bens de clientes e da empresa, e com a organização do posto de trabalho.',
   },
   {
     key: 'WORK_SAFETY',

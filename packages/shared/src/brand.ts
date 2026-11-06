@@ -43,7 +43,7 @@ export const BRAND: BrandIdentity = {
     executableName: 'pontopro',
     artifactPrefix: 'PontoPro',
     releasesOwner: 'Nycolazs',
-    releasesRepo: 'PH-Motopecas-Ponto',
+    releasesRepo: 'pontopro-releases',
     maintainer: 'PontoPro <suporte@yacacode.com>',
   },
 };

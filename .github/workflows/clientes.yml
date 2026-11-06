@@ -1,0 +1,147 @@
+# Entrega de clientes
+#
+# 1. A push to `develop` (the shared core) is merged into every `clientes/*` branch. A merge
+#    that conflicts is never forced: a pull request is opened for a person to resolve.
+# 2. Every customer branch that ships images (deploy/release.json) gets them rebuilt and pushed
+#    to GitHub Container Registry; the customer's server pulls them (see deploy/<cliente>/).
+#
+# A push straight to a customer branch only runs step 2 for that branch.
+# Pushes made here with GITHUB_TOKEN do not start other workflows, which is why the images are
+# built in this same workflow instead of by a push trigger on the customer branch.
+name: Entrega de clientes
+
+on:
+  push:
+    branches: [develop, 'clientes/**']
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch do cliente (vazio = todas)'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+  pull-requests: write
+  packages: write
+
+concurrency:
+  group: entrega-clientes
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    name: Sincronizar develop → clientes
+    runs-on: ubuntu-latest
+    outputs:
+      branches: ${{ steps.sync.outputs.branches }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: sync
+        name: Merge develop into each customer branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT: ${{ github.event_name }}
+          REF_NAME: ${{ github.ref_name }}
+          ONLY: ${{ inputs.branch }}
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898333+github-actions[bot]@users.noreply.github.com'
+
+          if [ "$EVENT" = push ] && [ "$REF_NAME" != develop ]; then
+            echo "branches=[\"$REF_NAME\"]" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          ready=()
+          for branch in $(git for-each-ref --format='%(refname:strip=3)' 'refs/remotes/origin/clientes/'); do
+            if [ -n "$ONLY" ] && [ "$branch" != "$ONLY" ]; then continue; fi
+            git checkout -q -B "$branch" "origin/$branch"
+            if git merge-base --is-ancestor origin/develop HEAD; then
+              echo "$branch: já tem tudo do develop."
+              ready+=("$branch")
+            elif git merge --no-edit -m "chore(sync): develop → $branch" origin/develop; then
+              git push origin "HEAD:$branch"
+              echo "$branch: atualizado com o develop."
+              ready+=("$branch")
+            else
+              git merge --abort
+              head="sync/develop-para-${branch#clientes/}"
+              git checkout -q -B "$head" origin/develop
+              git push --force origin "HEAD:$head"
+              if [ -z "$(gh pr list --head "$head" --base "$branch" --json number --jq '.[].number')" ]; then
+                gh pr create --head "$head" --base "$branch" \
+                  --title "Sincronizar develop em $branch (conflito)" \
+                  --body "O merge automático do develop em \`$branch\` teve conflito. Resolva neste PR; ao aprovar, a entrega do cliente roda sozinha."
+              fi
+              echo "::warning::$branch tem conflito com o develop; PR aberto."
+            fi
+          done
+          json=$(printf '%s\n' "${ready[@]:-}" | jq -R . | jq -cs 'map(select(length > 0))')
+          echo "branches=$json" >> "$GITHUB_OUTPUT"
+
+  plan:
+    name: Planejar imagens
+    needs: sync
+    if: needs.sync.outputs.branches != '[]'
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: plan
+        env:
+          BRANCHES: ${{ needs.sync.outputs.branches }}
+        run: |
+          set -euo pipefail
+          entries='[]'
+          for branch in $(echo "$BRANCHES" | jq -r '.[]'); do
+            manifest=$(git show "origin/$branch:deploy/release.json" 2>/dev/null || true)
+            [ -z "$manifest" ] && { echo "$branch: sem deploy/release.json, nada a construir."; continue; }
+            sha=$(git rev-parse "origin/$branch")
+            entries=$(jq -c --arg branch "$branch" --arg sha "$sha" --argjson m "$manifest" \
+              '. + [$m.images[] | . + {branch: $branch, sha: $sha, platforms: $m.platforms, runner: $m.runner, prefix: $m.imagePrefix}]' \
+              <<<"$entries")
+          done
+          echo "matrix={\"include\":$entries}" >> "$GITHUB_OUTPUT"
+          echo "$entries" | jq .
+
+  images:
+    name: Imagem ${{ matrix.name }} (${{ matrix.branch }})
+    needs: plan
+    if: needs.plan.outputs.matrix != '{"include":[]}'
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ matrix.sha }}
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          target: ${{ matrix.target }}
+          platforms: ${{ matrix.platforms }}
+          push: true
+          provenance: false
+          tags: |
+            ${{ matrix.prefix }}-${{ matrix.name }}:latest
+            ${{ matrix.prefix }}-${{ matrix.name }}:${{ matrix.sha }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ matrix.sha }}
+          cache-from: type=gha,scope=${{ matrix.branch }}-${{ matrix.name }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.branch }}-${{ matrix.name }}

@@ -1,3 +1,4 @@
+import { BRAND } from '@ph-ponto/shared';
 import { expect, test } from '@playwright/test';
 
 const adminSession = {
@@ -345,7 +346,7 @@ test('admin logs in, views operational dashboard and navigates admin modules', a
   page.on('console', (msg) => console.log('BROWSER CONSOLE:', msg.type(), msg.text()));
 
   await page.goto('/#/');
-  await expect(page).toHaveTitle(/PH-Ponto/);
+  await expect(page).toHaveTitle(new RegExp(BRAND.productName));
   await expect(page.getByRole('heading', { name: 'Entrar no Painel' })).toBeVisible();
 
   await page.getByLabel('Login').fill('carlos.admin');

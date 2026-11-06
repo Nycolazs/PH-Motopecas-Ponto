@@ -1,3 +1,4 @@
+import { BRAND } from '@ph-ponto/shared';
 import { expect, test, type Page } from '@playwright/test';
 
 test.use({ viewport: { width: 1366, height: 768 } });
@@ -100,7 +101,7 @@ test.beforeEach(async ({ page }) => {
       value: {
         app: {
           getInfo: async () => ({
-            productName: 'PH-Ponto',
+            productName: BRAND.productName,
             version: '0.1.0',
             platform: 'e2e',
             packaged: false,
@@ -203,7 +204,7 @@ test.beforeEach(async ({ page }) => {
 
 async function loginEmployee(page: Page): Promise<void> {
   await page.goto('/#/');
-  await expect(page).toHaveTitle(/PH-Ponto/);
+  await expect(page).toHaveTitle(new RegExp(BRAND.productName));
   await expect(page.getByRole('heading', { name: 'Bater Ponto' })).toBeVisible();
 
   await page.getByLabel('Login').fill('marina.souza');

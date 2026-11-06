@@ -40,34 +40,34 @@ export async function seedHrDemoData(
     where: { id: companyId },
     create: {
       id: companyId,
-      legalName: 'PH MOTOPECAS E SERVICOS LTDA',
-      tradeName: 'PH Motopeças',
+      legalName: 'HORIZONTE GESTAO E SERVICOS CORPORATIVOS LTDA',
+      tradeName: 'Horizonte Soluções',
       cnpj: '12.345.678/0001-90',
-      stateRegistration: '123456789',
-      email: 'contato@phmotopecas.com.br',
+      stateRegistration: '250056789',
+      email: 'contato@horizontecorp.com.br',
       phone: '(85) 3234-5678',
-      addressStreet: 'Avenida Mister Hull',
-      addressNumber: '1234',
-      addressNeighborhood: 'Antônio Bezerra',
+      addressStreet: 'Avenida Santos Dumont',
+      addressNumber: '2500',
+      addressNeighborhood: 'Aldeota',
       addressCity: 'Fortaleza',
       addressState: 'CE',
       addressPostalCode: '60356-000',
-      primaryContactName: 'Paulo Henrique Silva',
+      primaryContactName: 'Roberto Almeida',
     },
     update: {
-      legalName: 'PH MOTOPECAS E SERVICOS LTDA',
-      tradeName: 'PH Motopeças',
+      legalName: 'HORIZONTE GESTAO E SERVICOS CORPORATIVOS LTDA',
+      tradeName: 'Horizonte Soluções',
       cnpj: '12.345.678/0001-90',
-      stateRegistration: '123456789',
-      email: 'contato@phmotopecas.com.br',
+      stateRegistration: '250056789',
+      email: 'contato@horizontecorp.com.br',
       phone: '(85) 3234-5678',
-      addressStreet: 'Avenida Mister Hull',
-      addressNumber: '1234',
-      addressNeighborhood: 'Antônio Bezerra',
+      addressStreet: 'Avenida Santos Dumont',
+      addressNumber: '2500',
+      addressNeighborhood: 'Aldeota',
       addressCity: 'Fortaleza',
       addressState: 'CE',
       addressPostalCode: '60356-000',
-      primaryContactName: 'Paulo Henrique Silva',
+      primaryContactName: 'Roberto Almeida',
     },
   });
 
@@ -105,13 +105,13 @@ export async function seedHrDemoData(
       data: {
         companyId: company.id,
         documentType: DocumentType.CULTURE,
-        title: 'Manual de Cultura Organizacional e Princípios — PH Motopeças',
+        title: 'Manual de Cultura Organizacional e Princípios — Horizonte Soluções',
         authorId: adminUser.id,
         artifactId: demoArtifact.id,
         documentData: {
           companyName: company.tradeName,
           mission:
-            'Oferecer soluções completas e de máxima confiabilidade em motopeças e serviços mecânicos com excelência e segurança.',
+            'Oferecer soluções corporativas integradas e serviços de gestão com excelência operacional, inovação e confiabilidade.',
         },
         version: 1,
       },
@@ -132,25 +132,25 @@ export async function seedHrDemoData(
         cultureProfileId: cultureProfile.id,
         versionNumber: 1,
         mission:
-          'Oferecer soluções completas e de máxima confiabilidade em motopeças e serviços mecânicos com excelência e segurança.',
+          'Oferecer soluções corporativas integradas e serviços de gestão com excelência operacional, inovação e confiabilidade.',
         vision:
-          'Ser referência regional em agilidade, integridade técnica e satisfação no atendimento ao motociclista.',
-        motto: 'Paixão por duas rodas, compromisso com sua segurança.',
+          'Ser referência nacional em eficiência operacional, governança corporativa e excelência no atendimento ao cliente.',
+        motto: 'Inovação, ética e excelência em cada resultado.',
         values: [
           {
-            title: 'Segurança e Qualidade em Primeiro Lugar',
+            title: 'Excelência e Qualidade em Primeiro Lugar',
             description:
-              'Cada peça e cada aperto de parafuso impactam diretamente a vida de quem pilota. Rigor técnico é inegociável.',
+              'Cada processo e cada entrega impactam diretamente o sucesso dos nossos clientes. Qualidade técnica é inegociável.',
           },
           {
             title: 'Ética, Honestidade e Transparência',
             description:
-              'Diagnósticos mecânicos justos e sinceros. Construímos relacionamentos de confiança duradoura com nossos clientes.',
+              'Atuação transparente, consultiva e íntegra. Construímos relacionamentos de confiança duradoura com nossos clientes.',
           },
           {
             title: 'Comprometimento e Agilidade',
             description:
-              'Entendemos a importância da motocicleta no dia a dia e no sustento dos nossos clientes. Eficiência sem perda de qualidade.',
+              'Valorizamos o tempo e os objetivos dos nossos parceiros, entregando soluções ágeis sem abrir mão do rigor técnico.',
           },
           {
             title: 'Espírito de Equipe e Cooperação',
@@ -182,11 +182,11 @@ export async function seedHrDemoData(
       data: {
         companyId: company.id,
         documentType: DocumentType.REGULATION,
-        title: 'Regimento Interno e Normas de Conduta — PH Motopeças',
+        title: 'Regimento Interno e Normas de Conduta — Horizonte Soluções',
         authorId: adminUser.id,
         artifactId: demoArtifact.id,
         documentData: {
-          title: 'Regimento Interno Padrão — PH Motopeças',
+          title: 'Regimento Interno Padrão — Horizonte Soluções',
           effectiveDate: '2026-01-01',
         },
         version: 1,
@@ -207,17 +207,17 @@ export async function seedHrDemoData(
       data: {
         companyRegulationId: companyRegulation.id,
         versionNumber: 1,
-        title: 'Regimento Interno Padrão — PH Motopeças',
+        title: 'Regimento Interno Padrão — Horizonte Soluções',
         effectiveDate: new Date('2026-01-01T00:00:00.000Z'),
         content: {
           principles:
-            'A PH Motopeças preza pela disciplina operacional, respeito recíproco e uso seguro de ferramentas e veículos de clientes.',
+            'A Horizonte Soluções preza pela ética corporativa, respeito recíproco e zelo pelas informações e recursos da organização.',
           scheduleRules:
             'A jornada contratual padrão é de 44 horas semanais, com registro biométrico/eletrônico obrigatório de todas as marcações.',
           conductRules:
-            'Uso obrigatório de uniforme limpo e botas com biqueira de proteção na oficina mecânica.',
+            'Traje profissional adequado ao ambiente corporativo e uso de crachá de identificação nas dependências da empresa.',
           technologyRules:
-            'Sistemas informatizados e ferramentas de diagnóstico eletrônico são de uso estritamente corporativo.',
+            'Sistemas informatizados, estações de trabalho e recursos de rede são de uso estritamente corporativo.',
           disciplinaryRules:
             'Descumprimentos sujeitam-se à gradação disciplinar legal: advertência verbal, advertência escrita e suspensão nos termos da CLT.',
         },
@@ -230,56 +230,56 @@ export async function seedHrDemoData(
   // 5. Job Roles & Published Versions
   const rolesSeed = [
     {
-      title: 'Mecânico Geral de Motocicletas',
-      department: 'Oficina Mecânica',
-      cbo: '9144-05',
+      title: 'Analista de Operações e Processos',
+      department: 'Operações e Logística',
+      cbo: '2521-05',
       description:
-        'Executa manutenção preventiva e corretiva, desmontagem, retífica, regulagem de motores, injeção eletrônica e suspensão de motos.',
+        'Acompanha e executa rotinas operacionais, controle de qualidade de processos, análise de indicadores e suporte técnico aos fluxos internos.',
       responsibilities: [
-        'Diagnosticar falhas mecânicas e elétricas em motocicletas de baixa, média e alta cilindrada.',
-        'Executar desmontagem, reparo e remontagem de motores, caixas de câmbio e sistemas de embreagem.',
-        'Manusear scanners de injeção eletrônica e ferramentas de precisão com zelo.',
-        'Manter o box de serviço limpo, organizado e livre de resíduos de óleos.',
+        'Analisar fluxos operacionais, identificar gargalos e propor melhorias contínuas nos processos da área.',
+        'Executar o acompanhamento de pedidos, cronogramas de entrega e conformidade técnica dos serviços prestados.',
+        'Operar sistemas de gestão integrada (ERP), painéis de controle e ferramentas corporativas com precisão.',
+        'Manter a documentação técnica, relatórios operacionais e estação de trabalho organizados e atualizados.',
       ],
       requirements: [
-        'Ensino Médio Completo e curso técnico profissionalizante em mecânica de motocicletas.',
-        'Experiência mínima comprovada de 2 anos em bancada de oficina.',
-        'CNH Categoria A ativa.',
+        'Ensino Superior em andamento ou completo em Administração, Engenharia de Produção, Logística ou áreas correlatas.',
+        'Experiência prévia em rotinas administrativas, operacionais ou controle de qualidade.',
+        'Domínio do Pacote Office / ferramentas de produtividade e análise de dados.',
       ],
     },
     {
-      title: 'Atendente de Balcão e Peças',
-      department: 'Comercial e Balcão',
-      cbo: '4211-25',
+      title: 'Consultor de Atendimento e Negócios',
+      department: 'Comercial e Relacionamento',
+      cbo: '3541-25',
       description:
-        'Atende clientes no balcão e telefone, identifica códigos de peças nos catálogos técnicos, realiza vendas e ordens de serviço.',
+        'Realiza atendimento consultivo a clientes corporativos, elabora propostas comerciais, acompanha contratos e gerencia solicitações.',
       responsibilities: [
-        'Atender motociclistas e oficinas parceiras com cordialidade e agilidade.',
-        'Consultar sistemas de catálogo eletrônico para correta identificação de peças.',
-        'Emitir pedidos, notas fiscais e controlar recebimento em caixa.',
-        'Auxiliar na conferência e reposição de estoque nas prateleiras.',
+        'Atender clientes e parceiros comerciais com cordialidade, proatividade e foco em resultados.',
+        'Utilizar o sistema CRM para registro de interações, histórico de atendimento e oportunidades de negócio.',
+        'Elaborar propostas comerciais, emitir pedidos de serviço e acompanhar o faturamento junto ao financeiro.',
+        'Acompanhar indicadores de satisfação (NPS) e pós-venda para fidelização da carteira de clientes.',
       ],
       requirements: [
         'Ensino Médio Completo.',
-        'Conhecimento prático em catálogo de peças e modelos de motos nacionais.',
+        'Experiência em atendimento ao cliente, vendas consultivas ou relacionamento comercial.',
         'Boa comunicação interpessoal e experiência em sistemas ERP de vendas.',
       ],
     },
     {
-      title: 'Gerente de Oficina e Operações',
+      title: 'Coordenador de Operações e Equipe',
       department: 'Gestão Geral',
-      cbo: '1414-10',
+      cbo: '1421-05',
       description:
-        'Coordena a equipe técnica da oficina mecânica, supervisiona prazos de entrega, qualidade dos serviços e segurança do trabalho.',
+        'Coordena as equipes operacional e comercial, supervisiona metas, prazos de entrega, indicadores de qualidade e clima organizacional.',
       responsibilities: [
-        'Distribuir ordens de serviço e coordenar os mecânicos e auxiliares.',
-        'Controlar fluxo de veículos, prazos e garantir o padrão de entrega impecável.',
-        'Supervisionar o cumprimento das normas de segurança do trabalho e uso de EPIs.',
+        'Distribuir demandas estratégicas, coordenar analistas e consultores e acompanhar metas diárias.',
+        'Monitorar indicadores de SLA, prazos contratuais e garantir o padrão de excelência nas entregas.',
+        'Zelar pelo cumprimento do regimento interno, políticas de conformidade e boas práticas de governança.',
         'Conduzir avaliações de desempenho periódicas da equipe operacional.',
       ],
       requirements: [
-        'Formação superior ou técnica em Gestão Automotiva, Mecânica ou áreas correlatas.',
-        'Experiência comprovada em liderança de equipes operacionais de oficina.',
+        'Formação superior completa em Administração, Gestão Empresarial, Economia ou áreas correlatas.',
+        'Experiência comprovada em liderança de equipes multidisciplinares e gestão por indicadores.',
         'Domínio de atendimento ao cliente e resolução de conflitos técnicos.',
       ],
     },
@@ -376,13 +376,13 @@ export async function seedHrDemoData(
     {
       name: 'Carlos Eduardo Silva',
       login: 'carlos.silva',
-      roleTitle: 'Mecânico Geral de Motocicletas',
+      roleTitle: 'Analista de Operações e Processos',
       cpf: '123.456.789-01',
       rg: '20080102030-4 SSP/CE',
       birthDate: new Date('1994-05-12T00:00:00.000Z'),
       hireDate: new Date('2026-01-15T00:00:00.000Z'),
       phone: '(85) 98765-4321',
-      email: 'carlos.silva@phmotopecas.com.br',
+      email: 'carlos.silva@horizontecorp.com.br',
       addressStreet: 'Rua São Gonçalo',
       addressNumber: '450',
       addressNeighborhood: 'Parquelândia',
@@ -393,13 +393,13 @@ export async function seedHrDemoData(
     {
       name: 'Mariana Costa Lima',
       login: 'mariana.costa',
-      roleTitle: 'Atendente de Balcão e Peças',
+      roleTitle: 'Consultor de Atendimento e Negócios',
       cpf: '987.654.321-09',
       rg: '20090203040-5 SSP/CE',
       birthDate: new Date('1998-11-23T00:00:00.000Z'),
       hireDate: new Date('2026-02-01T00:00:00.000Z'),
       phone: '(85) 99123-4567',
-      email: 'mariana.costa@phmotopecas.com.br',
+      email: 'mariana.costa@horizontecorp.com.br',
       addressStreet: 'Rua General Sampaio',
       addressNumber: '1120',
       addressNeighborhood: 'Centro',
@@ -587,16 +587,26 @@ export async function seedHrDemoData(
     where: { role: UserRole.EMPLOYEE, isActive: true },
   });
 
+  const roleByLogin: Record<string, string> = {
+    'carlos.silva': 'Analista de Operações e Processos',
+    'rafael.mendes': 'Analista de Operações e Processos',
+    'mariana.costa': 'Consultor de Atendimento e Negócios',
+    'juliana.alves': 'Consultor de Atendimento e Negócios',
+    'ana.rocha': 'Consultor de Atendimento e Negócios',
+    'bruno.sousa': 'Coordenador de Operações e Equipe',
+  };
   for (const emp of allActiveEmployees) {
     const hasPrincipal = await prisma.employeeRoleAssignment.findFirst({
       where: { employeeId: emp.id, isPrincipal: true },
     });
-    if (!hasPrincipal && createdRoles[0]) {
+    const desiredTitle = roleByLogin[emp.normalizedLogin];
+    const targetRole = createdRoles.find((r) => r.title === desiredTitle) ?? createdRoles[0];
+    if (!hasPrincipal && targetRole) {
       await prisma.employeeRoleAssignment.create({
         data: {
           employeeId: emp.id,
-          jobRoleId: createdRoles[0].roleId,
-          jobRoleVersionId: createdRoles[0].versionId,
+          jobRoleId: targetRole.roleId,
+          jobRoleVersionId: targetRole.versionId,
           startDate: new Date('2026-01-01T00:00:00.000Z'),
           isPrincipal: true,
           createdById: adminUser.id,
@@ -670,7 +680,7 @@ export async function seedHrDemoData(
         evaluatorId: adminUser.id,
         recommendation: InterviewRecommendation.RECOMMENDED,
         notes:
-          'Candidato demonstrou excelente raciocínio diagnóstico e conhecimento prático em motores 4 tempos e injeção eletrônica de motocicletas.',
+          'Candidato demonstrou excelente raciocínio analítico, visão de processos e domínio prático de ferramentas de gestão operacional.',
         scores: {
           experiencia_tecnica: 5,
           seguranca_trabalho: 4,
@@ -722,13 +732,13 @@ export async function seedHrDemoData(
           criterionKey: 'PRODUCTIVITY_AGILITY',
           criterionTitle: 'Produtividade e Agilidade',
           score: 4,
-          feedback: 'Ótima produtividade na bancada.',
+          feedback: 'Ótima produtividade nas entregas da área.',
         },
         {
           criterionKey: 'TECHNICAL_KNOWLEDGE',
           criterionTitle: 'Conhecimento Técnico e Qualidade',
           score: 5,
-          feedback: 'Excelente domínio de motores e injeção.',
+          feedback: 'Excelente domínio dos sistemas e fluxos operacionais.',
         },
         {
           criterionKey: 'TEAMWORK_COOPERATION',
@@ -746,19 +756,19 @@ export async function seedHrDemoData(
           criterionKey: 'PROACTIVITY_INITIATIVE',
           criterionTitle: 'Proatividade e Iniciativa',
           score: 4,
-          feedback: 'Antecipa revisões e organização de peças.',
+          feedback: 'Antecipa demandas e otimiza rotinas do setor.',
         },
         {
           criterionKey: 'ORGANIZATION_TOOLS',
           criterionTitle: 'Organização e Ferramentas',
           score: 4,
-          feedback: 'Bancada limpa ao final de cada expediente.',
+          feedback: 'Documentação e relatórios sempre impecáveis.',
         },
         {
           criterionKey: 'WORK_SAFETY',
           criterionTitle: 'Segurança do Trabalho',
           score: 5,
-          feedback: 'Uso constante de botas e óculos de proteção.',
+          feedback: 'Cumprimento exemplar das normas internas e de segurança.',
         },
       ];
 
@@ -773,11 +783,13 @@ export async function seedHrDemoData(
           classification: PerformanceClassification.EXCELLENT,
           scores: criteriaScores,
           strengths:
-            'Domínio técnico aprofundado, relacionamento interpessoal exemplar e zelo com o ferramental da oficina.',
-          improvements: 'Aperfeiçoar o preenchimento detalhado do laudo na ordem de serviço.',
+            'Domínio técnico aprofundado dos processos, relacionamento interpessoal exemplar e alto senso de organização.',
+          improvements:
+            'Aperfeiçoar o detalhamento executivo nos relatórios semanais de acompanhamento.',
           actionPlan:
-            'Realizar treinamento de atendimento e software ERP de oficina nas próximas semanas.',
-          evaluatorComments: 'Colaborador fundamental para o alto padrão técnico da oficina.',
+            'Participar de capacitação avançada em gestão de processos e indicadores (BI) nas próximas semanas.',
+          evaluatorComments:
+            'Colaborador fundamental para o alto padrão de qualidade e eficiência da equipe.',
           employeeComments: 'Muito satisfeito com o reconhecimento e o ambiente de trabalho.',
           generatedDocumentId: reviewDoc.id,
         },
@@ -830,7 +842,7 @@ export async function seedHrDemoData(
           incidentDate: new Date('2026-03-10T00:00:00.000Z'),
           reason: 'Atraso não justificado no início da jornada matutina',
           details:
-            'O colaborador compareceu com 35 minutos de atraso sem comunicação prévia à liderança da oficina.',
+            'O colaborador compareceu com 35 minutos de atraso sem comunicação prévia à coordenação da área.',
           internalClauseRef: 'Artigo 12, Parágrafo 2º do Regimento Interno',
           generatedDocumentId: disciplineDoc.id,
         },

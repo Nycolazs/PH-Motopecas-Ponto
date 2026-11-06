@@ -1,12 +1,13 @@
 name: Build Desktop Clients
 
+# Desktop installers for the customer whose branch is tagged (names, icon and update feed come
+# from packages/shared/src/brand.ts). Each customer publishes to its own releases repository
+# (BRAND.desktop.releasesRepo) so one customer's app never updates to another's build.
 on:
   workflow_dispatch:
   push:
     tags:
       - 'v*'
-    branches:
-      - main
 
 permissions:
   contents: write
@@ -23,32 +24,32 @@ jobs:
             os: windows-latest
             package_cmd: pnpm package:windows
             artifact_pattern: |
-              apps/desktop/release/PH-Ponto-Setup-*.exe
-              apps/desktop/release/PH-Ponto-Setup-*.exe.blockmap
+              apps/desktop/release/*-Setup-*.exe
+              apps/desktop/release/*-Setup-*.exe.blockmap
               apps/desktop/release/latest.yml
               apps/desktop/release/SHA256SUMS-win32.txt
-            artifact_name: PH-Ponto-Windows-x64
+            artifact_name: desktop-windows-x64
 
           - name: macOS (Apple Silicon & Intel)
             os: macos-latest
             package_cmd: pnpm package:mac
             artifact_pattern: |
-              apps/desktop/release/PH-Ponto-*.dmg
-              apps/desktop/release/PH-Ponto-*.zip
-              apps/desktop/release/PH-Ponto-*.blockmap
+              apps/desktop/release/*.dmg
+              apps/desktop/release/*.zip
+              apps/desktop/release/*.blockmap
               apps/desktop/release/latest-mac.yml
               apps/desktop/release/SHA256SUMS-darwin.txt
-            artifact_name: PH-Ponto-macOS
+            artifact_name: desktop-macos
 
           - name: Linux (AppImage & DEB)
             os: ubuntu-latest
             package_cmd: pnpm package:linux
             artifact_pattern: |
-              apps/desktop/release/PH-Ponto-*.AppImage
-              apps/desktop/release/PH-Ponto-*.deb
+              apps/desktop/release/*.AppImage
+              apps/desktop/release/*.deb
               apps/desktop/release/latest-linux.yml
               apps/desktop/release/SHA256SUMS-linux.txt
-            artifact_name: PH-Ponto-Linux-x64
+            artifact_name: desktop-linux-x64
 
     steps:
       - name: Checkout repository
@@ -130,7 +131,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: release-artifacts
-          pattern: PH-Ponto-*
+          pattern: desktop-*
 
       - name: Create Release and Upload Binaries
         uses: softprops/action-gh-release@v2
