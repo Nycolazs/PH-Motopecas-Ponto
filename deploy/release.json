@@ -3,8 +3,22 @@
   "runner": "ubuntu-24.04-arm",
   "imagePrefix": "ghcr.io/nycolazs/ph-ponto-demo",
   "images": [
-    { "name": "api", "dockerfile": "apps/api/Dockerfile", "target": "runtime" },
-    { "name": "seed", "dockerfile": "apps/api/Dockerfile", "target": "build" },
-    { "name": "web", "dockerfile": "deploy/demo/web.Dockerfile", "target": "runtime" }
+    {
+      "name": "api",
+      "dockerfile": "apps/api/Dockerfile",
+      "target": "runtime",
+      "smoke": "test -f /app/packages/shared/brand/logo.png && node -e \"import('/app/packages/shared/dist/brand.js').then(m=>console.log(m.BRAND.productName))\""
+    },
+    {
+      "name": "seed",
+      "dockerfile": "apps/api/Dockerfile",
+      "target": "build"
+    },
+    {
+      "name": "web",
+      "dockerfile": "deploy/demo/web.Dockerfile",
+      "target": "runtime",
+      "smoke": "nginx -t"
+    }
   ]
 }
