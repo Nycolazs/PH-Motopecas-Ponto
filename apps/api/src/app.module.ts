@@ -28,6 +28,7 @@ import { TimeAdjustmentsModule } from './time-adjustments/time-adjustments.modul
 import { TimePunchesModule } from './time-punches/time-punches.module.js';
 import { UsersModule } from './users/users.module.js';
 import { VacationsModule } from './vacations/vacations.module.js';
+import { EmployeeSchedulesModule } from './employee-schedules/employee-schedules.module.js';
 import { AbsenceJustificationsModule } from './absence-justifications/absence-justifications.module.js';
 
 @Module({
@@ -58,6 +59,7 @@ import { AbsenceJustificationsModule } from './absence-justifications/absence-ju
     SchedulesModule,
     CalendarExceptionsModule,
     AttendanceModule,
+    EmployeeSchedulesModule,
     TimePunchesModule,
     TimeAdjustmentsModule,
     AdjustmentRequestsModule,

@@ -55,6 +55,8 @@ export const EXPECTATION_SOURCES = [
   'CLOSED',
   'SPECIAL_HOURS',
   'VACATION',
+  'EMPLOYEE_SCHEDULE',
+  'SCHEDULE_OVERRIDE',
 ] as const;
 export type ExpectationSource = (typeof EXPECTATION_SOURCES)[number];
 

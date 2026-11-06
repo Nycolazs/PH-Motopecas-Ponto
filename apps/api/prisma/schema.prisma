@@ -172,6 +172,9 @@ enum AuditAction {
   DISCIPLINARY_ACTION_VOIDED
   PERFORMANCE_REVIEW_CREATED
   PERFORMANCE_REVIEW_SUPERSEDED
+  EMPLOYEE_SCHEDULE_PUBLISHED
+  SCHEDULE_OVERRIDE_CREATED
+  SCHEDULE_OVERRIDE_REVOKED
 }
 
 enum AuditOutcome {
@@ -205,6 +208,8 @@ enum AuditTargetType {
   EMPLOYMENT_EVENT
   DISCIPLINARY_ACTION
   PERFORMANCE_REVIEW
+  EMPLOYEE_SCHEDULE
+  SCHEDULE_OVERRIDE
 }
 
 enum InterviewRecommendation {
@@ -305,6 +310,11 @@ model User {
   notificationPreference       AdminNotificationPreference?     @relation("AdminNotificationPreference")
   notificationsReceived        NotificationOutbox[]             @relation("NotificationRecipient")
   notificationsAbout           NotificationOutbox[]             @relation("NotificationSubject")
+  employeeScheduleVersions     EmployeeScheduleVersion[]        @relation("EmployeeScheduleVersions")
+  createdEmployeeSchedules     EmployeeScheduleVersion[]        @relation("EmployeeSchedulesCreatedBy")
+  scheduleOverrides            ScheduleOverride[]               @relation("EmployeeScheduleOverrides")
+  createdScheduleOverrides     ScheduleOverride[]               @relation("ScheduleOverridesCreatedBy")
+  revokedScheduleOverrides     ScheduleOverride[]               @relation("ScheduleOverridesRevokedBy")
 
   @@index([role, isActive])
   @@index([role, accessEnabled])
@@ -1121,4 +1131,77 @@ model NotificationOutbox {
   @@index([status, nextAttemptAt])
   @@index([createdAt])
   @@map("notification_outbox")
+}
+
+// Escala do colaborador (5x2 and other individual schedules). Versioned by effective date like
+// the company schedule; a version with usesCompanySchedule returns the person to the company
+// schedule. Rows are never edited or deleted: publishing a new version replaces the old one
+// from its effective date on.
+model EmployeeScheduleVersion {
+  id                  String   @id @default(uuid()) @db.Uuid
+  employeeId          String   @map("employee_id") @db.Uuid
+  effectiveDate       DateTime @map("effective_date") @db.Date
+  usesCompanySchedule Boolean  @default(false) @map("uses_company_schedule")
+  cycleWeeks          Int      @default(1) @map("cycle_weeks") @db.SmallInt
+  cycleAnchorDate     DateTime @map("cycle_anchor_date") @db.Date
+  note                String?  @db.VarChar(240)
+  createdById         String   @map("created_by_id") @db.Uuid
+  createdAt           DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  employee  User                  @relation("EmployeeScheduleVersions", fields: [employeeId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  createdBy User                  @relation("EmployeeSchedulesCreatedBy", fields: [createdById], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  days      EmployeeScheduleDay[]
+
+  @@unique([employeeId, effectiveDate])
+  @@map("employee_schedule_versions")
+}
+
+model EmployeeScheduleDay {
+  versionId        String  @map("version_id") @db.Uuid
+  cycleWeek        Int     @map("cycle_week") @db.SmallInt
+  weekday          Weekday
+  isWorkday        Boolean @map("is_workday")
+  startMinute      Int?    @map("start_minute") @db.SmallInt
+  endMinute        Int?    @map("end_minute") @db.SmallInt
+  breakStartMinute Int?    @map("break_start_minute") @db.SmallInt
+  breakEndMinute   Int?    @map("break_end_minute") @db.SmallInt
+
+  version EmployeeScheduleVersion @relation(fields: [versionId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@id([versionId, cycleWeek, weekday])
+  @@map("employee_schedule_days")
+}
+
+enum ScheduleOverrideReason {
+  SWAP
+  ADJUSTMENT
+}
+
+// One date for one employee: troca de folga (both sides share swapId) or a one-off adjustment.
+// Cancelled with a reason, never deleted; at most one active override per person and date.
+model ScheduleOverride {
+  id               String                 @id @default(uuid()) @db.Uuid
+  employeeId       String                 @map("employee_id") @db.Uuid
+  businessDate     DateTime               @map("business_date") @db.Date
+  isWorkday        Boolean                @map("is_workday")
+  startMinute      Int?                   @map("start_minute") @db.SmallInt
+  endMinute        Int?                   @map("end_minute") @db.SmallInt
+  breakStartMinute Int?                   @map("break_start_minute") @db.SmallInt
+  breakEndMinute   Int?                   @map("break_end_minute") @db.SmallInt
+  reason           ScheduleOverrideReason
+  swapId           String?                @map("swap_id") @db.Uuid
+  note             String                 @db.VarChar(240)
+  createdById      String                 @map("created_by_id") @db.Uuid
+  createdAt        DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
+  revokedAt        DateTime?              @map("revoked_at") @db.Timestamptz(6)
+  revokedById      String?                @map("revoked_by_id") @db.Uuid
+  revokeReason     String?                @map("revoke_reason") @db.VarChar(240)
+
+  employee  User  @relation("EmployeeScheduleOverrides", fields: [employeeId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  createdBy User  @relation("ScheduleOverridesCreatedBy", fields: [createdById], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  revokedBy User? @relation("ScheduleOverridesRevokedBy", fields: [revokedById], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@index([employeeId, businessDate])
+  @@index([swapId])
+  @@map("schedule_overrides")
 }

@@ -54,13 +54,18 @@ const attendanceStatusSchema = z.enum([
   'MEDICAL_LEAVE',
 ]);
 const workStateSchema = z.enum(['NOT_STARTED', 'WORKING', 'LUNCH', 'OFF_DUTY']);
-const expectationSourceSchema = z.enum([
-  'WEEKLY_SCHEDULE',
-  'HOLIDAY',
-  'CLOSED',
-  'SPECIAL_HOURS',
-  'VACATION',
-]);
+// Unknown sources from a newer API fall back instead of breaking the whole screen.
+const expectationSourceSchema = z
+  .enum([
+    'WEEKLY_SCHEDULE',
+    'HOLIDAY',
+    'CLOSED',
+    'SPECIAL_HOURS',
+    'VACATION',
+    'EMPLOYEE_SCHEDULE',
+    'SCHEDULE_OVERRIDE',
+  ])
+  .catch('WEEKLY_SCHEDULE');
 const calendarStatusSchema = z.enum([
   'HOLIDAY',
   'DAY_OFF',

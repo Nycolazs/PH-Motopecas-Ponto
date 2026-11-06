@@ -8,6 +8,8 @@ import {
   classifyBusinessDate,
   instantRangeForBusinessDate,
   resolveExpectation,
+  applyEmployeeScheduleLayer,
+  planEmployeeDay,
   type AbsenceJustificationInfo,
   type AttendancePeriodSummary,
   type AttendancePunch,
@@ -22,6 +24,10 @@ import {
 import { CalendarExceptionResolverService } from '../calendar-exceptions/calendar-exception-resolver.service.js';
 import { PrismaService } from '../database/prisma.service.js';
 import { CalendarExceptionKind, type Prisma, UserRole } from '../generated/prisma/client.js';
+import {
+  EMPTY_SCHEDULE_LAYER,
+  loadEmployeeScheduleLayers,
+} from '../employee-schedules/employee-schedule-layers.js';
 import { ScheduleResolverService } from '../schedules/schedule-resolver.service.js';
 import {
   businessDateToDatabaseDate,
@@ -220,6 +226,13 @@ export class AttendanceService implements AttendanceSummaryResolver {
           todayJustifications.map((j) => [j.employeeId, { kind: j.kind, reason: j.reason }]),
         );
 
+        const scheduleLayers = await loadEmployeeScheduleLayers(
+          tx,
+          activeEmployees.map((emp) => emp.id),
+          businessDate,
+          businessDate,
+        );
+
         const targetEmployees = activeEmployees.filter((emp) => {
           if (!emp.createdAt) return true;
           const empHireDate = businessDateFromInstant(emp.createdAt);
@@ -235,23 +248,33 @@ export class AttendanceService implements AttendanceSummaryResolver {
         for (const emp of targetEmployees) {
           const punches = effectiveChronology(punchesByEmployee.get(emp.id) ?? []);
           const empHireDate = businessDateFromInstant(emp.createdAt);
-          let empExpectation = expectation;
+          const layer = scheduleLayers.get(emp.id) ?? EMPTY_SCHEDULE_LAYER;
+          const scheduledExpectation = applyEmployeeScheduleLayer(
+            expectation,
+            planEmployeeDay(layer.versions, layer.overrides, businessDate),
+          );
+          let empExpectation = scheduledExpectation;
           const vacationNote = vacationByEmployee.get(emp.id);
 
           if (compareBusinessDates(businessDate, empHireDate) < 0) {
             empExpectation = {
-              ...expectation,
+              ...scheduledExpectation,
               expectedMinutes: 0,
               isOpen: false,
               calendarStatus: 'DAY_OFF',
             };
           } else if (vacationNote !== undefined) {
             empExpectation = {
-              ...expectation,
+              ...scheduledExpectation,
               source: 'VACATION',
               calendarStatus: 'VACATION',
               expectedMinutes: 0,
               isOpen: false,
+              openingMinute: null,
+              closingMinute: null,
+              lunchEnabled: false,
+              lunchStartMinute: null,
+              lunchEndMinute: null,
               exceptionName: vacationNote,
             };
           }
@@ -595,31 +618,38 @@ export class AttendanceService implements AttendanceSummaryResolver {
       throw invalidDate();
     }
 
-    const [userRecord, expectation, punches, vacation, justification] = await Promise.all([
-      transaction.user.findUnique({
-        where: { id: employeeId },
-        select: { createdAt: true },
-      }),
-      this.resolveExpectation(businessDate, transaction),
-      this.listPunches(employeeId, businessDate, transaction),
-      transaction.vacation.findFirst({
-        where: {
-          employeeId,
-          startDate: { lte: businessDateToDatabaseDate(businessDate) },
-          endDate: { gte: businessDateToDatabaseDate(businessDate) },
-        },
-        select: { id: true, note: true },
-      }),
-      transaction.absenceJustification.findFirst({
-        where: {
-          employeeId,
-          revokedAt: null,
-          startDate: { lte: businessDateToDatabaseDate(businessDate) },
-          endDate: { gte: businessDateToDatabaseDate(businessDate) },
-        },
-        select: { kind: true, reason: true },
-      }),
-    ]);
+    const [userRecord, companyExpectation, punches, vacation, justification, layers] =
+      await Promise.all([
+        transaction.user.findUnique({
+          where: { id: employeeId },
+          select: { createdAt: true },
+        }),
+        this.resolveExpectation(businessDate, transaction),
+        this.listPunches(employeeId, businessDate, transaction),
+        transaction.vacation.findFirst({
+          where: {
+            employeeId,
+            startDate: { lte: businessDateToDatabaseDate(businessDate) },
+            endDate: { gte: businessDateToDatabaseDate(businessDate) },
+          },
+          select: { id: true, note: true },
+        }),
+        transaction.absenceJustification.findFirst({
+          where: {
+            employeeId,
+            revokedAt: null,
+            startDate: { lte: businessDateToDatabaseDate(businessDate) },
+            endDate: { gte: businessDateToDatabaseDate(businessDate) },
+          },
+          select: { kind: true, reason: true },
+        }),
+        loadEmployeeScheduleLayers(transaction, [employeeId], businessDate, businessDate),
+      ]);
+    const layer = layers.get(employeeId) ?? EMPTY_SCHEDULE_LAYER;
+    const expectation = applyEmployeeScheduleLayer(
+      companyExpectation,
+      planEmployeeDay(layer.versions, layer.overrides, businessDate),
+    );
 
     const hireBusinessDate = userRecord?.createdAt
       ? businessDateFromInstant(userRecord.createdAt)
@@ -783,6 +813,7 @@ export class AttendanceService implements AttendanceSummaryResolver {
           punchRecords,
           vacationRecords,
           justificationRecords,
+          scheduleLayers,
         ] = await Promise.all([
           transaction.user.findUnique({
             where: { id: employeeId },
@@ -877,7 +908,9 @@ export class AttendanceService implements AttendanceSummaryResolver {
             },
             select: { kind: true, reason: true, startDate: true, endDate: true },
           }),
+          loadEmployeeScheduleLayers(transaction, [employeeId], from, to),
         ]);
+        const scheduleLayer = scheduleLayers.get(employeeId) ?? EMPTY_SCHEDULE_LAYER;
 
         const hireBusinessDate = userRecord?.createdAt
           ? businessDateFromInstant(userRecord.createdAt)
@@ -940,12 +973,15 @@ export class AttendanceService implements AttendanceSummaryResolver {
               compareBusinessDates(businessDate, databaseDateToBusinessDate(j.endDate)) <= 0,
           );
           const expectation = applyAbsenceJustification(
-            resolveExpectation({
-              businessDate,
-              scheduleVersions,
-              exceptionRevisions,
-              vacation: vacationInfo,
-            }),
+            applyEmployeeScheduleLayer(
+              resolveExpectation({
+                businessDate,
+                scheduleVersions,
+                exceptionRevisions,
+                vacation: vacationInfo,
+              }),
+              planEmployeeDay(scheduleLayer.versions, scheduleLayer.overrides, businessDate),
+            ),
             justification ? { kind: justification.kind, reason: justification.reason } : null,
           );
 
