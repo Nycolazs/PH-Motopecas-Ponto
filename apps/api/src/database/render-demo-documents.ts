@@ -32,6 +32,23 @@ function isoDate(date: Date | null | undefined): string {
   return (date ?? new Date()).toISOString().slice(0, 10);
 }
 
+/**
+ * The seed points demo documents at a placeholder artifact with no file behind it. Once every
+ * document has its real PDF, drop the placeholder: otherwise the hourly archive maintenance
+ * keeps trying (and failing) to encrypt a file that does not exist.
+ */
+async function removeUnusedPlaceholder(prisma: PrismaClient): Promise<void> {
+  const { count } = await prisma.documentArtifact.deleteMany({
+    where: {
+      storagePath: PLACEHOLDER_STORAGE_PATH,
+      generatedDocuments: { none: {} },
+      drafts: { none: {} },
+      renderJobs: { none: {} },
+    },
+  });
+  if (count > 0) console.info('Demo documents: unused placeholder artifact removed.');
+}
+
 async function main(): Promise<void> {
   const environment = validateEnvironment(process.env);
   const config = { get: (key: string) => (environment as unknown as Record<string, unknown>)[key] };
@@ -53,6 +70,7 @@ async function main(): Promise<void> {
     });
     if (documents.length === 0) {
       console.info('Demo documents: nothing to render.');
+      await removeUnusedPlaceholder(prisma);
       return;
     }
 
@@ -318,6 +336,7 @@ async function main(): Promise<void> {
     }
 
     console.info(`Demo documents: ${rendered} of ${documents.length} PDFs rendered.`);
+    await removeUnusedPlaceholder(prisma);
   } finally {
     await renderer.onApplicationShutdown();
     await prisma.$disconnect();
