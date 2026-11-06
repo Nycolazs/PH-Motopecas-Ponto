@@ -47,6 +47,7 @@ function team(from: string) {
         login: 'maria',
         hasAvatar: false,
         hasOwnSchedule: false,
+        ownScheduleFrom: null,
         days,
         weeks: [
           {

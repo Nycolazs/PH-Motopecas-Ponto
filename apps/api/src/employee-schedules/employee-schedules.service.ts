@@ -114,6 +114,8 @@ export interface EmployeeScheduleRow {
   login: string;
   hasAvatar: boolean;
   hasOwnSchedule: boolean;
+  /** Start of the person's newest escala (own schedule), today or in the future; null if none. */
+  ownScheduleFrom: string | null;
   days: ScheduleCell[];
   weeks: WeekTotal[];
   issues: ComplianceIssue[];
@@ -219,6 +221,13 @@ function issueDetails(issues: readonly ComplianceIssue[]): Record<string, string
   return details;
 }
 
+function ownScheduleFrom(
+  latest: { effectiveDate: Date; usesCompanySchedule: boolean } | undefined,
+): string | null {
+  if (latest === undefined || latest.usesCompanySchedule) return null;
+  return databaseDateToBusinessDate(latest.effectiveDate);
+}
+
 function dateBR(date: string): string {
   const [year, month, day] = date.split('-');
   return `${day}/${month}/${year}`;
@@ -314,14 +323,24 @@ export class EmployeeSchedulesService {
     // Weekly rules need complete weeks: compute on whole weeks, show the requested range.
     const computeFrom = mondayOf(from);
     const computeTo = addDays(mondayOf(to), 6);
-    const [settings, calendar] = await Promise.all([
+    const [settings, calendar, latestVersions] = await Promise.all([
       this.getSettings(),
       this.loadCalendar(
         employees.map((employee) => employee.id),
         computeFrom,
         computeTo,
       ),
+      this.prisma.employeeScheduleVersion.findMany({
+        where: { employeeId: { in: employees.map((employee) => employee.id) } },
+        orderBy: { effectiveDate: 'desc' },
+        select: { employeeId: true, effectiveDate: true, usesCompanySchedule: true },
+      }),
     ]);
+    const latestByEmployee = new Map<string, (typeof latestVersions)[number]>();
+    for (const version of latestVersions) {
+      if (!latestByEmployee.has(version.employeeId))
+        latestByEmployee.set(version.employeeId, version);
+    }
 
     const rows = employees.map((employee) => {
       const startDate = this.firstWorkDate(employee);
@@ -332,6 +351,7 @@ export class EmployeeSchedulesService {
         login: employee.login,
         hasAvatar: employee.avatar !== null,
         hasOwnSchedule: row.hasOwnSchedule,
+        ownScheduleFrom: ownScheduleFrom(latestByEmployee.get(employee.id)),
         days: row.days.filter((day) => within(day.businessDate, from, to)),
         weeks: row.weeks,
         issues: row.issues.filter(
