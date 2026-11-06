@@ -1,0 +1,10 @@
+{
+  "platforms": "linux/arm64",
+  "runner": "ubuntu-24.04-arm",
+  "imagePrefix": "ghcr.io/nycolazs/ph-ponto-demo",
+  "images": [
+    { "name": "api", "dockerfile": "apps/api/Dockerfile", "target": "runtime" },
+    { "name": "seed", "dockerfile": "apps/api/Dockerfile", "target": "build" },
+    { "name": "web", "dockerfile": "deploy/demo/web.Dockerfile", "target": "runtime" }
+  ]
+}

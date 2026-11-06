@@ -33,17 +33,17 @@ export interface BrandIdentity {
 
 export const BRAND: BrandIdentity = {
   productName: 'PontoPro',
-  companyName: 'Sua Empresa',
-  companyLegalName: 'Sua Empresa LTDA',
-  clockLabel: 'Brasília',
-  defaultCity: '',
-  loginFooter: 'Controle de ponto e RH',
+  companyName: 'Horizonte Soluções',
+  companyLegalName: 'Horizonte Gestão e Serviços Corporativos LTDA',
+  clockLabel: 'Fortaleza',
+  defaultCity: 'Fortaleza',
+  loginFooter: 'Ambiente de demonstração · dados fictícios',
   desktop: {
-    appId: 'com.yacacode.pontopro',
-    executableName: 'pontopro',
-    artifactPrefix: 'PontoPro',
+    appId: 'com.yacacode.pontopro.demo',
+    executableName: 'pontopro-demo',
+    artifactPrefix: 'PontoPro-Demo',
     releasesOwner: 'Nycolazs',
-    releasesRepo: 'pontopro-releases',
+    releasesRepo: 'pontopro-demo-releases',
     maintainer: 'PontoPro <suporte@yacacode.com>',
   },
 };
