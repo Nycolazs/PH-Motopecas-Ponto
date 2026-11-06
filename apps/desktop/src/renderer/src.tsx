@@ -1,3 +1,4 @@
+import './random-uuid-polyfill.js';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 
