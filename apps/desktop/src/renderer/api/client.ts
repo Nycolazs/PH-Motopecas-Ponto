@@ -1,3 +1,18 @@
+import {
+  employeeScheduleOverviewSchema,
+  myScheduleSchema,
+  scheduleMutationSchema,
+  schedulePreviewSchema,
+  teamScheduleSchema,
+  workRegimeSettingsSchema,
+  type EmployeeScheduleOverview,
+  type MySchedule,
+  type ScheduleDraftInput,
+  type SchedulePreview,
+  type ShiftInput,
+  type TeamSchedule,
+  type WorkRegimeSettings,
+} from './schedule-contracts.js';
 import { apiProblemSchema, uuidSchema, type ApiProblem } from '@ph-ponto/shared';
 import { z, type ZodType } from 'zod';
 
@@ -1428,6 +1443,107 @@ export class ApiClient {
       absenceJustificationListSchema,
       signal === undefined ? {} : { signal },
     ).then((list) => list.items);
+  }
+
+  // ------------------------------------------------------------ escalas (5x2)
+
+  public getTeamSchedule(from: string, to: string): Promise<TeamSchedule> {
+    const query = new URLSearchParams({ from, to });
+    return this.request(`/employee-schedules/team?${query.toString()}`, teamScheduleSchema);
+  }
+
+  public getEmployeeSchedule(
+    employeeId: string,
+    from: string,
+    to: string,
+  ): Promise<EmployeeScheduleOverview> {
+    const query = new URLSearchParams({ from, to });
+    return this.request(
+      `/employee-schedules/${encodeURIComponent(employeeId)}?${query.toString()}`,
+      employeeScheduleOverviewSchema,
+    );
+  }
+
+  public getMySchedule(): Promise<MySchedule> {
+    return this.request('/employee-schedules/me', myScheduleSchema);
+  }
+
+  public previewEmployeeSchedule(
+    employeeId: string,
+    input: ScheduleDraftInput,
+  ): Promise<SchedulePreview> {
+    return this.request(
+      `/employee-schedules/${encodeURIComponent(employeeId)}/preview`,
+      schedulePreviewSchema,
+      {
+        method: 'POST',
+        body: JSON.stringify(input),
+        headers: { 'Content-Type': 'application/json' },
+      },
+    );
+  }
+
+  public async publishEmployeeSchedule(
+    employeeId: string,
+    input: ScheduleDraftInput,
+  ): Promise<void> {
+    await this.request(
+      `/employee-schedules/${encodeURIComponent(employeeId)}/versions`,
+      scheduleMutationSchema,
+      {
+        method: 'POST',
+        body: JSON.stringify(input),
+        headers: { 'Content-Type': 'application/json' },
+      },
+    );
+  }
+
+  public async moveRestDay(input: {
+    employeeId: string;
+    restDate: string;
+    newRestDate: string;
+    note: string;
+    confirmIssues?: boolean;
+  }): Promise<void> {
+    await this.request('/employee-schedules/overrides/move-rest-day', scheduleMutationSchema, {
+      method: 'POST',
+      body: JSON.stringify(input),
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  public async createScheduleAdjustment(
+    input: ShiftInput & { employeeId: string; businessDate: string; note: string },
+  ): Promise<void> {
+    await this.request('/employee-schedules/overrides/adjustment', scheduleMutationSchema, {
+      method: 'POST',
+      body: JSON.stringify(input),
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  public async revokeScheduleOverride(id: string, reason: string): Promise<void> {
+    await this.request(
+      `/employee-schedules/overrides/${encodeURIComponent(id)}/revoke`,
+      scheduleMutationSchema,
+      {
+        method: 'POST',
+        body: JSON.stringify({ reason }),
+        headers: { 'Content-Type': 'application/json' },
+      },
+    );
+  }
+
+  public getWorkRegimeSettings(): Promise<WorkRegimeSettings> {
+    return this.request('/employee-schedules/settings', workRegimeSettingsSchema);
+  }
+
+  public updateWorkRegimeSettings(input: WorkRegimeSettings): Promise<WorkRegimeSettings> {
+    return this.request('/employee-schedules/settings', workRegimeSettingsSchema, {
+      method: 'PUT',
+      body: JSON.stringify(input),
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 
   public createAbsenceJustification(

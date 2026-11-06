@@ -53,6 +53,7 @@ import {
   type TimesheetReportEmployeeViewDto,
   type TimesheetReportViewDto,
 } from './attendance.view.js';
+import { businessMinuteOfDay } from '../notifications/late-arrival.js';
 import { ATTENDANCE_CLOCK, type AttendanceClock } from './attendance-clock.js';
 import { effectiveChronology } from './effective-chronology.js';
 
@@ -81,6 +82,26 @@ function invalidDate(): BadRequestException {
     code: 'INVALID_BUSINESS_DATE',
     message: 'Informe uma data válida no formato AAAA-MM-DD.',
   });
+}
+
+/** Grace after the scheduled end before an open day counts as a forgotten punch. */
+const FORGOTTEN_PUNCH_GRACE_MINUTES = 60;
+
+/**
+ * A finished day with an odd number of punches is pending. Today, someone still at work is
+ * not: only an open interval well past the scheduled end (or a broken sequence) counts.
+ */
+export function isPendingPunch(
+  daily: DailyAttendanceSummary,
+  expectation: ResolvedExpectation,
+  evaluationInstant: Date,
+): boolean {
+  if (daily.isFinalized) return daily.status === 'INCOMPLETE' || daily.chronology.isIncomplete;
+  if (daily.chronology.integrityIssues.length > 0) return true;
+  if (!daily.chronology.hasOpenInterval) return false;
+  const end = expectation.isOpen ? expectation.closingMinute : null;
+  if (end === null) return false;
+  return businessMinuteOfDay(evaluationInstant) > end + FORGOTTEN_PUNCH_GRACE_MINUTES;
 }
 
 function invalidRange(message: string): BadRequestException {
@@ -293,7 +314,7 @@ export class AttendanceService implements AttendanceSummaryResolver {
 
           if (daily.punchCount > 0) clockedInTodayCount++;
           if (daily.workState === 'WORKING') currentlyWorkingCount++;
-          if (daily.status === 'INCOMPLETE' || daily.chronology.isIncomplete) incompleteCount++;
+          if (isPendingPunch(daily, empExpectation, evaluationInstant)) incompleteCount++;
           if (daily.punchCount === 0 && empExpectation.isOpen) notClockedInCount++;
 
           const lastPunch = punches.at(-1);

@@ -23,6 +23,7 @@ export function helpArticlePath(base: string, slug: string, section?: string): s
 export const HELP_ROUTE_ARTICLES: ReadonlyArray<readonly [string, string]> = [
   ['/admin/gestao', 'painel-operacional'],
   ['/admin/pontos', 'registros-de-ponto'],
+  ['/admin/escalas', 'escalas-e-folgas'],
   ['/admin/solicitacoes', 'solicitacoes-de-ajuste'],
   ['/admin/incompletos', 'espelhos-incompletos'],
   ['/admin/funcionarios/', 'ficha-do-colaborador'],

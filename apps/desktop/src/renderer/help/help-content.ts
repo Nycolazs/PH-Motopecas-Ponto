@@ -1,6 +1,7 @@
 import { ADMIN_DOCUMENT_ARTICLES } from './content/admin-documentos.js';
 import { ADMIN_SETTINGS_ARTICLES, ADMIN_TEAM_ARTICLES } from './content/admin-equipe.js';
 import { ADMIN_PUNCH_ARTICLES, ADMIN_START_ARTICLES } from './content/admin-ponto.js';
+import { ADMIN_SCHEDULE_ARTICLES } from './content/admin-escalas.js';
 import { EMPLOYEE_ARTICLES } from './content/employee.js';
 import { FAQ_ARTICLES } from './content/faq.js';
 import type { HelpArticle, HelpAudience, HelpCategory } from './help-types.js';
@@ -51,6 +52,7 @@ export const HELP_CATEGORIES: readonly HelpCategory[] = [
 export const HELP_ARTICLES: readonly HelpArticle[] = [
   ...ADMIN_START_ARTICLES,
   ...ADMIN_PUNCH_ARTICLES,
+  ...ADMIN_SCHEDULE_ARTICLES,
   ...ADMIN_TEAM_ARTICLES,
   ...ADMIN_DOCUMENT_ARTICLES,
   ...ADMIN_SETTINGS_ARTICLES,

@@ -64,6 +64,14 @@ export const EMPLOYEE_ARTICLES: HelpArticle[] = [
         ],
       },
       {
+        id: 'minha-escala',
+        title: 'Minha escala',
+        paragraphs: [
+          'No fim da tela inicial aparecem os seus próximos 7 dias: o horário de cada dia de trabalho e as suas folgas. Dias marcados com "troca" ou "ajuste" foram alterados pela empresa; feriados e férias também aparecem ali.',
+          'Se algo estiver diferente do combinado, fale com o seu gestor: só o administrador pode mudar a escala.',
+        ],
+      },
+      {
         id: 'problemas',
         title: 'Se o ponto não for registrado',
         bullets: [

@@ -4,6 +4,7 @@ import {
   LifeBuoy,
   AlertTriangle,
   Briefcase,
+  CalendarRange,
   Building2,
   ChevronDown,
   Clock,
@@ -12,6 +13,7 @@ import {
   GitPullRequest,
   LayoutDashboard,
   LogOut,
+  Menu,
   MonitorDown,
   ScrollText,
   Settings,
@@ -136,6 +138,7 @@ export function AdminLayout(): React.JSX.Element {
       items: [
         { to: '/admin/funcionarios', label: 'Colaboradores', icon: Users, end: false },
         { to: '/admin/pontos', label: 'Registros de Ponto', icon: Clock, end: false },
+        { to: '/admin/escalas', label: 'Escalas e Folgas', icon: CalendarRange, end: false },
         {
           to: '/admin/solicitacoes',
           label: 'Solicitações de Ajuste',
@@ -183,6 +186,7 @@ export function AdminLayout(): React.JSX.Element {
     if (
       pathname.startsWith('/admin/funcionarios') ||
       pathname.startsWith('/admin/pontos') ||
+      pathname.startsWith('/admin/escalas') ||
       pathname.startsWith('/admin/solicitacoes') ||
       pathname.startsWith('/admin/incompletos') ||
       pathname.startsWith('/admin/relatorios')
@@ -208,6 +212,7 @@ export function AdminLayout(): React.JSX.Element {
     if (
       pathname.startsWith('/admin/funcionarios') ||
       pathname.startsWith('/admin/pontos') ||
+      pathname.startsWith('/admin/escalas') ||
       pathname.startsWith('/admin/solicitacoes') ||
       pathname.startsWith('/admin/incompletos') ||
       pathname.startsWith('/admin/relatorios')
@@ -231,6 +236,11 @@ export function AdminLayout(): React.JSX.Element {
     });
   }, [pathname]);
 
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [pathname]);
+
   const toggleGroup = (id: string): void => {
     setOpenGroups((prev) => {
       const willBeOpen = !prev[id];
@@ -244,8 +254,21 @@ export function AdminLayout(): React.JSX.Element {
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans">
+      {/* Phones and small windows: the menu slides over the page. */}
+      {mobileMenuOpen && (
+        <div
+          className="fixed inset-0 z-30 bg-slate-950/50 lg:hidden"
+          onClick={() => setMobileMenuOpen(false)}
+          aria-hidden="true"
+        />
+      )}
       {/* Sidebar with wider footprint for professional legibility */}
-      <aside className="w-72 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col shrink-0 select-none shadow-xs">
+      <aside
+        id="admin-sidebar"
+        className={`fixed inset-y-0 left-0 z-40 w-72 max-w-[85vw] transform transition-transform duration-200 lg:static lg:z-auto lg:translate-x-0 ${
+          mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+        } bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col shrink-0 select-none shadow-xs`}
+      >
         <div className="p-4 px-5 border-b border-slate-200 dark:border-slate-800">
           <Brand />
         </div>
@@ -461,8 +484,18 @@ export function AdminLayout(): React.JSX.Element {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Top Header */}
-        <header className="h-16 px-6 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between shrink-0 shadow-2xs">
+        <header className="h-16 px-3 sm:px-6 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between shrink-0 shadow-2xs">
           <div className="flex items-center space-x-3">
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen(true)}
+              aria-label="Abrir menu"
+              aria-controls="admin-sidebar"
+              aria-expanded={mobileMenuOpen}
+              className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-700 lg:hidden dark:border-slate-700 dark:text-slate-200"
+            >
+              <Menu className="h-5 w-5" aria-hidden="true" />
+            </button>
             <span className="text-xs font-semibold px-2.5 py-1 rounded-md bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 font-mono">
               Fortaleza: {businessClock || '--:--:--'}
             </span>
@@ -476,7 +509,7 @@ export function AdminLayout(): React.JSX.Element {
                 className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-600 transition-colors hover:border-blue-400 hover:text-blue-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:text-blue-300"
               >
                 <CircleHelp className="h-4 w-4" aria-hidden="true" />
-                Ajuda desta tela
+                <span className="hidden sm:inline">Ajuda desta tela</span>
               </Link>
             )}
             <ThemeButton />
@@ -496,7 +529,7 @@ export function AdminLayout(): React.JSX.Element {
         {/* Dynamic Page View */}
         <main
           ref={mainScrollRef}
-          className="flex-1 p-6 overflow-y-auto min-w-0 bg-slate-50 dark:bg-slate-950"
+          className="flex-1 p-3 sm:p-6 overflow-y-auto min-w-0 bg-slate-50 dark:bg-slate-950"
         >
           <div key={pathname} className="max-w-7xl mx-auto space-y-6 page-transition">
             <Outlet />

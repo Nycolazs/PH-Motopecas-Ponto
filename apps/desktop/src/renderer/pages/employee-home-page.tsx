@@ -48,6 +48,7 @@ import { AvatarModal } from '../components/avatar-modal.js';
 import { RequestAdjustmentModal } from '../components/request-adjustment-modal.js';
 import { MyAdjustmentRequestsModal } from '../components/my-adjustment-requests-modal.js';
 import { HelpHint } from '../help/help-hint.js';
+import { MyScheduleCard } from '../components/my-schedule-card.js';
 
 function TodayTimeline({
   day,
@@ -434,6 +435,8 @@ export function EmployeeHomePage(): React.JSX.Element {
           />
         )}
       </section>
+
+      <MyScheduleCard />
     </div>
   );
 }
