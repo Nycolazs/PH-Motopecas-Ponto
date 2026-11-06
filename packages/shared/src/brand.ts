@@ -32,18 +32,19 @@ export interface BrandIdentity {
 }
 
 export const BRAND: BrandIdentity = {
-  productName: 'PontoPro',
-  companyName: 'Sua Empresa',
-  companyLegalName: 'Sua Empresa LTDA',
-  clockLabel: 'Brasília',
-  defaultCity: '',
-  loginFooter: 'Controle de ponto e RH',
+  productName: 'PH-Ponto',
+  companyName: 'PH Motopeças',
+  companyLegalName: 'PH Motopeças LTDA',
+  clockLabel: 'Fortaleza',
+  defaultCity: 'Fortaleza',
+  loginFooter: 'Uso interno · PH Motopeças',
+  // Same id, executable and release feed as the installed app, so it keeps updating itself.
   desktop: {
-    appId: 'com.yacacode.pontopro',
-    executableName: 'pontopro',
-    artifactPrefix: 'PontoPro',
+    appId: 'com.phmotopecas.phponto',
+    executableName: 'ph-ponto',
+    artifactPrefix: 'PH-Ponto',
     releasesOwner: 'Nycolazs',
-    releasesRepo: 'pontopro-releases',
-    maintainer: 'PontoPro <suporte@yacacode.com>',
+    releasesRepo: 'PH-Motopecas-Ponto',
+    maintainer: 'PH Motopeças <contato@phmotopecas.com.br>',
   },
 };
