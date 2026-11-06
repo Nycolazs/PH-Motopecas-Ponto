@@ -775,6 +775,33 @@ curl http://127.0.0.1:3000/health/ready
       - Expandidas as áreas de digitação em `PerformanceReviewPage` e `CultureDocumentPage` para proporcionar uma experiência fluida e confortável de digitação;
       - Validado visualmente via screenshots automatizados e testado com 100% de aprovação no gate de qualidade (`pnpm check`).
 
+## 2026-11-06 — Escala 5x2, white-label e entrega por cliente
+
+Branches: `develop` (núcleo), `clientes/demo` (Raspberry Pi, ponto.yacacode.com),
+`clientes/ph-motopecas` (sucessora da `main`; a produção da PH ainda faz deploy da `main`).
+Ver `docs/clientes.md`.
+
+- Escala 5x2 (EC 141) integrada: tabelas `employee_schedule_versions/days` e `schedule_overrides`
+  (migração `20261106120000_employee_schedules`), camada da escala no cálculo do ponto (dia,
+  painel, histórico, espelho, alerta de atraso), API `/employee-schedules` (grade da equipe com
+  cobertura e regras CLT/EC 141, simulação, publicação com confirmação, troca de folga, ajuste
+  de um dia, cancelamento, regras da empresa, "minha escala").
+- Telas: Escalas e Folgas (grade semanal, Montar escala com modelos prontos, ação por dia,
+  Regras da empresa), "Minha escala" no app do colaborador, guias de ajuda.
+- Painel administrativo responsivo (menu lateral recolhível no celular); abas que vazavam.
+- Painel do dia: quem ainda está trabalhando não conta mais como "incompleto".
+- White-label: marca só em `packages/shared/src/brand.ts` + `packages/shared/brand/`; telas usam
+  a empresa cadastrada (`useCompanyName`); PDFs com o logo da marca (faltava na imagem Docker);
+  instalador desktop configurado pela marca (`electron-builder.config.cjs`).
+- Seed: dados fictícios só com `SEED_DEMO_DATA=true` (antes o seed sobrescrevia a empresa).
+- Acessibilidade: 107 rótulos de formulário associados aos campos.
+- GitHub: CI em develop/clientes/feat/fix/PRs; workflow "Entrega de clientes" (sincroniza develop
+  → clientes/*, abre PR em conflito, constrói e testa as imagens de `deploy/release.json`).
+- Pi: `deploy/demo` sem arquivos remendados; `auto-update.sh` no cron (5 min) puxa as imagens.
+
+Testes executados e aprovados: shared 121, API 224 + integração 42 (Postgres real), painel 200,
+ferramentas 24, E2E Playwright 5; CI do GitHub verde na `develop`.
+
 ## Handoff Notes
 
 All user requests and core requirements for PH-Ponto have been delivered, verified, and pushed to GitHub:
