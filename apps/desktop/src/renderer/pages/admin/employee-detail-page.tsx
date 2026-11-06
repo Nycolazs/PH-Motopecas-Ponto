@@ -2323,8 +2323,14 @@ function EditProfileModal({
       >
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
-            <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">CPF</label>
+            <label
+              htmlFor="employee-detail-cpf"
+              className="font-bold text-slate-700 dark:text-slate-300 block mb-1"
+            >
+              CPF
+            </label>
             <input
+              id="employee-detail-cpf"
               type="text"
               value={cpf}
               onChange={(e) => setCpf(e.target.value)}
@@ -2333,8 +2339,14 @@ function EditProfileModal({
             />
           </div>
           <div>
-            <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">RG</label>
+            <label
+              htmlFor="employee-detail-rg"
+              className="font-bold text-slate-700 dark:text-slate-300 block mb-1"
+            >
+              RG
+            </label>
             <input
+              id="employee-detail-rg"
               type="text"
               value={rg}
               onChange={(e) => setRg(e.target.value)}
@@ -2343,10 +2355,14 @@ function EditProfileModal({
             />
           </div>
           <div>
-            <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
+            <label
+              htmlFor="employee-detail-data-de-nascimento"
+              className="font-bold text-slate-700 dark:text-slate-300 block mb-1"
+            >
               Data de Nascimento
             </label>
             <input
+              id="employee-detail-data-de-nascimento"
               type="date"
               value={birthDate}
               onChange={(e) => setBirthDate(e.target.value)}
@@ -2357,10 +2373,14 @@ function EditProfileModal({
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
-            <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
+            <label
+              htmlFor="employee-detail-telefone"
+              className="font-bold text-slate-700 dark:text-slate-300 block mb-1"
+            >
               Telefone
             </label>
             <input
+              id="employee-detail-telefone"
               type="text"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
@@ -2369,10 +2389,14 @@ function EditProfileModal({
             />
           </div>
           <div>
-            <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
+            <label
+              htmlFor="employee-detail-e-mail-pessoal"
+              className="font-bold text-slate-700 dark:text-slate-300 block mb-1"
+            >
               E-mail Pessoal
             </label>
             <input
+              id="employee-detail-e-mail-pessoal"
               type="email"
               value={personalEmail}
               onChange={(e) => setPersonalEmail(e.target.value)}
@@ -2381,10 +2405,14 @@ function EditProfileModal({
             />
           </div>
           <div>
-            <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
+            <label
+              htmlFor="employee-detail-data-de-admissao"
+              className="font-bold text-slate-700 dark:text-slate-300 block mb-1"
+            >
               Data de Admissão
             </label>
             <input
+              id="employee-detail-data-de-admissao"
               type="date"
               value={hireDate}
               onChange={(e) => setHireDate(e.target.value)}
@@ -2399,8 +2427,14 @@ function EditProfileModal({
           </h4>
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
             <div className="sm:col-span-3">
-              <label className="font-medium text-slate-500 block mb-1">Logradouro / Rua</label>
+              <label
+                htmlFor="employee-detail-logradouro-rua"
+                className="font-medium text-slate-500 block mb-1"
+              >
+                Logradouro / Rua
+              </label>
               <input
+                id="employee-detail-logradouro-rua"
                 type="text"
                 value={addressStreet}
                 onChange={(e) => setAddressStreet(e.target.value)}
@@ -2409,8 +2443,14 @@ function EditProfileModal({
               />
             </div>
             <div>
-              <label className="font-medium text-slate-500 block mb-1">Número</label>
+              <label
+                htmlFor="employee-detail-numero"
+                className="font-medium text-slate-500 block mb-1"
+              >
+                Número
+              </label>
               <input
+                id="employee-detail-numero"
                 type="text"
                 value={addressNumber}
                 onChange={(e) => setAddressNumber(e.target.value)}
@@ -2419,8 +2459,14 @@ function EditProfileModal({
               />
             </div>
             <div className="sm:col-span-2">
-              <label className="font-medium text-slate-500 block mb-1">Complemento</label>
+              <label
+                htmlFor="employee-detail-complemento"
+                className="font-medium text-slate-500 block mb-1"
+              >
+                Complemento
+              </label>
               <input
+                id="employee-detail-complemento"
                 type="text"
                 value={addressComplement}
                 onChange={(e) => setAddressComplement(e.target.value)}
@@ -2429,8 +2475,14 @@ function EditProfileModal({
               />
             </div>
             <div className="sm:col-span-2">
-              <label className="font-medium text-slate-500 block mb-1">Bairro</label>
+              <label
+                htmlFor="employee-detail-bairro"
+                className="font-medium text-slate-500 block mb-1"
+              >
+                Bairro
+              </label>
               <input
+                id="employee-detail-bairro"
                 type="text"
                 value={addressNeighborhood}
                 onChange={(e) => setAddressNeighborhood(e.target.value)}
@@ -2439,8 +2491,14 @@ function EditProfileModal({
               />
             </div>
             <div className="sm:col-span-2">
-              <label className="font-medium text-slate-500 block mb-1">Cidade</label>
+              <label
+                htmlFor="employee-detail-cidade"
+                className="font-medium text-slate-500 block mb-1"
+              >
+                Cidade
+              </label>
               <input
+                id="employee-detail-cidade"
                 type="text"
                 value={addressCity}
                 onChange={(e) => setAddressCity(e.target.value)}
@@ -2449,8 +2507,14 @@ function EditProfileModal({
               />
             </div>
             <div>
-              <label className="font-medium text-slate-500 block mb-1">UF (Estado)</label>
+              <label
+                htmlFor="employee-detail-uf-estado"
+                className="font-medium text-slate-500 block mb-1"
+              >
+                UF (Estado)
+              </label>
               <input
+                id="employee-detail-uf-estado"
                 type="text"
                 maxLength={2}
                 value={addressState}
@@ -2460,8 +2524,14 @@ function EditProfileModal({
               />
             </div>
             <div>
-              <label className="font-medium text-slate-500 block mb-1">CEP</label>
+              <label
+                htmlFor="employee-detail-cep"
+                className="font-medium text-slate-500 block mb-1"
+              >
+                CEP
+              </label>
               <input
+                id="employee-detail-cep"
                 type="text"
                 value={addressPostalCode}
                 onChange={(e) => setAddressPostalCode(e.target.value)}
@@ -2473,10 +2543,14 @@ function EditProfileModal({
         </div>
 
         <div className="pt-2 border-t border-slate-200 dark:border-slate-800">
-          <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
+          <label
+            htmlFor="employee-detail-observacoes-internas"
+            className="font-bold text-slate-700 dark:text-slate-300 block mb-1"
+          >
             Observações Internas
           </label>
           <textarea
+            id="employee-detail-observacoes-internas"
             rows={2}
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
@@ -2558,10 +2632,14 @@ function TerminateEmployeeModal({
         </div>
 
         <div>
-          <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
+          <label
+            htmlFor="employee-detail-data-de-desligamento"
+            className="font-bold text-slate-700 dark:text-slate-300 block mb-1"
+          >
             Data de Desligamento *
           </label>
           <input
+            id="employee-detail-data-de-desligamento"
             type="date"
             required
             value={effectiveDate}
@@ -2586,10 +2664,14 @@ function TerminateEmployeeModal({
         </div>
 
         <div>
-          <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
+          <label
+            htmlFor="employee-detail-observacoes-justificativa"
+            className="font-bold text-slate-700 dark:text-slate-300 block mb-1"
+          >
             Observações / Justificativa
           </label>
           <textarea
+            id="employee-detail-observacoes-justificativa"
             rows={3}
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
@@ -2669,10 +2751,14 @@ function ReactivateEmployeeModal({
         </div>
 
         <div>
-          <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
+          <label
+            htmlFor="employee-detail-data-de-reativacao"
+            className="font-bold text-slate-700 dark:text-slate-300 block mb-1"
+          >
             Data de Reativação *
           </label>
           <input
+            id="employee-detail-data-de-reativacao"
             type="date"
             required
             value={effectiveDate}
@@ -2682,10 +2768,14 @@ function ReactivateEmployeeModal({
         </div>
 
         <div>
-          <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
+          <label
+            htmlFor="employee-detail-observacoes-da-reativacao"
+            className="font-bold text-slate-700 dark:text-slate-300 block mb-1"
+          >
             Observações da Reativação
           </label>
           <textarea
+            id="employee-detail-observacoes-da-reativacao"
             rows={3}
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
@@ -2779,10 +2869,14 @@ function AssignRoleModal({
         </div>
 
         <div>
-          <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
+          <label
+            htmlFor="employee-detail-data-de-inicio-no-cargo"
+            className="font-bold text-slate-700 dark:text-slate-300 block mb-1"
+          >
             Data de Início no Cargo *
           </label>
           <input
+            id="employee-detail-data-de-inicio-no-cargo"
             type="date"
             required
             value={startDate}
@@ -2792,10 +2886,14 @@ function AssignRoleModal({
         </div>
 
         <div>
-          <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
+          <label
+            htmlFor="employee-detail-observacoes"
+            className="font-bold text-slate-700 dark:text-slate-300 block mb-1"
+          >
             Observações
           </label>
           <textarea
+            id="employee-detail-observacoes"
             rows={3}
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
@@ -2886,10 +2984,14 @@ function CreateEmploymentEventModal({
         </div>
 
         <div>
-          <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
+          <label
+            htmlFor="employee-detail-data-de-vigencia"
+            className="font-bold text-slate-700 dark:text-slate-300 block mb-1"
+          >
             Data de Vigência *
           </label>
           <input
+            id="employee-detail-data-de-vigencia"
             type="date"
             required
             value={effectiveDate}
@@ -2899,10 +3001,14 @@ function CreateEmploymentEventModal({
         </div>
 
         <div>
-          <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
+          <label
+            htmlFor="employee-detail-titulo-do-registro"
+            className="font-bold text-slate-700 dark:text-slate-300 block mb-1"
+          >
             Título do Registro *
           </label>
           <input
+            id="employee-detail-titulo-do-registro"
             type="text"
             required
             placeholder="Ex.: Troca de turno acordada com a chefia"
@@ -2913,10 +3019,14 @@ function CreateEmploymentEventModal({
         </div>
 
         <div>
-          <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
+          <label
+            htmlFor="employee-detail-descricao-detalhes"
+            className="font-bold text-slate-700 dark:text-slate-300 block mb-1"
+          >
             Descrição / Detalhes
           </label>
           <textarea
+            id="employee-detail-descricao-detalhes"
             rows={3}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
@@ -3004,10 +3114,14 @@ function EnableAccessModal({
         )}
 
         <div>
-          <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
+          <label
+            htmlFor="employee-detail-senha-de-acesso-minimo-8-caracteres"
+            className="font-bold text-slate-700 dark:text-slate-300 block mb-1"
+          >
             Senha de Acesso (mínimo 8 caracteres) *
           </label>
           <input
+            id="employee-detail-senha-de-acesso-minimo-8-caracteres"
             type="password"
             required
             minLength={8}
@@ -3019,10 +3133,14 @@ function EnableAccessModal({
         </div>
 
         <div>
-          <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
+          <label
+            htmlFor="employee-detail-confirmar-senha"
+            className="font-bold text-slate-700 dark:text-slate-300 block mb-1"
+          >
             Confirmar Senha *
           </label>
           <input
+            id="employee-detail-confirmar-senha"
             type="password"
             required
             minLength={8}
@@ -3112,10 +3230,14 @@ function ResetPasswordModal({
         )}
 
         <div>
-          <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
+          <label
+            htmlFor="employee-detail-nova-senha-minimo-8-caracteres"
+            className="font-bold text-slate-700 dark:text-slate-300 block mb-1"
+          >
             Nova Senha (mínimo 8 caracteres) *
           </label>
           <input
+            id="employee-detail-nova-senha-minimo-8-caracteres"
             type="password"
             required
             minLength={8}
@@ -3127,10 +3249,14 @@ function ResetPasswordModal({
         </div>
 
         <div>
-          <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
+          <label
+            htmlFor="employee-detail-confirmar-nova-senha"
+            className="font-bold text-slate-700 dark:text-slate-300 block mb-1"
+          >
             Confirmar Nova Senha *
           </label>
           <input
+            id="employee-detail-confirmar-nova-senha"
             type="password"
             required
             minLength={8}

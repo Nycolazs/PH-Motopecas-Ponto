@@ -367,10 +367,14 @@ export function InterviewDocumentPage(): React.JSX.Element {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="sm:col-span-2">
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label
+                  htmlFor="interview-document-nome-completo-do-candidato"
+                  className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+                >
                   Nome Completo do Candidato *
                 </label>
                 <input
+                  id="interview-document-nome-completo-do-candidato"
                   type="text"
                   value={form.candidateName}
                   onChange={(e) => setForm({ ...form, candidateName: e.target.value })}
@@ -380,10 +384,14 @@ export function InterviewDocumentPage(): React.JSX.Element {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label
+                  htmlFor="interview-document-e-mail-do-candidato"
+                  className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+                >
                   E-mail do Candidato
                 </label>
                 <input
+                  id="interview-document-e-mail-do-candidato"
                   type="email"
                   value={form.candidateEmail}
                   onChange={(e) => setForm({ ...form, candidateEmail: e.target.value })}
@@ -393,10 +401,14 @@ export function InterviewDocumentPage(): React.JSX.Element {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label
+                  htmlFor="interview-document-telefone-whatsapp"
+                  className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+                >
                   Telefone / WhatsApp
                 </label>
                 <input
+                  id="interview-document-telefone-whatsapp"
                   type="text"
                   value={form.candidatePhone}
                   onChange={(e) => setForm({ ...form, candidatePhone: e.target.value })}
@@ -433,10 +445,14 @@ export function InterviewDocumentPage(): React.JSX.Element {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label
+                  htmlFor="interview-document-titulo-da-funcao"
+                  className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+                >
                   Título da Função *
                 </label>
                 <input
+                  id="interview-document-titulo-da-funcao"
                   type="text"
                   value={form.roleTitle}
                   onChange={(e) => setForm({ ...form, roleTitle: e.target.value })}
@@ -458,10 +474,14 @@ export function InterviewDocumentPage(): React.JSX.Element {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label
+                  htmlFor="interview-document-nome-do-entrevistador"
+                  className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+                >
                   Nome do Entrevistador *
                 </label>
                 <input
+                  id="interview-document-nome-do-entrevistador"
                   type="text"
                   value={form.interviewerName}
                   onChange={(e) => setForm({ ...form, interviewerName: e.target.value })}
@@ -544,10 +564,14 @@ export function InterviewDocumentPage(): React.JSX.Element {
 
             {/* General Notes */}
             <div className="pt-2">
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              <label
+                htmlFor="interview-document-parecer-geral-do-entrevistador-e-sintese"
+                className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+              >
                 Parecer Geral do Entrevistador e Síntese
               </label>
               <textarea
+                id="interview-document-parecer-geral-do-entrevistador-e-sintese"
                 rows={3}
                 placeholder="Observações complementares, pretensão salarial informada, disponibilidade de início..."
                 value={form.generalNotes}

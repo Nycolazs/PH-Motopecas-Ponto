@@ -364,12 +364,16 @@ export function AdjustmentRequestsPage(): React.JSX.Element {
             </p>
 
             <div>
-              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              <label
+                htmlFor="adjustment-requests-actiontype-approve-parecer-observacao-do"
+                className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1"
+              >
                 {actionType === 'APPROVE'
                   ? 'Parecer / Observação do Administrador (Opcional):'
                   : 'Motivo da Recusa / Parecer (Opcional):'}
               </label>
               <textarea
+                id="adjustment-requests-actiontype-approve-parecer-observacao-do"
                 rows={3}
                 maxLength={500}
                 value={adminComment}

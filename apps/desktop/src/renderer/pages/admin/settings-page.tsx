@@ -950,10 +950,14 @@ export function AdminSettingsPage(): React.JSX.Element {
               </p>
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              <label
+                htmlFor="settings-anotacao-motivo-opcional"
+                className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+              >
                 Anotação / Motivo (Opcional)
               </label>
               <input
+                id="settings-anotacao-motivo-opcional"
                 type="text"
                 value={scheduleNote}
                 onChange={(e) => setScheduleNote(e.target.value)}
@@ -1194,10 +1198,14 @@ export function AdminSettingsPage(): React.JSX.Element {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            <label
+              htmlFor="settings-nome-descricao"
+              className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+            >
               Nome / Descrição *
             </label>
             <input
+              id="settings-nome-descricao"
               type="text"
               required
               value={exceptionName}
@@ -1211,8 +1219,11 @@ export function AdminSettingsPage(): React.JSX.Element {
             <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-lg border border-slate-200 dark:border-slate-700 space-y-3">
               <div className="grid grid-cols-2 gap-3 text-xs">
                 <div>
-                  <label className="block font-semibold mb-1">Entrada</label>
+                  <label htmlFor="settings-entrada" className="block font-semibold mb-1">
+                    Entrada
+                  </label>
                   <input
+                    id="settings-entrada"
                     type="time"
                     required
                     value={exceptionOpening}
@@ -1221,8 +1232,11 @@ export function AdminSettingsPage(): React.JSX.Element {
                   />
                 </div>
                 <div>
-                  <label className="block font-semibold mb-1">Saída</label>
+                  <label htmlFor="settings-saida" className="block font-semibold mb-1">
+                    Saída
+                  </label>
                   <input
+                    id="settings-saida"
                     type="time"
                     required
                     value={exceptionClosing}
@@ -1332,10 +1346,14 @@ export function AdminSettingsPage(): React.JSX.Element {
           )}
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            <label
+              htmlFor="settings-observacao-motivo-opcional"
+              className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+            >
               Observação / Motivo (Opcional)
             </label>
             <input
+              id="settings-observacao-motivo-opcional"
               type="text"
               value={vacationNote}
               onChange={(e) => setVacationNote(e.target.value)}

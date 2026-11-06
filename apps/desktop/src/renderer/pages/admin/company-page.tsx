@@ -210,10 +210,14 @@ export function CompanyPage(): React.JSX.Element {
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+              <label
+                htmlFor="company-inscricao-estadual"
+                className="text-xs font-semibold text-slate-700 dark:text-slate-300"
+              >
                 Inscrição Estadual
               </label>
               <input
+                id="company-inscricao-estadual"
                 {...register('stateRegistration')}
                 type="text"
                 placeholder="Isento ou número"
@@ -247,10 +251,14 @@ export function CompanyPage(): React.JSX.Element {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="space-y-1 sm:col-span-2">
-              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+              <label
+                htmlFor="company-logradouro-rua"
+                className="text-xs font-semibold text-slate-700 dark:text-slate-300"
+              >
                 Logradouro / Rua
               </label>
               <input
+                id="company-logradouro-rua"
                 {...register('addressStreet')}
                 type="text"
                 placeholder="Ex: Av. Principal"
@@ -259,10 +267,14 @@ export function CompanyPage(): React.JSX.Element {
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+              <label
+                htmlFor="company-numero"
+                className="text-xs font-semibold text-slate-700 dark:text-slate-300"
+              >
                 Número
               </label>
               <input
+                id="company-numero"
                 {...register('addressNumber')}
                 type="text"
                 placeholder="Ex: 123"
@@ -271,10 +283,14 @@ export function CompanyPage(): React.JSX.Element {
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+              <label
+                htmlFor="company-complemento"
+                className="text-xs font-semibold text-slate-700 dark:text-slate-300"
+              >
                 Complemento
               </label>
               <input
+                id="company-complemento"
                 {...register('addressComplement')}
                 type="text"
                 placeholder="Galpão, Sala..."
@@ -283,10 +299,14 @@ export function CompanyPage(): React.JSX.Element {
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+              <label
+                htmlFor="company-bairro"
+                className="text-xs font-semibold text-slate-700 dark:text-slate-300"
+              >
                 Bairro
               </label>
               <input
+                id="company-bairro"
                 {...register('addressNeighborhood')}
                 type="text"
                 placeholder="Ex: Centro"
@@ -295,10 +315,14 @@ export function CompanyPage(): React.JSX.Element {
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+              <label
+                htmlFor="company-cidade"
+                className="text-xs font-semibold text-slate-700 dark:text-slate-300"
+              >
                 Cidade
               </label>
               <input
+                id="company-cidade"
                 {...register('addressCity')}
                 type="text"
                 placeholder="Ex: São Paulo"
@@ -307,10 +331,14 @@ export function CompanyPage(): React.JSX.Element {
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+              <label
+                htmlFor="company-uf-estado"
+                className="text-xs font-semibold text-slate-700 dark:text-slate-300"
+              >
                 UF (Estado)
               </label>
               <input
+                id="company-uf-estado"
                 {...register('addressState')}
                 type="text"
                 maxLength={2}
@@ -320,10 +348,14 @@ export function CompanyPage(): React.JSX.Element {
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+              <label
+                htmlFor="company-cep"
+                className="text-xs font-semibold text-slate-700 dark:text-slate-300"
+              >
                 CEP
               </label>
               <input
+                id="company-cep"
                 {...register('addressPostalCode')}
                 type="text"
                 placeholder="60000-000"
