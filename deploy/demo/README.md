@@ -11,8 +11,10 @@ Ambiente de apresentação com dados fictícios (empresa Horizonte Soluções).
 
 ```cron
 */5 * * * * /home/nycolas/ph-ponto-demo/auto-update.sh >> /home/nycolas/ph-ponto-demo/update.log 2>&1
-*/10 * * * * cd /home/nycolas/ph-ponto-demo && docker compose --profile seed run --rm -T live >> /home/nycolas/ph-ponto-demo/live.log 2>&1
+*/10 * * * * cd /home/nycolas/ph-ponto-demo && flock -w 900 .auto-update.lock docker compose --profile seed run --rm -T live >> /home/nycolas/ph-ponto-demo/live.log 2>&1
 ```
+
+Os dois jobs usam a mesma trava (`.auto-update.lock`), então nunca rodam ao mesmo tempo.
 
 Acesso: Cloudflare Tunnel `ponto.yacacode.com` → `http://localhost:8080` (painel e `/api`).
 
