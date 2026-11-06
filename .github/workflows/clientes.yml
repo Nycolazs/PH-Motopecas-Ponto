@@ -4,6 +4,7 @@
 #    that conflicts is never forced: a pull request is opened for a person to resolve.
 # 2. Every customer branch that ships images (deploy/release.json) gets them rebuilt and pushed
 #    to GitHub Container Registry; the customer's server pulls them (see deploy/<cliente>/).
+#    An image with a "smoke" command is only published after that command passes inside it.
 #
 # A push straight to a customer branch only runs step 2 for that branch.
 # Pushes made here with GITHUB_TOKEN do not start other workflows, which is why the images are
@@ -129,6 +130,23 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      # Build and check the image before publishing it: servers pull :latest on their own.
+      - name: Build for the smoke test
+        if: matrix.smoke
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          target: ${{ matrix.target }}
+          platforms: ${{ matrix.platforms }}
+          load: true
+          tags: smoke-${{ matrix.name }}:test
+          cache-from: type=gha,scope=${{ matrix.branch }}-${{ matrix.name }}
+      - name: Smoke test
+        if: matrix.smoke
+        env:
+          SMOKE: ${{ matrix.smoke }}
+        run: docker run --rm --add-host api:127.0.0.1 --entrypoint sh "smoke-${{ matrix.name }}:test" -c "$SMOKE"
       - uses: docker/build-push-action@v6
         with:
           context: .
