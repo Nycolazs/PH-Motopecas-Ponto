@@ -1,3 +1,4 @@
+import { BRAND } from '@ph-ponto/shared';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { app, Notification } from 'electron';
@@ -49,7 +50,7 @@ export function resetUpdaterInstanceForTesting(): void {
 }
 
 /** Public page where every version can be downloaded by hand. */
-export const DOWNLOAD_PAGE_URL = 'https://github.com/Nycolazs/PH-Motopecas-Ponto/releases/latest';
+export const DOWNLOAD_PAGE_URL = `https://github.com/${BRAND.desktop.releasesOwner}/${BRAND.desktop.releasesRepo}/releases/latest`;
 /** A failed check is retried sooner than the regular 30-minute cycle. */
 export const RETRY_AFTER_ERROR_MS = 5 * 60 * 1000;
 /** "Verificar agora" from the screen is ignored when repeated within this window. */
@@ -131,7 +132,7 @@ let installTimer: ReturnType<typeof setInterval> | null = null;
 let installStarted = false;
 
 /**
- * PH-Ponto lives in the system tray and starts with the OS, so it is almost never
+ * The app lives in the system tray and starts with the OS, so it is almost never
  * quit; relying on `autoInstallOnAppQuit` alone left downloaded updates pending
  * forever. An update is applied as soon as the app is not in use: the window is
  * hidden in the tray/minimized, or nobody touched the machine for a few minutes.
@@ -206,7 +207,7 @@ function installDownloadedUpdate(updater: AppUpdater): void {
   setStatus({ state: 'installing', percent: null });
   console.log('[AutoUpdater] Instalando atualização em segundo plano e reabrindo o aplicativo...');
   try {
-    // Silent install (no wizard) and relaunch PH-Ponto right after.
+    // Silent install (no wizard) and relaunch the app right after.
     updater.quitAndInstall(true, true);
   } catch (err) {
     installStarted = false;
@@ -303,7 +304,7 @@ export function setupAutoUpdater(options: AutoUpdaterOptions = {}): void {
       try {
         if (Notification.isSupported()) {
           const notification = new Notification({
-            title: 'PH-Ponto - Atualização pronta',
+            title: `${BRAND.productName} - Atualização pronta`,
             body: `A versão ${info.version} será instalada automaticamente quando o computador estiver livre. Clique para atualizar agora.`,
             silent: true,
           });

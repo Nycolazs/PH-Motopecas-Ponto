@@ -2,8 +2,8 @@
   "name": "@ph-ponto/desktop",
   "version": "0.1.12",
   "private": true,
-  "description": "Secure Electron desktop client for PH-Ponto",
-  "author": "PH Motopeças <contato@phmotopecas.com.br>",
+  "description": "Secure Electron desktop client for the white-label time clock",
+  "author": "Yacacode",
   "license": "UNLICENSED",
   "type": "module",
   "main": "dist/main/index.js",
@@ -20,9 +20,9 @@
     "e2e:install": "cross-env PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers playwright install chromium",
     "e2e:install:ci": "cross-env PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers playwright install --with-deps chromium",
     "test:e2e": "cross-env PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers playwright test",
-    "package:windows": "pnpm build:all && electron-builder --win nsis --x64 --publish never",
-    "package:mac": "pnpm build:all && electron-builder --mac dmg zip --arm64 --x64 --publish never",
-    "package:linux": "pnpm build:all && electron-builder --linux AppImage deb --x64 --publish never"
+    "package:windows": "pnpm build:all && electron-builder --config electron-builder.config.cjs --win nsis --x64 --publish never",
+    "package:mac": "pnpm build:all && electron-builder --config electron-builder.config.cjs --mac dmg zip --arm64 --x64 --publish never",
+    "package:linux": "pnpm build:all && electron-builder --config electron-builder.config.cjs --linux AppImage deb --x64 --publish never"
   },
   "dependencies": {
     "@ph-ponto/shared": "workspace:*",
@@ -67,101 +67,5 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/Nycolazs/PH-Motopecas-Ponto.git"
-  },
-  "desktopName": "ph-ponto",
-  "build": {
-    "appId": "com.phmotopecas.phponto",
-    "productName": "PH-Ponto",
-    "executableName": "ph-ponto",
-    "asar": true,
-    "directories": {
-      "output": "release"
-    },
-    "publish": {
-      "provider": "github",
-      "owner": "Nycolazs",
-      "repo": "PH-Motopecas-Ponto"
-    },
-    "files": [
-      "dist/**/*",
-      "build/**/*",
-      "package.json"
-    ],
-    "win": {
-      "icon": "build/icon.ico",
-      "target": [
-        {
-          "target": "nsis",
-          "arch": [
-            "x64"
-          ]
-        }
-      ],
-      "artifactName": "PH-Ponto-Setup-${version}.${ext}"
-    },
-    "nsis": {
-      "installerIcon": "build/icon.ico",
-      "uninstallerIcon": "build/icon.ico",
-      "installerHeaderIcon": "build/icon.ico",
-      "oneClick": false,
-      "perMachine": false,
-      "allowElevation": false,
-      "allowToChangeInstallationDirectory": false,
-      "createDesktopShortcut": "always",
-      "createStartMenuShortcut": true,
-      "shortcutName": "PH-Ponto"
-    },
-    "mac": {
-      "icon": "build/icon.icns",
-      "category": "public.app-category.business",
-      "target": [
-        {
-          "target": "dmg",
-          "arch": [
-            "arm64",
-            "x64"
-          ]
-        },
-        {
-          "target": "zip",
-          "arch": [
-            "arm64",
-            "x64"
-          ]
-        }
-      ],
-      "artifactName": "PH-Ponto-${version}-${arch}.${ext}"
-    },
-    "deb": {
-      "afterInstall": "scripts/after-install.sh"
-    },
-    "linux": {
-      "icon": "build/icon.png",
-      "category": "Office",
-      "executableName": "ph-ponto",
-      "syncDesktopName": true,
-      "maintainer": "PH Motopeças <contato@phmotopecas.com.br>",
-      "desktop": {
-        "entry": {
-          "StartupWMClass": "PH-Ponto",
-          "Comment": "Sistema de Controle de Ponto - PH Motopeças"
-        }
-      },
-      "target": [
-        {
-          "target": "AppImage",
-          "arch": [
-            "x64"
-          ]
-        },
-        {
-          "target": "deb",
-          "arch": [
-            "x64"
-          ]
-        }
-      ],
-      "artifactName": "PH-Ponto-${version}-${arch}.${ext}"
-    }
   }
 }

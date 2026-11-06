@@ -290,7 +290,7 @@ function CreateJobRoleModal({
               <input
                 {...register('title', { required: 'Título é obrigatório' })}
                 type="text"
-                placeholder="Ex: Mecânico de Motos"
+                placeholder="Ex: Vendedor"
                 className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-blue-500 outline-hidden"
               />
               {errors.title ? (
@@ -305,7 +305,7 @@ function CreateJobRoleModal({
               <input
                 {...register('department')}
                 type="text"
-                placeholder="Ex: Oficina"
+                placeholder="Ex: Atendimento"
                 className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-blue-500 outline-hidden"
               />
             </div>

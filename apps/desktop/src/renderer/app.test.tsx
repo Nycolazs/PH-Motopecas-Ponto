@@ -1,3 +1,4 @@
+import { PRODUCT_NAME } from '@ph-ponto/shared';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -29,7 +30,7 @@ function authenticatedFetch(): ReturnType<typeof vi.fn> {
   });
 }
 
-describe('PH-Ponto employee application', () => {
+describe('employee application', () => {
   beforeEach(() => {
     window.location.hash = '#/';
     Object.defineProperty(window.navigator, 'onLine', { configurable: true, value: true });
@@ -374,7 +375,7 @@ describe('PH-Ponto employee application', () => {
     const user = userEvent.setup();
 
     render(<App />);
-    await user.click(await screen.findByRole('button', { name: 'Sair do PH-Ponto' }));
+    await user.click(await screen.findByRole('button', { name: `Sair do ${PRODUCT_NAME}` }));
 
     expect(await screen.findByRole('heading', { name: 'Bater Ponto' })).toBeVisible();
   });

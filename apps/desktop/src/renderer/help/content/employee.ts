@@ -1,3 +1,4 @@
+import { PRODUCT_NAME } from '@ph-ponto/shared';
 import type { HelpArticle } from '../help-types.js';
 
 export const EMPLOYEE_ARTICLES: HelpArticle[] = [
@@ -25,9 +26,9 @@ export const EMPLOYEE_ARTICLES: HelpArticle[] = [
         title: 'Entrar no aplicativo',
         steps: [
           {
-            title: 'Abra o PH-Ponto',
-            text: 'No computador da loja, abra o PH-Ponto pelo atalho da área de trabalho ou pelo ícone perto do relógio do Windows.',
-            image: { key: 'app-login', alt: 'Tela de login do aplicativo PH-Ponto' },
+            title: `Abra o ${PRODUCT_NAME}`,
+            text: `No computador da loja, abra o ${PRODUCT_NAME} pelo atalho da área de trabalho ou pelo ícone perto do relógio do Windows.`,
+            image: { key: 'app-login', alt: `Tela de login do aplicativo ${PRODUCT_NAME}` },
           },
           {
             title: 'Digite seu login e senha',
@@ -234,7 +235,7 @@ export const EMPLOYEE_ARTICLES: HelpArticle[] = [
           caption: 'Na tela de login aparece a versão instalada e se ela está atualizada.',
         },
         paragraphs: [
-          'O PH-Ponto se atualiza sozinho. Quando há uma versão nova, ela é baixada em segundo plano e instalada quando o computador fica livre; o aplicativo fecha e abre de novo em poucos segundos.',
+          `O ${PRODUCT_NAME} se atualiza sozinho. Quando há uma versão nova, ela é baixada em segundo plano e instalada quando o computador fica livre; o aplicativo fecha e abre de novo em poucos segundos.`,
           'Se aparecer "pronta para instalar" e ninguém estiver usando, clique em Atualizar agora.',
         ],
       },
@@ -252,7 +253,7 @@ export const EMPLOYEE_ARTICLES: HelpArticle[] = [
         id: 'janela',
         title: 'Fechar a janela',
         paragraphs: [
-          'Fechar a janela não encerra o PH-Ponto: ele continua perto do relógio do Windows e abre junto com o computador. Para abrir de novo, clique no ícone dele.',
+          `Fechar a janela não encerra o ${PRODUCT_NAME}: ele continua perto do relógio do Windows e abre junto com o computador. Para abrir de novo, clique no ícone dele.`,
         ],
       },
     ],

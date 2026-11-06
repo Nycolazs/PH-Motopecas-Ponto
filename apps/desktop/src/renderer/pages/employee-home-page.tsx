@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useOutletContext } from 'react-router-dom';
-import { BUSINESS_TIME_ZONE, DISPLAY_LOCALE } from '@ph-ponto/shared';
+import { BRAND, BUSINESS_TIME_ZONE, DISPLAY_LOCALE } from '@ph-ponto/shared';
 import {
   CalendarDays,
   CheckCircle2,
@@ -246,11 +246,13 @@ export function EmployeeHomePage(): React.JSX.Element {
         </div>
         <div
           className="business-clock"
-          aria-label={`Horário de Fortaleza: ${clockFormatter.format(now)}`}
-          title={`Horário de Fortaleza: ${clockFormatter.format(now)}`}
+          aria-label={`Horário de ${BRAND.clockLabel}: ${clockFormatter.format(now)}`}
+          title={`Horário de ${BRAND.clockLabel}: ${clockFormatter.format(now)}`}
         >
           <time dateTime={now.toISOString()}>{clockFormatter.format(now)}</time>
-          <span>Fortaleza • {formatDateBR(now)}</span>
+          <span>
+            {BRAND.clockLabel} • {formatDateBR(now)}
+          </span>
         </div>
       </header>
 

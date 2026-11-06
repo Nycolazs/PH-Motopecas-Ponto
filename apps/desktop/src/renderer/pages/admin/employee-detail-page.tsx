@@ -55,11 +55,12 @@ import { StatusBadge } from '../../components/status-badge.js';
 import { Modal } from '../../components/modal.js';
 import { SelectInput } from '../../components/select-input.js';
 import { formatDateBR, formatDisplayName } from '../../lib/format.js';
-import { formatMinutesDuration } from '@ph-ponto/shared';
+import { formatMinutesDuration, PRODUCT_NAME } from '@ph-ponto/shared';
 import { HelpHint } from '../../help/help-hint.js';
 import { AbsenceJustificationModal } from '../../components/absence-justification-modal.js';
 import { AbsenceJustificationsCard } from '../../components/absence-justifications-card.js';
 import { canJustifyDay, isJustifiedStatus } from '../../attendance/presentation.js';
+import { useCompanyName } from '../../lib/use-company-name.js';
 
 function formatTime(isoString?: string | null): string {
   if (!isoString) return '--:--';
@@ -118,6 +119,7 @@ const EVENT_TYPE_OPTIONS: Array<{ value: EmploymentEventTypeDto; label: string }
 ];
 
 export function AdminEmployeeDetailPage(): React.JSX.Element {
+  const companyName = useCompanyName();
   const { id } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
   const initialDate = searchParams.get('date') ?? searchParams.get('dia');
@@ -1356,7 +1358,7 @@ export function AdminEmployeeDetailPage(): React.JSX.Element {
               </h2>
               <p className="text-xs text-slate-500 dark:text-slate-400">
                 Acompanhamento periódico do colaborador com base nos 8 critérios canônicos da{' '}
-                <strong>PH Motopeças</strong>.
+                <strong>{companyName}</strong>.
               </p>
             </div>
 
@@ -1615,7 +1617,7 @@ export function AdminEmployeeDetailPage(): React.JSX.Element {
               </h3>
               <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
                 As avaliações de desempenho consolidam os 8 critérios canônicos da{' '}
-                <strong>PH Motopeças</strong> com notas de 1 a 5, cálculo automático da média e
+                <strong>{companyName}</strong> com notas de 1 a 5, cálculo automático da média e
                 emissão do laudo em PDF para assinatura física.
               </p>
               <div className="pt-2">
@@ -1997,9 +1999,9 @@ export function AdminEmployeeDetailPage(): React.JSX.Element {
               Controle de Acesso ao Sistema
             </h2>
             <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-              O acesso ao aplicativo permite que o colaborador faça login no PH-Ponto para registrar
-              ponto e consultar seu espelho mensal. O vínculo de emprego permanece ativo mesmo com o
-              acesso desabilitado.
+              O acesso ao aplicativo permite que o colaborador faça login no {PRODUCT_NAME} para
+              registrar ponto e consultar seu espelho mensal. O vínculo de emprego permanece ativo
+              mesmo com o acesso desabilitado.
             </p>
 
             <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/40 flex items-center justify-between">
@@ -2402,7 +2404,7 @@ function EditProfileModal({
                 type="text"
                 value={addressStreet}
                 onChange={(e) => setAddressStreet(e.target.value)}
-                placeholder="Rua das Peças"
+                placeholder="Rua Exemplo"
                 className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-2 text-slate-900 dark:text-white"
               />
             </div>
@@ -2442,7 +2444,7 @@ function EditProfileModal({
                 type="text"
                 value={addressCity}
                 onChange={(e) => setAddressCity(e.target.value)}
-                placeholder="Fortaleza"
+                placeholder="Cidade"
                 className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-2 text-slate-900 dark:text-white"
               />
             </div>
@@ -2992,7 +2994,7 @@ function EnableAccessModal({
       <form onSubmit={handleSubmit} className="p-6 space-y-4 text-xs">
         <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
           Defina uma senha de acesso inicial para que o colaborador possa realizar login no
-          aplicativo PH-Ponto e registrar sua frequência.
+          aplicativo {PRODUCT_NAME} e registrar sua frequência.
         </p>
 
         {errorMsg && (

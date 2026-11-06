@@ -1,6 +1,6 @@
 import { COMPANY_NAME, PRODUCT_NAME } from '@ph-ponto/shared';
-import logoUrl from '../assets/phmotos-logo.png';
-import iconUrl from '../assets/app-icon.png';
+import logoUrl from '@brand/logo.png';
+import iconUrl from '@brand/icon.png';
 
 interface BrandProps {
   compact?: boolean;
@@ -21,7 +21,7 @@ export function Brand({
       >
         <img
           src={iconUrl}
-          alt="PH Motopeças"
+          alt={COMPANY_NAME}
           className="w-9 h-9 rounded-lg object-contain shrink-0 shadow-2xs"
         />
         <div className="flex flex-col">
@@ -43,7 +43,7 @@ export function Brand({
     >
       <img
         src={logoUrl}
-        alt="PH Motopeças"
+        alt={COMPANY_NAME}
         className={
           compact
             ? 'h-8 max-w-[190px] object-contain shrink-0 filter drop-shadow-xs'

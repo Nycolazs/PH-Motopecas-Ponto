@@ -68,7 +68,7 @@ export function configureApplication(app: NestExpressApplication): void {
   if (config.get('SWAGGER_ENABLED', { infer: true })) {
     const swaggerConfig = new DocumentBuilder()
       .setTitle(`${PRODUCT_NAME} API`)
-      .setDescription('API interna de controle de ponto da PH Motopeças.')
+      .setDescription(`API interna do ${PRODUCT_NAME} (controle de ponto e RH).`)
       .setVersion('0.1.0')
       .addBearerAuth()
       .build();

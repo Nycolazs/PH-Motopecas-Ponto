@@ -1,3 +1,4 @@
+import { COMPANY_NAME } from '@ph-ponto/shared';
 import type {
   CompanyDto,
   DailyAttendance,
@@ -273,7 +274,7 @@ function csvLines(rows: ReadonlyArray<ReadonlyArray<string | number>>): string {
 }
 
 function companyLine(company: CompanyDto | null | undefined): string {
-  if (!company) return 'PH Motopeças';
+  if (!company) return COMPANY_NAME;
   return hasConfiguredCnpj(company)
     ? `${company.legalName} - CNPJ ${company.cnpj}`
     : company.legalName;

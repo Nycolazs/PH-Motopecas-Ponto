@@ -23,7 +23,7 @@ export function resolveAppIcon(moduleDirectory: string, rendererRoot: string): N
     join(moduleDirectory, '..', 'assets', 'app-icon.png'),
     join(moduleDirectory, '..', 'app-icon.png'),
     join(moduleDirectory, '..', 'icon.png'),
-    join(moduleDirectory, '..', '..', 'src', 'renderer', 'assets', 'app-icon.png'),
+    join(moduleDirectory, '..', '..', '..', '..', 'packages', 'shared', 'brand', 'icon.png'),
   ].filter(Boolean);
 
   for (const candidate of candidates) {

@@ -1,3 +1,4 @@
+import { BRAND } from '@ph-ponto/shared';
 import { existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
@@ -5,7 +6,7 @@ import { app } from 'electron';
 
 function getLinuxAutostartPath(): string {
   const configHome = process.env.XDG_CONFIG_HOME || join(homedir(), '.config');
-  return join(configHome, 'autostart', 'ph-ponto.desktop');
+  return join(configHome, 'autostart', `${BRAND.desktop.executableName}.desktop`);
 }
 
 function getLinuxDesktopEntryContent(): string {
@@ -13,11 +14,11 @@ function getLinuxDesktopEntryContent(): string {
   return `[Desktop Entry]
 Type=Application
 Version=1.0
-Name=PH-Ponto
+Name=${BRAND.productName}
 GenericName=Controle de Ponto
-Comment=Sistema de Controle de Ponto - PH Motopeças
+Comment=Controle de ponto - ${BRAND.companyName}
 Exec="${execPath}" --hidden
-Icon=ph-ponto
+Icon=${BRAND.desktop.executableName}
 Terminal=false
 StartupNotify=false
 X-GNOME-Autostart-enabled=true

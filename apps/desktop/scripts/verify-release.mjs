@@ -5,6 +5,10 @@ import { readFile, readdir, stat, writeFile } from 'node:fs/promises';
 import { basename, resolve } from 'node:path';
 import { load } from 'js-yaml';
 
+import { BRAND } from '../../../packages/shared/dist/brand.js';
+
+const prefix = BRAND.desktop.artifactPrefix;
+
 const directory = resolve(process.argv[2] ?? 'release');
 const { version } = JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8'));
 const entries = await readdir(directory);
@@ -42,11 +46,11 @@ for (const manifest of manifests) {
 
 const expected =
   {
-    win32: [`PH-Ponto-Setup-${version}.exe`, `PH-Ponto-Setup-${version}.exe.blockmap`],
+    win32: [`${prefix}-Setup-${version}.exe`, `${prefix}-Setup-${version}.exe.blockmap`],
     darwin: ['arm64', 'x64'].flatMap((arch) =>
-      ['dmg', 'zip'].map((extension) => `PH-Ponto-${version}-${arch}.${extension}`),
+      ['dmg', 'zip'].map((extension) => `${prefix}-${version}-${arch}.${extension}`),
     ),
-    linux: [`PH-Ponto-${version}-amd64.deb`, `PH-Ponto-${version}-x86_64.AppImage`],
+    linux: [`${prefix}-${version}-amd64.deb`, `${prefix}-${version}-x86_64.AppImage`],
   }[process.platform] ?? [];
 for (const filename of expected) {
   assert.ok((await stat(resolve(directory, filename))).size > 0, `Missing ${filename}`);
@@ -62,5 +66,5 @@ await writeFile(
   checksums.join('\n') + '\n',
 );
 console.log(
-  `Verified ${manifests.length} update manifests and ${artifactNames.size} artifacts for PH-Ponto ${version}.`,
+  `Verified ${manifests.length} update manifests and ${artifactNames.size} artifacts for ${BRAND.productName} ${version}.`,
 );

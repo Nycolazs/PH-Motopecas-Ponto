@@ -36,6 +36,8 @@ RUN --mount=type=cache,id=ph-pnpm-store,target=/pnpm/store \
   && mkdir -p /data/uploads \
   && chown -R node:node /data/uploads
 COPY --from=build --chown=node:node /app/packages/shared/dist packages/shared/dist
+# White-label logo used on generated PDFs (cwd is apps/api: ../../packages/shared/brand).
+COPY --chown=node:node packages/shared/brand packages/shared/brand
 COPY --from=build --chown=node:node /app/apps/api/dist apps/api/dist
 COPY --chown=node:node apps/api/prisma apps/api/prisma
 COPY --chown=node:node apps/api/prisma.config.ts apps/api/prisma.config.ts

@@ -1,3 +1,4 @@
+import { PRODUCT_NAME } from '@ph-ponto/shared';
 import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -48,7 +49,7 @@ describe('AppVersionBadge', () => {
     render(<AppVersionBadge />);
 
     const badge = await screen.findByRole('status');
-    expect(badge).toHaveTextContent('PH-Ponto v0.1.8');
+    expect(badge).toHaveTextContent(`${PRODUCT_NAME} v0.1.8`);
     expect(badge).toHaveTextContent('Atualizado');
     expect(badge).toHaveAttribute('title', 'Última verificação às 10:30.');
 
@@ -102,7 +103,7 @@ describe('AppVersionBadge', () => {
   it('still shows the version with an older desktop bridge', async () => {
     Object.defineProperty(window, 'phPonto', { configurable: true, value: createBridge(null) });
     render(<AppVersionBadge />);
-    expect(await screen.findByRole('status')).toHaveTextContent('PH-Ponto v0.1.0');
+    expect(await screen.findByRole('status')).toHaveTextContent(`${PRODUCT_NAME} v0.1.0`);
   });
 
   it('renders nothing on the web', () => {

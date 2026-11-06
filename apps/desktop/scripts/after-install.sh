@@ -1,12 +1,15 @@
 #!/bin/bash
 set -e
 
-if [ -f /opt/PH-Ponto/chrome-sandbox ]; then
-  chmod 4755 /opt/PH-Ponto/chrome-sandbox || true
+# electron-builder fills in the install directory and executable for each brand.
+APP_DIR='/opt/${sanitizedProductName}'
+
+if [ -f "$APP_DIR/chrome-sandbox" ]; then
+  chmod 4755 "$APP_DIR/chrome-sandbox" || true
 fi
 
-if [ -f /opt/PH-Ponto/ph-ponto ]; then
-  chmod +x /opt/PH-Ponto/ph-ponto || true
+if [ -f "$APP_DIR/${executable}" ]; then
+  chmod +x "$APP_DIR/${executable}" || true
 fi
 
 if command -v update-desktop-database >/dev/null 2>&1; then

@@ -11,7 +11,7 @@ export const UPDATE_OPEN_DOWNLOAD_PAGE_CHANNEL = 'updater:open-download-page';
 export const UPDATE_STATUS_EVENT = 'updater:status';
 
 export interface AppInfo {
-  productName: 'PH-Ponto';
+  productName: string;
   version: string;
   platform: string;
   packaged: boolean;

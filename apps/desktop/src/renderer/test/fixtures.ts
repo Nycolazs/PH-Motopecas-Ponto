@@ -1,3 +1,4 @@
+import { PRODUCT_NAME } from '@ph-ponto/shared';
 import type { DesktopAuthSession, ElectronApi } from '../../shared/electron-api.js';
 import type {
   AttendanceOverview,
@@ -156,7 +157,7 @@ export function createBridge(restoredSession: DesktopAuthSession | null): Electr
   return {
     app: {
       getInfo: async () => ({
-        productName: 'PH-Ponto',
+        productName: PRODUCT_NAME,
         version: '0.1.0',
         platform: 'test',
         packaged: false,

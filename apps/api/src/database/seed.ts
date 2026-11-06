@@ -270,7 +270,9 @@ async function seedDatabase(): Promise<SeedResult> {
       where: { role: UserRole.ADMIN, isActive: true },
       orderBy: { createdAt: 'asc' },
     });
-    if (activeAdmin) {
+    // Fictitious company, people and documents: demos only. A customer's database must never
+    // get them (the company profile would be overwritten and demo logins created).
+    if (activeAdmin && process.env.SEED_DEMO_DATA === 'true') {
       await seedHrDemoData(prisma, activeAdmin);
     }
 
@@ -284,16 +286,14 @@ void seedDatabase()
   .then(({ adminCreated, scheduleCreated }) => {
     const adminState = adminCreated ? 'created' : 'already available';
     const scheduleState = scheduleCreated ? 'created' : 'already available';
-    console.info(
-      `PH-Ponto seed complete: administrator ${adminState}; baseline schedule ${scheduleState}.`,
-    );
+    console.info(`Seed complete: administrator ${adminState}; baseline schedule ${scheduleState}.`);
   })
   .catch((error: unknown) => {
     if (error instanceof SeedConflictError) {
-      console.error(`PH-Ponto seed refused a conflicting state: ${error.message}`);
+      console.error(`Seed refused a conflicting state: ${error.message}`);
     } else {
       console.error(
-        'PH-Ponto seed failed. Review database connectivity and validated configuration.',
+        'Seed failed. Review database connectivity and validated configuration.',
         error,
       );
     }

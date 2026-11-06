@@ -68,7 +68,7 @@ export function DisciplineDocumentPage(): React.JSX.Element {
 
   // Form states
   const [incidentDate, setIncidentDate] = useState<string>(new Date().toISOString().slice(0, 10));
-  const [location, setLocation] = useState<string>('Sede da PH Motopeças');
+  const [location, setLocation] = useState<string>('Sede da empresa');
   const [reason, setReason] = useState<string>('');
   const [details, setDetails] = useState<string>('');
   const [internalClauseRef, setInternalClauseRef] = useState<string>('');
@@ -614,7 +614,7 @@ export function DisciplineDocumentPage(): React.JSX.Element {
                   type="text"
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
-                  placeholder="Ex: Oficina Central, Recepção, etc."
+                  placeholder="Ex: Loja, Recepção, Estoque…"
                   className="w-full text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                 />
               </div>

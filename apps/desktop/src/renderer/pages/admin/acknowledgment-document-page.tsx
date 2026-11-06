@@ -27,8 +27,10 @@ import { useToast } from '../../components/toast-context.js';
 import { SelectInput } from '../../components/select-input.js';
 import { PageHeader } from '../../components/page-header.js';
 import { formatDateBR, formatDisplayName } from '../../lib/format.js';
+import { useCompanyName } from '../../lib/use-company-name.js';
 
 export function AcknowledgmentDocumentPage(): React.JSX.Element {
+  const companyName = useCompanyName();
   const { session, api } = useAuth();
   const { success, error } = useToast();
   const queryClient = useQueryClient();
@@ -225,7 +227,7 @@ export function AcknowledgmentDocumentPage(): React.JSX.Element {
     : 'Termo de Ciência do Regimento Interno';
   const pageSubtitle = isRole
     ? 'Formalize a ciência das atribuições e responsabilidades do cargo atribuído ao colaborador.'
-    : 'Formalize o recebimento e ciência integral do regulamento interno da PH Motopeças perante a equipe.';
+    : `Formalize o recebimento e ciência integral do regulamento interno da ${companyName} perante a equipe.`;
 
   const handleSelectType = (type: AcknowledgmentTypeDto): void => {
     setAcknowledgmentType(type);

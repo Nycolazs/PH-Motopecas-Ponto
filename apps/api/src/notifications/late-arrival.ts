@@ -1,4 +1,4 @@
-import { BUSINESS_TIME_ZONE, type LocalWorkHours } from '@ph-ponto/shared';
+import { BUSINESS_TIME_ZONE, PRODUCT_NAME, type LocalWorkHours } from '@ph-ponto/shared';
 
 export const DEFAULT_LATE_TOLERANCE_MINUTES = 5;
 export const MIN_LATE_TOLERANCE_MINUTES = 0;
@@ -81,7 +81,7 @@ export function buildLateArrivalMessage(input: {
 }): string {
   const { lateArrival } = input;
   return [
-    '⏰ *PH-Ponto — Entrada com atraso*',
+    `⏰ *${PRODUCT_NAME} — Entrada com atraso*`,
     '',
     `*Colaborador:* ${displayName(input.employeeName)}`,
     `*Entrada:* ${formatMinuteOfDay(lateArrival.clockInMinute)} (previsto ${formatMinuteOfDay(lateArrival.scheduledMinute)})`,

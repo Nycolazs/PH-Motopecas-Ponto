@@ -1,3 +1,4 @@
+import { BRAND, PRODUCT_NAME } from '@ph-ponto/shared';
 import { useState } from 'react';
 import {
   Check,
@@ -13,7 +14,8 @@ import {
 import { HelpHint } from '../../help/help-hint.js';
 
 const CURRENT_VERSION = __DESKTOP_VERSION__;
-const GITHUB_REPO = 'Nycolazs/PH-Motopecas-Ponto';
+const GITHUB_REPO = `${BRAND.desktop.releasesOwner}/${BRAND.desktop.releasesRepo}`;
+const ARTIFACT = BRAND.desktop.artifactPrefix;
 const RELEASE_BASE_URL = `https://github.com/${GITHUB_REPO}/releases/download/v${CURRENT_VERSION}`;
 
 export function AdminDownloadsPage(): React.JSX.Element {
@@ -41,13 +43,13 @@ export function AdminDownloadsPage(): React.JSX.Element {
         'Instalador oficial executável (.exe) com assistente passo a passo, atalhos na Área de Trabalho e inicialização automática.',
       primaryButton: {
         label: `Baixar Instalador Windows (.exe)`,
-        filename: `PH-Ponto-Setup-${CURRENT_VERSION}.exe`,
-        url: `${RELEASE_BASE_URL}/PH-Ponto-Setup-${CURRENT_VERSION}.exe`,
+        filename: `${ARTIFACT}-Setup-${CURRENT_VERSION}.exe`,
+        url: `${RELEASE_BASE_URL}/${ARTIFACT}-Setup-${CURRENT_VERSION}.exe`,
       },
       secondaryButton: null,
       instructions: [
         'Baixe o instalador e execute o arquivo no computador do colaborador.',
-        'O instalador cria automaticamente o atalho com o ícone oficial da PH Motopeças.',
+        'O instalador cria automaticamente o atalho na área de trabalho com o ícone do aplicativo.',
         'O aplicativo se configura para iniciar com o Windows em segundo plano na bandeja do sistema.',
       ],
       terminalCommand: null,
@@ -67,19 +69,19 @@ export function AdminDownloadsPage(): React.JSX.Element {
         'Pacote nativo `.deb` para instalação com gerenciador de pacotes e `.AppImage` portátil sem necessidade de instalação.',
       primaryButton: {
         label: `Baixar Pacote Debian (.deb)`,
-        filename: `PH-Ponto-${CURRENT_VERSION}-amd64.deb`,
-        url: `${RELEASE_BASE_URL}/PH-Ponto-${CURRENT_VERSION}-amd64.deb`,
+        filename: `${ARTIFACT}-${CURRENT_VERSION}-amd64.deb`,
+        url: `${RELEASE_BASE_URL}/${ARTIFACT}-${CURRENT_VERSION}-amd64.deb`,
       },
       secondaryButton: {
         label: `Baixar AppImage (.AppImage)`,
-        filename: `PH-Ponto-${CURRENT_VERSION}-x86_64.AppImage`,
-        url: `${RELEASE_BASE_URL}/PH-Ponto-${CURRENT_VERSION}-x86_64.AppImage`,
+        filename: `${ARTIFACT}-${CURRENT_VERSION}-x86_64.AppImage`,
+        url: `${RELEASE_BASE_URL}/${ARTIFACT}-${CURRENT_VERSION}-x86_64.AppImage`,
       },
       instructions: [
         'Para instalar o pacote Debian, execute o comando abaixo no terminal:',
         'O aplicativo será integrado ao menu de programas com o ícone oficial e autostart.',
       ],
-      terminalCommand: `sudo dpkg -i PH-Ponto-${CURRENT_VERSION}-amd64.deb`,
+      terminalCommand: `sudo dpkg -i ${ARTIFACT}-${CURRENT_VERSION}-amd64.deb`,
     },
     {
       id: 'mac',
@@ -100,16 +102,16 @@ export function AdminDownloadsPage(): React.JSX.Element {
         'Imagem de disco `.dmg` compatível com Macs com processador Apple Silicon (M1/M2/M3/M4) e processadores Intel.',
       primaryButton: {
         label: `Baixar para Apple Silicon (.dmg)`,
-        filename: `PH-Ponto-${CURRENT_VERSION}-arm64.dmg`,
-        url: `${RELEASE_BASE_URL}/PH-Ponto-${CURRENT_VERSION}-arm64.dmg`,
+        filename: `${ARTIFACT}-${CURRENT_VERSION}-arm64.dmg`,
+        url: `${RELEASE_BASE_URL}/${ARTIFACT}-${CURRENT_VERSION}-arm64.dmg`,
       },
       secondaryButton: {
         label: `Baixar para Intel (.dmg)`,
-        filename: `PH-Ponto-${CURRENT_VERSION}-x64.dmg`,
-        url: `${RELEASE_BASE_URL}/PH-Ponto-${CURRENT_VERSION}-x64.dmg`,
+        filename: `${ARTIFACT}-${CURRENT_VERSION}-x64.dmg`,
+        url: `${RELEASE_BASE_URL}/${ARTIFACT}-${CURRENT_VERSION}-x64.dmg`,
       },
       instructions: [
-        'Abra o arquivo `.dmg` baixado e arraste o ícone do PH-Ponto para a pasta Aplicativos.',
+        `Abra o arquivo .dmg baixado e arraste o ícone do ${PRODUCT_NAME} para a pasta Aplicativos.`,
         'Na primeira abertura, clique com o botão direito e selecione Abrir.',
       ],
       terminalCommand: null,
@@ -136,8 +138,8 @@ export function AdminDownloadsPage(): React.JSX.Element {
           </h1>
           <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 max-w-3xl">
             Instale o aplicativo de registro de ponto nos computadores dos colaboradores. O
-            aplicativo conta com verificação de horário oficial do servidor, ícone oficial da PH
-            Motopeças, inicialização automática com o sistema e atualizações em segundo plano.
+            aplicativo conta com verificação de horário oficial do servidor, inicialização
+            automática com o sistema e atualizações em segundo plano.
           </p>
         </div>
       </div>
@@ -260,7 +262,7 @@ export function AdminDownloadsPage(): React.JSX.Element {
               Segurança & Confiabilidade
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              Horário com autoridade do servidor de Fortaleza, criptografia de dados e bloqueio de
+              Horário com autoridade do servidor da empresa, criptografia de dados e bloqueio de
               adulterações locais.
             </p>
           </div>

@@ -25,6 +25,7 @@ import type {
   DocumentDraftDto,
   SaveDocumentDraftDto,
 } from '../../api/contracts.js';
+import { useCompanyName } from '../../lib/use-company-name.js';
 
 interface CultureFormValues {
   title: string;
@@ -49,6 +50,7 @@ const DEFAULT_FORM: CultureFormValues = {
 };
 
 export function CultureDocumentPage(): React.JSX.Element {
+  const companyName = useCompanyName();
   const { session, api } = useAuth();
   const { success, error, info, warning } = useToast();
   const queryClient = useQueryClient();
@@ -302,7 +304,7 @@ export function CultureDocumentPage(): React.JSX.Element {
         icon={Sparkles}
         backTo="/admin/documentos/gerar"
         backLabel="Documentos & RH"
-        description="Missão, visão e valores da PH Motopeças. Ao publicar, uma nova versão do documento é gerada."
+        description={`Missão, visão e valores da ${companyName}. Ao publicar, uma nova versão do documento é gerada.`}
         badges={
           cultureProfile?.currentVersion ? (
             <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300">
@@ -411,14 +413,14 @@ export function CultureDocumentPage(): React.JSX.Element {
                   Missão Institucional *
                 </label>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Qual é o propósito fundamental e a razão de ser da PH Motopeças no dia a dia?
+                  Qual é o propósito fundamental e a razão de ser da {companyName} no dia a dia?
                 </p>
                 <textarea
                   id="culture-mission"
                   rows={4}
                   value={form.mission}
                   onChange={(e) => setForm({ ...form, mission: e.target.value })}
-                  placeholder="Ex: Fornecer peças e acessórios para motocicletas com rapidez, procedência e excelência no atendimento, garantindo a mobilidade e segurança dos nossos clientes."
+                  placeholder="Ex: Oferecer produtos e serviços de qualidade, com atendimento ágil e respeito a cada cliente."
                   className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl p-3 text-sm text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -439,7 +441,7 @@ export function CultureDocumentPage(): React.JSX.Element {
                   rows={4}
                   value={form.vision}
                   onChange={(e) => setForm({ ...form, vision: e.target.value })}
-                  placeholder="Ex: Ser a maior e mais confiável distribuidora e varejista de motopeças de Fortaleza e região, reconhecida pela velocidade de entrega e qualidade dos produtos."
+                  placeholder="Ex: Ser referência no nosso segmento na região, reconhecida pelo atendimento e pela qualidade."
                   className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl p-3 text-sm text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                 />
               </div>

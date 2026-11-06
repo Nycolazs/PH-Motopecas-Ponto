@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-/** Session name used by PH-Ponto inside its own OpenWA instance. */
+/** Session name used by the API inside its own OpenWA instance. */
 export const WHATSAPP_SESSION_NAME = 'ph-ponto';
 
 const sessionStatusSchema = z.enum([
@@ -79,7 +79,7 @@ export interface WhatsappGatewayConfig {
 }
 
 /**
- * Minimal OpenWA REST client. PH-Ponto only needs one session, a QR code to pair
+ * Minimal OpenWA REST client. The API only needs one session, a QR code to pair
  * the store's WhatsApp number, and plain text delivery.
  */
 export class WhatsappGateway {

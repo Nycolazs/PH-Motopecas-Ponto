@@ -5,6 +5,8 @@ import { resolve } from 'node:path';
 import { promisify } from 'node:util';
 import { _electron, expect } from '@playwright/test';
 
+import { BRAND } from '../../../packages/shared/dist/brand.js';
+
 const employeeSession = {
   accessToken: 'release-smoke-access-token',
   accessTokenExpiresAt: '2026-12-31T23:59:59.000Z',
@@ -104,13 +106,13 @@ const punchResponse = {
 assert.equal(process.platform, 'win32', 'Run the installer smoke test on Windows');
 const run = promisify(execFile);
 const { version } = JSON.parse(await readFile('package.json', 'utf8'));
-const installDirectory = resolve(process.env.RUNNER_TEMP, 'ph-ponto-installed');
-const installer = resolve('release', `PH-Ponto-Setup-${version}.exe`);
+const installDirectory = resolve(process.env.RUNNER_TEMP, 'desktop-installed');
+const installer = resolve('release', `${BRAND.desktop.artifactPrefix}-Setup-${version}.exe`);
 const outputDirectory = resolve('release-smoke');
 await mkdir(outputDirectory, { recursive: true });
 
 await run(installer, ['/S', `/D=${installDirectory}`], { timeout: 120_000 });
-const executable = resolve(installDirectory, 'ph-ponto.exe');
+const executable = resolve(installDirectory, `${BRAND.desktop.executableName}.exe`);
 let application;
 try {
   application = await _electron.launch({ executablePath: executable, timeout: 60_000 });
@@ -180,13 +182,15 @@ try {
   await expect(
     page.getByRole('heading', { name: 'Não foi possível carregar os dados' }),
   ).toBeVisible();
-  await page.getByRole('button', { name: 'Sair do PH-Ponto' }).click();
+  await page.getByRole('button', { name: `Sair do ${BRAND.productName}` }).click();
   await expect(page.getByRole('heading', { name: 'Bater Ponto' })).toBeVisible();
   console.log(
-    `Installed PH-Ponto ${version}: login, punch, hidden-window inactivity logout, and offline UI passed.`,
+    `Installed ${BRAND.productName} ${version}: login, punch, hidden-window inactivity logout, and offline UI passed.`,
   );
 } finally {
   await application?.close();
-  await run(resolve(installDirectory, 'Uninstall PH-Ponto.exe'), ['/S'], { timeout: 120_000 });
+  await run(resolve(installDirectory, `Uninstall ${BRAND.productName}.exe`), ['/S'], {
+    timeout: 120_000,
+  });
 }
 console.log('Windows silent installation and uninstallation passed.');

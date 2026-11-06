@@ -1,3 +1,4 @@
+import { BRAND, PRODUCT_NAME } from '@ph-ponto/shared';
 import { useState } from 'react';
 import { Eye, EyeOff, LoaderCircle, LockKeyhole, ShieldCheck } from 'lucide-react';
 import { useForm } from 'react-hook-form';
@@ -51,7 +52,7 @@ export function LoginPage(): React.JSX.Element {
 
   return (
     <main className="login-page page-transition">
-      <section className="login-brand-panel" aria-label="PH-Ponto">
+      <section className="login-brand-panel" aria-label={PRODUCT_NAME}>
         <Brand />
         <div>
           <p className="eyebrow">
@@ -158,7 +159,7 @@ export function LoginPage(): React.JSX.Element {
         </form>
         <footer className="login-footer">
           {isDesktop && <AppVersionBadge />}
-          <p>Uso interno · PH Motopeças</p>
+          <p>{BRAND.loginFooter}</p>
         </footer>
       </section>
     </main>

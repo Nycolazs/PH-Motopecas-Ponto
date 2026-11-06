@@ -173,7 +173,7 @@ export function CompanyPage(): React.JSX.Element {
               <input
                 {...register('legalName', { required: 'Razão Social é obrigatória' })}
                 type="text"
-                placeholder="Ex: PH MOTOPECAS LTDA"
+                placeholder="Ex: LOJA EXEMPLO LTDA"
                 className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-hidden"
               />
               {errors.legalName ? (
@@ -188,7 +188,7 @@ export function CompanyPage(): React.JSX.Element {
               <input
                 {...register('tradeName', { required: 'Nome Fantasia é obrigatório' })}
                 type="text"
-                placeholder="Ex: PH Motopeças"
+                placeholder="Ex: Loja Exemplo"
                 className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-hidden"
               />
               {errors.tradeName ? (
@@ -301,7 +301,7 @@ export function CompanyPage(): React.JSX.Element {
               <input
                 {...register('addressCity')}
                 type="text"
-                placeholder="Ex: Fortaleza"
+                placeholder="Ex: São Paulo"
                 className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-hidden"
               />
             </div>
@@ -354,7 +354,7 @@ export function CompanyPage(): React.JSX.Element {
                 <input
                   {...register('email')}
                   type="email"
-                  placeholder="contato@phmotos.com.br"
+                  placeholder="contato@suaempresa.com.br"
                   className="w-full pl-9 pr-3.5 py-2.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-hidden"
                 />
                 <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3" />

@@ -53,7 +53,7 @@ const TEMPLATES: DocumentTemplateCard[] = [
     id: 'cultura',
     category: 'EMPRESA',
     title: 'Manual de Cultura',
-    description: 'Missão, visão e valores da PH Motopeças para fixar e alinhar a equipe.',
+    description: 'Missão, visão e valores da empresa para fixar e alinhar a equipe.',
     icon: Sparkles,
     href: '/admin/documentos/cultura',
     tone: 'emerald',

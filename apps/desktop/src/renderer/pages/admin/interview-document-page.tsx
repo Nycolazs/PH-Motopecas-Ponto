@@ -49,9 +49,9 @@ const DEFAULT_CRITERIA: InterviewCriterionScoreDto[] = [
   { criterion: 'Pontualidade e Apresentação Pessoal', score: 4, notes: '' },
   { criterion: 'Comunicação, Clareza e Postura Profissional', score: 4, notes: '' },
   { criterion: 'Conhecimento Técnico e Experiência na Área', score: 4, notes: '' },
-  { criterion: 'Experiência Específica no Setor de Motos / Peças', score: 3, notes: '' },
+  { criterion: 'Experiência no Ramo de Atuação da Empresa', score: 3, notes: '' },
   { criterion: 'Trabalho em Equipe e Resolução de Problemas', score: 4, notes: '' },
-  { criterion: 'Alinhamento com os Valores da PH Motopeças', score: 5, notes: '' },
+  { criterion: 'Alinhamento com os Valores da Empresa', score: 5, notes: '' },
 ];
 
 export function InterviewDocumentPage(): React.JSX.Element {

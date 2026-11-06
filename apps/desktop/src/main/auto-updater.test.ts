@@ -1,5 +1,6 @@
 // @vitest-environment node
 
+import { BRAND } from '@ph-ponto/shared';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const { notificationSpy, electronApp, updaterMock } = vi.hoisted(() => {
@@ -165,7 +166,7 @@ describe('Electron Auto-Updater', () => {
 
     expect(notificationSpy.spy).toHaveBeenCalledWith(
       expect.objectContaining({
-        title: 'PH-Ponto - Atualização pronta',
+        title: `${BRAND.productName} - Atualização pronta`,
         body: expect.stringContaining('0.1.7'),
       }),
     );

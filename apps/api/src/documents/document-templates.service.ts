@@ -13,7 +13,11 @@ import type {
   RegulationPayloadDto,
   RoleMapPayloadDto,
 } from '@ph-ponto/shared';
-import { calculatePerformanceMean, PERFORMANCE_CLASSIFICATION_LABELS } from '@ph-ponto/shared';
+import {
+  BRAND,
+  calculatePerformanceMean,
+  PERFORMANCE_CLASSIFICATION_LABELS,
+} from '@ph-ponto/shared';
 import type { Company } from '../generated/prisma/client.js';
 
 function escapeHtml(text: string | null | undefined): string {
@@ -54,6 +58,13 @@ export function renumberSectionTitles(html: string): string {
   });
 }
 
+/** "Cidade - UF" for the place-and-date line; a blank to fill by hand when unknown. */
+function placeOf(company: { addressCity?: string | null; addressState?: string | null }): string {
+  const city = company.addressCity?.trim() || BRAND.defaultCity || '____________________';
+  const state = company.addressState?.trim();
+  return state ? `${city} - ${state}` : city;
+}
+
 @Injectable()
 export class DocumentTemplatesService {
   private readonly logger = new Logger(DocumentTemplatesService.name);
@@ -66,8 +77,10 @@ export class DocumentTemplatesService {
   private async loadLogo(): Promise<void> {
     try {
       const possiblePaths = [
-        resolve(process.cwd(), 'apps/desktop/src/renderer/assets/phmotos-logo.png'),
-        resolve(process.cwd(), '../desktop/src/renderer/assets/phmotos-logo.png'),
+        // packages/shared/brand/logo.png: the white-label logo (repository root or apps/api).
+        resolve(process.cwd(), 'packages/shared/brand/logo.png'),
+        resolve(process.cwd(), '../../packages/shared/brand/logo.png'),
+        resolve(process.cwd(), '../packages/shared/brand/logo.png'),
       ];
 
       for (const p of possiblePaths) {
@@ -80,7 +93,7 @@ export class DocumentTemplatesService {
         }
       }
     } catch (err) {
-      this.logger.warn('Could not load PH Motopeças logo for templates:', err);
+      this.logger.warn('Could not load the brand logo for templates:', err);
     }
   }
 
@@ -298,7 +311,7 @@ export class DocumentTemplatesService {
 
   private buildHeaderHtml(company: Company): string {
     const logoHtml = this.logoBase64
-      ? `<img src="${this.logoBase64}" alt="Logo PH Motopeças" class="logo" />`
+      ? `<img src="${this.logoBase64}" alt="Logo" class="logo" />`
       : `<div class="logo-fallback">${escapeHtml(company.tradeName)}</div>`;
 
     const addressParts = [
@@ -753,7 +766,7 @@ export class DocumentTemplatesService {
     <div class="signature-block">
       <div class="signature-line"></div>
       <div class="signature-name">Recursos Humanos</div>
-      <div class="signature-role">PH Motopeças</div>
+      <div class="signature-role">${escapeHtml(company.tradeName || BRAND.companyName)}</div>
     </div>
   </div>
 </body>
@@ -766,8 +779,7 @@ export class DocumentTemplatesService {
     publishedAt: Date = new Date(),
   ): string {
     const formattedDate = formatDateBR(publishedAt);
-    const city = company.addressCity ?? 'Fortaleza';
-    const state = company.addressState ?? 'CE';
+    const place = placeOf(company);
 
     return `<!DOCTYPE html>
 <html lang="pt-BR">
@@ -798,7 +810,7 @@ export class DocumentTemplatesService {
         Declaro ainda ter lido, compreendido e estar ciente de todas as suas disposições, diretrizes de conduta, ética, jornada de trabalho, controle de ponto, uso de tecnologias, política disciplinar e penalidades aplicáveis, comprometendo-me expressamente a respeitá-las e cumpri-las integralmente durante toda a vigência do meu contrato de trabalho.
       </p>
       <p style="text-align: right; margin-top: 30px; font-weight: 500;">
-        ${escapeHtml(city)} - ${escapeHtml(state)}, ${formattedDate}.
+        ${escapeHtml(place)}, ${formattedDate}.
       </p>
     </div>
   </div>
@@ -825,8 +837,7 @@ export class DocumentTemplatesService {
     publishedAt: Date = new Date(),
   ): string {
     const formattedDate = formatDateBR(publishedAt);
-    const city = company.addressCity ?? 'Fortaleza';
-    const state = company.addressState ?? 'CE';
+    const place = placeOf(company);
 
     return `<!DOCTYPE html>
 <html lang="pt-BR">
@@ -854,10 +865,10 @@ export class DocumentTemplatesService {
         <strong>DECLARO</strong> ter recebido, lido e tomado pleno conhecimento das responsabilidades, atribuições operacionais, requisitos e normas de conduta específicas inerentes ao cargo que ocupo, constantes da <strong>Descrição de Cargo (Versão ${payload.roleVersionNumber})</strong>.
       </p>
       <p style="margin-bottom: 16px;">
-        Comprometo-me a executar minhas atividades diárias com zelo, dedicação, pontualidade e em estrita consonância com os procedimentos operacionais e orientações da diretoria da PH Motopeças.
+        Comprometo-me a executar minhas atividades diárias com zelo, dedicação, pontualidade e em estrita consonância com os procedimentos operacionais e orientações da diretoria da ${escapeHtml(company.tradeName || BRAND.companyName)}.
       </p>
       <p style="text-align: right; margin-top: 30px; font-weight: 500;">
-        ${escapeHtml(city)} - ${escapeHtml(state)}, ${formattedDate}.
+        ${escapeHtml(place)}, ${formattedDate}.
       </p>
     </div>
   </div>
@@ -885,8 +896,7 @@ export class DocumentTemplatesService {
   ): string {
     const formattedPubDate = formatDateBR(publishedAt);
     const formattedIncidentDate = formatDateBR(payload.incidentDate);
-    const city = company.addressCity ?? 'Fortaleza';
-    const state = company.addressState ?? 'CE';
+    const place = placeOf(company);
 
     const witnessesHtml =
       payload.witnesses && payload.witnesses.length > 0
@@ -958,7 +968,7 @@ export class DocumentTemplatesService {
     </tr>
     <tr>
       <th>Local da Ocorrência:</th>
-      <td colspan="3">${escapeHtml(payload.location ?? 'Sede da PH Motopeças')}</td>
+      <td colspan="3">${escapeHtml(payload.location ?? `Sede da ${company.tradeName || BRAND.companyName}`)}</td>
     </tr>
   </table>
 
@@ -1008,7 +1018,7 @@ export class DocumentTemplatesService {
   ${witnessesHtml}
 
   <p style="text-align: right; margin-top: 24px; font-weight: 500; font-size: 9pt;">
-    ${escapeHtml(city)} - ${escapeHtml(state)}, ${formattedPubDate}.
+    ${escapeHtml(place)}, ${formattedPubDate}.
   </p>
 
   <div class="footer-signatures" style="margin-top: 50px;">
@@ -1036,8 +1046,7 @@ export class DocumentTemplatesService {
   ): string {
     const formattedPubDate = formatDateBR(publishedAt);
     const formattedIncidentDate = formatDateBR(payload.incidentDate);
-    const city = company.addressCity ?? 'Fortaleza';
-    const state = company.addressState ?? 'CE';
+    const place = placeOf(company);
 
     const witnessesHtml =
       payload.witnesses && payload.witnesses.length > 0
@@ -1156,7 +1165,7 @@ export class DocumentTemplatesService {
   ${witnessesHtml}
 
   <p style="text-align: right; margin-top: 24px; font-weight: 500; font-size: 9pt;">
-    ${escapeHtml(city)} - ${escapeHtml(state)}, ${formattedPubDate}.
+    ${escapeHtml(place)}, ${formattedPubDate}.
   </p>
 
   <div class="footer-signatures" style="margin-top: 50px;">
@@ -1187,8 +1196,7 @@ export class DocumentTemplatesService {
     const formattedStartDate = formatDateBR(payload.suspensionStartDate);
     const formattedEndDate = formatDateBR(payload.suspensionEndDate);
     const formattedReturnDate = formatDateBR(payload.returnDate);
-    const city = company.addressCity ?? 'Fortaleza';
-    const state = company.addressState ?? 'CE';
+    const place = placeOf(company);
 
     const witnessesHtml =
       payload.witnesses && payload.witnesses.length > 0
@@ -1316,7 +1324,7 @@ export class DocumentTemplatesService {
   ${witnessesHtml}
 
   <p style="text-align: right; margin-top: 24px; font-weight: 500; font-size: 9pt;">
-    ${escapeHtml(city)} - ${escapeHtml(state)}, ${formattedPubDate}.
+    ${escapeHtml(place)}, ${formattedPubDate}.
   </p>
 
   <div class="footer-signatures" style="margin-top: 50px;">
@@ -1344,8 +1352,7 @@ export class DocumentTemplatesService {
     const formattedEvalDate = formatDateBR(payload.evaluationDate);
     const pubDate = new Date();
     const formattedPubDate = formatDateBR(pubDate);
-    const city = company.addressCity || 'Fortaleza';
-    const state = company.addressState || 'CE';
+    const place = placeOf(company);
 
     const evalResult = calculatePerformanceMean(payload.criteriaScores);
     const classInfo = PERFORMANCE_CLASSIFICATION_LABELS[evalResult.classification];
@@ -1554,7 +1561,7 @@ export class DocumentTemplatesService {
   }
 
   <p style="text-align: right; margin-top: 24px; font-weight: 500; font-size: 9pt;">
-    ${escapeHtml(city)} - ${escapeHtml(state)}, ${formattedPubDate}.
+    ${escapeHtml(place)}, ${formattedPubDate}.
   </p>
 
   <div class="footer-signatures" style="margin-top: 45px; page-break-inside: avoid;">

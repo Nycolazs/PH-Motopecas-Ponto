@@ -1,3 +1,4 @@
+import { PRODUCT_NAME } from '@ph-ponto/shared';
 import { useEffect, useState } from 'react';
 import { Download, LoaderCircle, RefreshCw, RotateCw } from 'lucide-react';
 
@@ -141,7 +142,7 @@ export function AppVersionBadge(): React.JSX.Element | null {
           <span className="app-version-dot" aria-hidden="true" />
         )}
         <span className="app-version-number">
-          PH-Ponto <strong>v{status.currentVersion}</strong>
+          {PRODUCT_NAME} <strong>v{status.currentVersion}</strong>
         </span>
         <span className="app-version-separator" aria-hidden="true" />
         <span className="app-version-state">{presentation.text}</span>

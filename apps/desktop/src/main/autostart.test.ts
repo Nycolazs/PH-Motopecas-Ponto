@@ -1,5 +1,6 @@
 // @vitest-environment node
 
+import { BRAND } from '@ph-ponto/shared';
 import { join } from 'node:path';
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -38,7 +39,7 @@ describe('Linux autostart sandbox', () => {
     setAutoStartEnabled(true);
 
     expect(filesystem.writeFileSync).toHaveBeenCalledWith(
-      join('/test/config', 'autostart', 'ph-ponto.desktop'),
+      join('/test/config', 'autostart', `${BRAND.desktop.executableName}.desktop`),
       expect.stringContaining(`Exec="${process.execPath}" --hidden\n`),
       'utf8',
     );
@@ -54,7 +55,7 @@ describe('Linux autostart sandbox', () => {
     initAutoStartDefault();
 
     expect(filesystem.writeFileSync).toHaveBeenCalledExactlyOnceWith(
-      join('/test/config', 'autostart', 'ph-ponto.desktop'),
+      join('/test/config', 'autostart', `${BRAND.desktop.executableName}.desktop`),
       'Exec="/opt/PH-Ponto/ph-ponto" --hidden\nX-GNOME-Autostart-enabled=false\n',
       'utf8',
     );

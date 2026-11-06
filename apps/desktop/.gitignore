@@ -36,3 +36,5 @@ Thumbs.db
 .vscode/
 *.swp
 *.swo
+# Generated from packages/shared/brand/icon.png by electron-builder.config.cjs
+build/icon.png

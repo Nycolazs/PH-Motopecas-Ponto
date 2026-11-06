@@ -1,3 +1,4 @@
+import { COMPANY_NAME } from '@ph-ponto/shared';
 import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
@@ -78,8 +79,7 @@ const DEFAULT_FORM: RegulationFormData = {
   tradeName: '',
   legalName: '',
   cnpj: '',
-  presentation:
-    'A PH Motopeças é dedicada ao fornecimento de peças e serviços de excelência para motocicletas.',
+  presentation: `A ${COMPANY_NAME} é dedicada a oferecer produtos e serviços de excelência aos seus clientes.`,
   principles: [
     'Compromisso com a satisfação do cliente',
     'Segurança e qualidade em primeiro lugar',
@@ -101,7 +101,7 @@ const DEFAULT_FORM: RegulationFormData = {
   confidentiality:
     'Sigilo absoluto sobre dados cadastrais, valores de fornecedores e rotinas internas da empresa.',
   prohibitions: [
-    'Fumar nas dependências internas da empresa ou oficinas',
+    'Fumar nas dependências internas da empresa',
     'Utilizar equipamentos de trabalho sem a devida qualificação ou autorização',
     'Apresentar-se ao trabalho sob efeito de substâncias ilícitas ou álcool',
   ],
@@ -690,7 +690,7 @@ export function RegulationsWizardPage(): React.JSX.Element {
                   type="text"
                   value={form.tradeName}
                   onChange={(e) => setForm({ ...form, tradeName: e.target.value })}
-                  placeholder="Ex: PH Motopeças"
+                  placeholder="Ex: Loja Exemplo"
                   className="w-full text-sm px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -703,7 +703,7 @@ export function RegulationsWizardPage(): React.JSX.Element {
                   type="text"
                   value={form.legalName}
                   onChange={(e) => setForm({ ...form, legalName: e.target.value })}
-                  placeholder="Ex: PH MOTOPECAS LTDA"
+                  placeholder="Ex: LOJA EXEMPLO LTDA"
                   className="w-full text-sm px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>

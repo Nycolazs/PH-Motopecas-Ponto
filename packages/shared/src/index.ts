@@ -1,3 +1,4 @@
+export { BRAND, type BrandIdentity } from './brand.js';
 export { BUSINESS_TIME_ZONE, COMPANY_NAME, DISPLAY_LOCALE, PRODUCT_NAME } from './constants.js';
 export {
   apiProblemDetailsSchema,

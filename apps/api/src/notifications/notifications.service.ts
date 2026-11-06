@@ -10,7 +10,7 @@ import {
   type OnModuleDestroy,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { businessDateFromInstant, type LocalWorkHours } from '@ph-ponto/shared';
+import { businessDateFromInstant, PRODUCT_NAME, type LocalWorkHours } from '@ph-ponto/shared';
 
 import { AuditService } from '../audit/audit.service.js';
 import type { AuthenticatedUser, ClientContext } from '../auth/auth.types.js';
@@ -398,8 +398,7 @@ export class NotificationsService implements OnApplicationBootstrap, OnModuleDes
         recipientUserId: userId,
         subjectUserId: actor.id,
         phone: preference.whatsappPhone,
-        message:
-          '✅ *PH-Ponto* — Mensagem de teste.\nOs alertas de atraso chegarão por este número.',
+        message: `✅ *${PRODUCT_NAME}* — Mensagem de teste.\nOs alertas de atraso chegarão por este número.`,
       },
     });
     void this.dispatchPending();

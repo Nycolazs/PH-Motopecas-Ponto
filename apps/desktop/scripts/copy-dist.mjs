@@ -9,10 +9,14 @@ if (!existsSync(new URL('../dist/renderer/index.html', import.meta.url))) {
 }
 
 mkdirSync(assetsDir, { recursive: true });
-for (const filename of ['app-icon.png', 'phmotos-logo.png']) {
+// The Electron main process loads the window/tray icon from here (see main/app-icon.ts).
+for (const [source, target] of [
+  ['icon.png', 'app-icon.png'],
+  ['logo.png', 'brand-logo.png'],
+]) {
   copyFileSync(
-    new URL(`../src/renderer/assets/${filename}`, import.meta.url),
-    new URL(`../dist/renderer/assets/${filename}`, import.meta.url),
+    new URL(`../../../packages/shared/brand/${source}`, import.meta.url),
+    new URL(`../dist/renderer/assets/${target}`, import.meta.url),
   );
 }
 

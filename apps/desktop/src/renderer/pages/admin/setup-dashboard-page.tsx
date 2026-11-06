@@ -1,3 +1,4 @@
+import { BRAND, COMPANY_NAME } from '@ph-ponto/shared';
 import { useQuery } from '@tanstack/react-query';
 import {
   ArrowRight,
@@ -160,7 +161,7 @@ export function SetupDashboardPage(): React.JSX.Element {
           <div>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
               {greeting}, {adminFirstName}! Bem-vindo ao painel do{' '}
-              {company?.tradeName ?? 'PH Motopeças'}
+              {company?.tradeName ?? COMPANY_NAME}
             </h1>
             <p className="mt-1 text-blue-100 text-sm sm:text-base leading-relaxed">
               Centro de inteligência operacional, metas da equipe de colaboradores e conformidade do
@@ -172,7 +173,7 @@ export function SetupDashboardPage(): React.JSX.Element {
             <div className="flex items-center gap-1.5">
               <Building2 className="w-3.5 h-3.5 text-blue-300" />
               <span>
-                {company?.legalName ?? 'PH Motopeças LTDA'}{' '}
+                {company?.legalName ?? BRAND.companyLegalName}{' '}
                 {company?.cnpj ? `• CNPJ ${formatCNPJ(company.cnpj)}` : ''}
               </span>
             </div>
@@ -368,7 +369,8 @@ export function SetupDashboardPage(): React.JSX.Element {
               </div>
             </div>
             <p className="text-sm text-slate-500 dark:text-slate-400">
-              Diretrizes operacionais e metas de excelência para a equipe da PH Motopeças
+              Diretrizes operacionais e metas de excelência para a equipe da{' '}
+              {company?.tradeName ?? COMPANY_NAME}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -388,7 +390,7 @@ export function SetupDashboardPage(): React.JSX.Element {
                   Meta 1: Pontualidade & Assiduidade
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Presença integral da equipe no início do expediente da oficina e balcão
+                  Presença integral da equipe no início do expediente
                 </p>
               </div>
               <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300">
@@ -494,7 +496,7 @@ export function SetupDashboardPage(): React.JSX.Element {
                   Meta 3: Cobertura Documental CLT
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Ciência formal do regimento interno e segurança na oficina
+                  Ciência formal do regimento interno e das normas de segurança
                 </p>
               </div>
               <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300">
@@ -582,7 +584,7 @@ export function SetupDashboardPage(): React.JSX.Element {
 
       {/* 4. Estrutura do Negócio & Planejamento da Equipe (2 Colunas) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Bloco Esquerdo: Estrutura Organizacional da PH Motopeças */}
+        {/* Bloco Esquerdo: Estrutura Organizacional da empresa */}
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs flex flex-col justify-between space-y-4">
           <div className="space-y-1">
             <div className="flex items-center justify-between">
@@ -601,7 +603,7 @@ export function SetupDashboardPage(): React.JSX.Element {
               </Link>
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Distribuição funcional entre atendimento de balcão, oficina mecânica e liderança
+              Distribuição da equipe entre os cargos e a liderança
             </p>
           </div>
 
@@ -713,7 +715,7 @@ export function SetupDashboardPage(): React.JSX.Element {
           </div>
 
           <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-            <span>Oficina e balcão com cobertura total de atendimento</span>
+            <span>Todos os setores com cobertura de atendimento</span>
             <Link
               to="/admin/gestao"
               className="text-emerald-600 dark:text-emerald-400 font-semibold hover:underline"

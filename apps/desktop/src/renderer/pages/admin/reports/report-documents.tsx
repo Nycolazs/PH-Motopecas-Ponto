@@ -1,4 +1,4 @@
-import { formatMinutesDuration } from '@ph-ponto/shared';
+import { BRAND, COMPANY_NAME, formatMinutesDuration, PRODUCT_NAME } from '@ph-ponto/shared';
 
 import type {
   AttendancePeriodTotals,
@@ -7,7 +7,7 @@ import type {
   TimesheetReport,
   TimesheetReportEmployee,
 } from '../../../api/contracts.js';
-import logoUrl from '../../../assets/phmotos-logo.png';
+import logoUrl from '@brand/logo.png';
 import {
   formatDateBR,
   formatDateTimeBR,
@@ -65,13 +65,13 @@ export function ReportDocumentHeader({
       <div className="flex items-center gap-4 min-w-0">
         <img
           src={logoUrl}
-          alt="PH Motopeças"
+          alt={company?.tradeName ?? COMPANY_NAME}
           className="h-10 w-auto shrink-0 object-contain"
           draggable={false}
         />
         <div className="min-w-0">
           <div className="text-[13px] font-bold leading-tight text-slate-900">
-            {company?.legalName ?? 'PH Motopeças'}
+            {company?.legalName ?? BRAND.companyLegalName}
           </div>
           {hasConfiguredCnpj(company) && (
             <div className="text-[10px] text-slate-600">CNPJ {company?.cnpj}</div>
@@ -340,12 +340,16 @@ export function TimesheetDocument({
           </div>
           <div className="text-center">
             <div className="mx-auto mb-1.5 w-4/5 border-t border-slate-700" />
-            <div className="text-[11px] font-bold">{company?.legalName ?? 'PH Motopeças'}</div>
+            <div className="text-[11px] font-bold">
+              {company?.legalName ?? BRAND.companyLegalName}
+            </div>
             <div className="text-[9.5px] text-slate-500">Responsável pela empresa</div>
           </div>
         </div>
         <div className="mt-4 flex justify-between border-t border-slate-200 pt-1.5 text-[9px] text-slate-400">
-          <span>Emitido em {formatDateTimeBR(report.generatedAt)} • PH-Ponto</span>
+          <span>
+            Emitido em {formatDateTimeBR(report.generatedAt)} • {PRODUCT_NAME}
+          </span>
           <span>Local e data: ____________________, ____/____/________</span>
         </div>
       </div>
@@ -458,7 +462,7 @@ export function TeamSummaryDocument({
         incompletas (!) entram após a regularização.
       </p>
       <div className="mt-4 border-t border-slate-200 pt-1.5 text-[9px] text-slate-400">
-        Emitido em {formatDateTimeBR(report.generatedAt)} • PH-Ponto
+        Emitido em {formatDateTimeBR(report.generatedAt)} • {PRODUCT_NAME}
       </div>
     </article>
   );

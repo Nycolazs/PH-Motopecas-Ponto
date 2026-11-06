@@ -2,13 +2,13 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsOptional, IsString, Length, MaxLength, MinLength, ValidateIf } from 'class-validator';
 
 export class UpdateCompanyRequestDto {
-  @ApiProperty({ description: 'Razão Social', example: 'PH MOTOPECAS LTDA' })
+  @ApiProperty({ description: 'Razão Social', example: 'LOJA EXEMPLO LTDA' })
   @IsString({ message: 'Razão Social deve ser um texto.' })
   @MinLength(2, { message: 'Razão Social deve ter pelo menos 2 caracteres.' })
   @MaxLength(200, { message: 'Razão Social não pode exceder 200 caracteres.' })
   public legalName!: string;
 
-  @ApiProperty({ description: 'Nome Fantasia', example: 'PH Motopeças' })
+  @ApiProperty({ description: 'Nome Fantasia', example: 'Loja Exemplo' })
   @IsString({ message: 'Nome Fantasia deve ser um texto.' })
   @MinLength(2, { message: 'Nome Fantasia deve ter pelo menos 2 caracteres.' })
   @MaxLength(200, { message: 'Nome Fantasia não pode exceder 200 caracteres.' })
@@ -25,7 +25,7 @@ export class UpdateCompanyRequestDto {
   @MaxLength(30)
   public stateRegistration?: string | null;
 
-  @ApiPropertyOptional({ description: 'E-mail principal', example: 'contato@phmotos.com.br' })
+  @ApiPropertyOptional({ description: 'E-mail principal', example: 'contato@lojaexemplo.com.br' })
   @IsOptional()
   @IsString()
   @MaxLength(120)
@@ -61,7 +61,7 @@ export class UpdateCompanyRequestDto {
   @MaxLength(100)
   public addressNeighborhood?: string | null;
 
-  @ApiPropertyOptional({ description: 'Cidade', example: 'Fortaleza' })
+  @ApiPropertyOptional({ description: 'Cidade', example: 'São Paulo' })
   @IsOptional()
   @IsString()
   @MaxLength(100)

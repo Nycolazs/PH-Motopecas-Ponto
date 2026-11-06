@@ -1,9 +1,10 @@
+import { PRODUCT_NAME } from '@ph-ponto/shared';
 import type { HelpArticle } from '../help-types.js';
 
 export const ADMIN_START_ARTICLES: HelpArticle[] = [
   {
     slug: 'primeiros-passos',
-    title: 'Primeiros passos no PH-Ponto',
+    title: `Primeiros passos no ${PRODUCT_NAME}`,
     summary:
       'O roteiro para deixar o sistema pronto: dados da empresa, jornada, colaboradores, aplicativo e alertas.',
     category: 'comecar',
@@ -23,8 +24,8 @@ export const ADMIN_START_ARTICLES: HelpArticle[] = [
         id: 'visao-geral',
         title: 'Como o sistema funciona',
         paragraphs: [
-          'O PH-Ponto tem duas partes. O painel do administrador (este site) é onde você cadastra a equipe, acompanha a frequência, corrige pontos, emite documentos e fecha o mês.',
-          'Os colaboradores batem o ponto pelo aplicativo PH-Ponto instalado no computador da loja. O horário de cada batida é sempre o do servidor, e não o do computador, então ninguém consegue adiantar ou atrasar o relógio.',
+          `O ${PRODUCT_NAME} tem duas partes. O painel do administrador (este site) é onde você cadastra a equipe, acompanha a frequência, corrige pontos, emite documentos e fecha o mês.`,
+          `Os colaboradores batem o ponto pelo aplicativo ${PRODUCT_NAME} instalado no computador da loja. O horário de cada batida é sempre o do servidor, e não o do computador, então ninguém consegue adiantar ou atrasar o relógio.`,
         ],
       },
       {

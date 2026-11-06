@@ -1,3 +1,4 @@
+import { PRODUCT_NAME } from '@ph-ponto/shared';
 import { useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { CircleHelp, Clock3, History, KeyRound, LogOut, RotateCw, WifiOff } from 'lucide-react';
@@ -97,7 +98,7 @@ export function EmployeeLayout(): React.JSX.Element {
           <button
             className="icon-button"
             type="button"
-            aria-label="Sair do PH-Ponto"
+            aria-label={`Sair do ${PRODUCT_NAME}`}
             title="Sair"
             onClick={() => void logout()}
           >

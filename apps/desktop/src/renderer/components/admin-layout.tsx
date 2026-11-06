@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { BUSINESS_TIME_ZONE } from '@ph-ponto/shared';
+import { BRAND, BUSINESS_TIME_ZONE } from '@ph-ponto/shared';
 
 import { useAuth } from '../auth/use-auth.js';
 import { AvatarImage } from './avatar-image.js';
@@ -497,7 +497,7 @@ export function AdminLayout(): React.JSX.Element {
               <Menu className="h-5 w-5" aria-hidden="true" />
             </button>
             <span className="text-xs font-semibold px-2.5 py-1 rounded-md bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 font-mono">
-              Fortaleza: {businessClock || '--:--:--'}
+              {BRAND.clockLabel}: {businessClock || '--:--:--'}
             </span>
           </div>
 

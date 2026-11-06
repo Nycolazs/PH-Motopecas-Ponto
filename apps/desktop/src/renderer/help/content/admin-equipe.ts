@@ -1,3 +1,4 @@
+import { PRODUCT_NAME } from '@ph-ponto/shared';
 import type { HelpArticle } from '../help-types.js';
 
 export const ADMIN_TEAM_ARTICLES: HelpArticle[] = [
@@ -456,7 +457,7 @@ export const ADMIN_SETTINGS_ARTICLES: HelpArticle[] = [
   },
   {
     slug: 'aplicativo-desktop',
-    title: 'Aplicativo PH-Ponto no computador da loja',
+    title: `Aplicativo ${PRODUCT_NAME} no computador da loja`,
     summary:
       'Instale o aplicativo onde a equipe bate o ponto. Ele se atualiza sozinho e mostra a versão na tela de login.',
     category: 'configuracoes',
@@ -490,7 +491,7 @@ export const ADMIN_SETTINGS_ARTICLES: HelpArticle[] = [
           },
           {
             title: 'Pronto',
-            text: 'Um atalho PH-Ponto aparece na área de trabalho. O aplicativo abre junto com o Windows e fica no relógio do sistema (bandeja) quando a janela é fechada.',
+            text: `Um atalho ${PRODUCT_NAME} aparece na área de trabalho. O aplicativo abre junto com o Windows e fica no relógio do sistema (bandeja) quando a janela é fechada.`,
           },
         ],
       },

@@ -16,6 +16,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@renderer': fileURLToPath(new URL('./src/renderer', import.meta.url)),
+      '@brand': fileURLToPath(new URL('../../packages/shared/brand', import.meta.url)),
     },
   },
   test: {

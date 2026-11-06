@@ -1,3 +1,4 @@
+import { PRODUCT_NAME } from '@ph-ponto/shared';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Edit2, KeyRound, Plus, Power, RefreshCw, Search, ShieldCheck } from 'lucide-react';
@@ -162,7 +163,7 @@ export function AdminUsersPage(): React.JSX.Element {
             </HelpHint>
           </div>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Gerencie os acessos com privilégios administrativos ao sistema PH-Ponto
+            Gerencie os acessos com privilégios administrativos ao sistema {PRODUCT_NAME}
           </p>
         </div>
 

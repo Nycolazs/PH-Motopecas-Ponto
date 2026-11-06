@@ -66,18 +66,18 @@ test('missing renderer fails before replacing a previously generated distributio
 test('static assets are copied only into the ignored renderer output', (t) => {
   const root = fixture(t);
   write(root, 'apps/desktop/dist/renderer/index.html', '<html>renderer</html>');
-  write(root, 'apps/desktop/src/renderer/assets/app-icon.png', 'official-icon');
-  write(root, 'apps/desktop/src/renderer/assets/phmotos-logo.png', 'official-logo');
+  write(root, 'packages/shared/brand/icon.png', 'brand-icon');
+  write(root, 'packages/shared/brand/logo.png', 'brand-logo');
 
   execFileSync(process.execPath, [join(root, 'apps/desktop/scripts/copy-dist.mjs')]);
 
   assert.equal(
     readFileSync(join(root, 'apps/desktop/dist/renderer/assets/app-icon.png'), 'utf8'),
-    'official-icon',
+    'brand-icon',
   );
   assert.equal(
-    readFileSync(join(root, 'apps/desktop/dist/renderer/assets/phmotos-logo.png'), 'utf8'),
-    'official-logo',
+    readFileSync(join(root, 'apps/desktop/dist/renderer/assets/brand-logo.png'), 'utf8'),
+    'brand-logo',
   );
   assert.equal(existsSync(join(root, 'apps/desktop/renderer')), false);
   assert.equal(existsSync(join(root, 'public')), false);

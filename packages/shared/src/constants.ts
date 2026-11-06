@@ -1,6 +1,8 @@
-export const PRODUCT_NAME = 'PH-Ponto';
+import { BRAND } from './brand.js';
 
-export const COMPANY_NAME = 'PH Motopeças';
+export const PRODUCT_NAME = BRAND.productName;
+
+export const COMPANY_NAME = BRAND.companyName;
 
 export const BUSINESS_TIME_ZONE = 'America/Sao_Paulo';
 

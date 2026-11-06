@@ -1,3 +1,4 @@
+import { PRODUCT_NAME } from '@ph-ponto/shared';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -433,7 +434,7 @@ export function AdminEmployeesPage(): React.JSX.Element {
               className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white text-sm font-mono focus:outline-hidden focus:ring-2 focus:ring-blue-500"
             />
             <span className="text-[11px] text-slate-500 mt-1 block">
-              Será utilizado pelo colaborador para entrar no PH-Ponto.
+              Será utilizado pelo colaborador para entrar no {PRODUCT_NAME}.
               <HelpHint article="colaboradores" section="cadastrar" title="Como escolher o login?">
                 Use algo fácil de lembrar, como nome.sobrenome. A senha inicial pode ser simples:
                 peça para a pessoa trocá-la no aplicativo, pelo ícone de chave.

@@ -1,5 +1,5 @@
 import { app, Menu, nativeImage, Tray, type BrowserWindow, type NativeImage } from 'electron';
-import { PRODUCT_NAME } from '@ph-ponto/shared';
+import { COMPANY_NAME, PRODUCT_NAME } from '@ph-ponto/shared';
 import { isAutoStartEnabled, setAutoStartEnabled } from './autostart.js';
 
 let tray: Tray | null = null;
@@ -18,7 +18,7 @@ export function setupSystemTray(
 
     const finalIcon = trayIcon.isEmpty() ? nativeImage.createEmpty() : trayIcon;
     tray = new Tray(finalIcon);
-    tray.setToolTip(`${PRODUCT_NAME} - PH Motopeças`);
+    tray.setToolTip(`${PRODUCT_NAME} - ${COMPANY_NAME}`);
 
     const updateContextMenu = (): void => {
       const openAtLogin = isAutoStartEnabled();

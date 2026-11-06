@@ -1,3 +1,4 @@
+import { BRAND } from '@ph-ponto/shared';
 import type { HelpArticle } from '../help-types.js';
 
 export const FAQ_ARTICLES: HelpArticle[] = [
@@ -34,7 +35,7 @@ export const FAQ_ARTICLES: HelpArticle[] = [
         id: 'hora-do-computador',
         title: 'O relógio do computador da loja está errado. Isso afeta o ponto?',
         paragraphs: [
-          'Não. O horário de cada batida é sempre o do servidor da empresa, em horário de Fortaleza.',
+          `Não. O horário de cada batida é sempre o do servidor da empresa, em horário de ${BRAND.clockLabel}.`,
         ],
       },
       {

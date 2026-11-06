@@ -214,7 +214,7 @@ export class UpdateEmployeeProfileRequestDto {
   @MaxLength(100)
   public addressNeighborhood?: string | null;
 
-  @ApiPropertyOptional({ description: 'Cidade', example: 'Fortaleza' })
+  @ApiPropertyOptional({ description: 'Cidade', example: 'São Paulo' })
   @IsOptional()
   @IsString()
   @MaxLength(100)

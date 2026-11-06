@@ -8,11 +8,16 @@ Before inspecting or changing project code, read this file and `PROJECT_PROGRESS
 
 ## Product and language
 
-- The official product name is **PH-Ponto** and the company is **PH Motopeças**.
+- The product is **white-label**: one shared core, many customers. Never hard-code a customer's
+  name, logo, city, CNPJ or niche wording in the core. Names come from
+  `packages/shared/src/brand.ts` (`BRAND`, `PRODUCT_NAME`, `COMPANY_NAME`), images from
+  `packages/shared/brand/`, and company data from the database (Minha Empresa,
+  `useCompanyName()` in the renderer). See `docs/clientes.md` for branches and releases.
 - Keep source code, filenames, symbols, tests, technical comments, and developer documentation in English.
 - Keep every user-facing string in Brazilian Portuguese (`pt-BR`).
 - Interpret business dates in `America/Sao_Paulo`; store instants safely in UTC.
-- Use the supplied PH Motopeças logo without distortion or redesign. If the asset is absent, record the blocker and do not invent a replacement logo.
+- Use each customer's supplied logo without distortion or redesign (it lives only in that
+  customer's branch). If the asset is absent, record the blocker and do not invent one.
 
 ## Delivery process
 
