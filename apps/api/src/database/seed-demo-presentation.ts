@@ -13,6 +13,7 @@
 import { createHash } from 'node:crypto';
 
 import { PrismaPg } from '@prisma/adapter-pg';
+import { planEmployeeDay } from '@ph-ponto/shared';
 import { argon2id, hash } from 'argon2';
 
 import {
@@ -25,11 +26,42 @@ import {
   TimePunchKind,
   TimePunchOrigin,
   UserRole,
+  Weekday,
 } from '../generated/prisma/client.js';
+import { loadEmployeeScheduleLayers } from '../employee-schedules/employee-schedule-layers.js';
 
 const TIME_ZONE_OFFSET_HOURS = 3; // America/Sao_Paulo / America/Fortaleza (no DST)
 const DEMO_HISTORY_START = '2026-09-01';
 const MS_PER_DAY = 86_400_000;
+
+const EC141_START = '2026-12-15';
+const EC141_ANCHOR_MONDAY = '2026-12-14';
+const WEEK = [
+  Weekday.MONDAY,
+  Weekday.TUESDAY,
+  Weekday.WEDNESDAY,
+  Weekday.THURSDAY,
+  Weekday.FRIDAY,
+  Weekday.SATURDAY,
+  Weekday.SUNDAY,
+];
+/** Rest days per cycle week and a staggered lunch, so the store is never empty at noon. */
+const DEMO_SCHEDULES: { weeks: Weekday[][]; lunch: number }[] = [
+  { weeks: [[Weekday.SATURDAY, Weekday.SUNDAY]], lunch: 12 * 60 },
+  { weeks: [[Weekday.SUNDAY, Weekday.MONDAY]], lunch: 11 * 60 + 30 },
+  {
+    weeks: [
+      [Weekday.SATURDAY, Weekday.SUNDAY],
+      [Weekday.SUNDAY, Weekday.WEDNESDAY],
+    ],
+    lunch: 12 * 60 + 30,
+  },
+  { weeks: [[Weekday.SUNDAY, Weekday.WEDNESDAY]], lunch: 12 * 60 },
+];
+
+function dateOnly(date: string): Date {
+  return new Date(`${date}T00:00:00.000Z`);
+}
 
 const EXTRA_EMPLOYEES = [
   {
@@ -120,7 +152,20 @@ function weekday(businessDate: string): number {
   return new Date(`${businessDate}T12:00:00.000Z`).getUTCDay(); // 0 = Sunday
 }
 
-function plannedPunches(login: string, businessDate: string): number[] {
+interface DemoShift {
+  startMinute: number;
+  endMinute: number;
+  breakStartMinute: number | null;
+  breakEndMinute: number | null;
+}
+
+/**
+ * Punches of one demo person on one day. `shift` is the person's escala for that date when
+ * they have one (null = folga); without an escala the store's usual week applies.
+ */
+function plannedPunches(login: string, businessDate: string, shift?: DemoShift | null): number[] {
+  if (shift === null) return [];
+  if (shift !== undefined) return punchesForShift(login, businessDate, shift);
   const day = weekday(businessDate);
   if (day === 0) return [];
   const profile = PROFILE_BY_LOGIN[login] ?? 'regular';
@@ -145,6 +190,22 @@ function plannedPunches(login: string, businessDate: string): number[] {
   if (profile === 'overtime' && r('ot') < 0.5) leave = 1_020 + 30 + Math.floor(r('otm') * 75);
 
   if (login === 'carlos.silva' && r('forgot') < 0.07) return [arrival, lunchOut, lunchIn];
+  return [arrival, lunchOut, lunchIn, leave];
+}
+
+function punchesForShift(login: string, businessDate: string, shift: DemoShift): number[] {
+  const profile = PROFILE_BY_LOGIN[login] ?? 'regular';
+  const r = (tag: string) => noise(`${login}|${businessDate}|${tag}`);
+  let arrival = shift.startMinute - 6 + Math.floor(r('in') * 10);
+  if (profile === 'often-late' && r('late') < 0.35) {
+    arrival = shift.startMinute + 8 + Math.floor(r('lm') * 25);
+  }
+  let leave = shift.endMinute + Math.floor(r('out') * 9);
+  if (profile === 'overtime' && r('ot') < 0.5)
+    leave = shift.endMinute + 30 + Math.floor(r('otm') * 75);
+  if (shift.breakStartMinute === null || shift.breakEndMinute === null) return [arrival, leave];
+  const lunchOut = shift.breakStartMinute + Math.floor(r('lo') * 6) - 2;
+  const lunchIn = shift.breakEndMinute + Math.floor(r('li') * 6) - 2;
   return [arrival, lunchOut, lunchIn, leave];
 }
 
@@ -271,8 +332,14 @@ async function main(): Promise<void> {
 
     // Attendance is counted from users.created_at, so backdate every demo account to the
     // start of its punch history (otherwise reports ignore every day before the seed ran).
+    // Only the demo's own people: someone registered live during a presentation must not get
+    // a backdated account or invented punches.
     const employees = await prisma.user.findMany({
-      where: { role: UserRole.EMPLOYEE, isActive: true },
+      where: {
+        role: UserRole.EMPLOYEE,
+        isActive: true,
+        login: { in: Object.keys(PROFILE_BY_LOGIN) },
+      },
       include: { employeeProfile: true },
     });
     for (const employee of employees) {
@@ -291,6 +358,52 @@ async function main(): Promise<void> {
       });
     }
 
+    // Escala 5x2 already planned for part of the team from the EC 141 transition (15/12/2026),
+    // so the "Escalas e Folgas" screen shows both situations in a presentation. People who
+    // already have any escala are left alone (the presenter may have changed it).
+    const withSchedule = new Set(
+      (
+        await prisma.employeeScheduleVersion.findMany({
+          select: { employeeId: true },
+          distinct: ['employeeId'],
+        })
+      ).map((version) => version.employeeId),
+    );
+    const planned = [...employees]
+      .sort((left, right) => left.name.localeCompare(right.name, 'pt-BR'))
+      .slice(0, DEMO_SCHEDULES.length);
+    for (const [index, employee] of planned.entries()) {
+      if (withSchedule.has(employee.id)) continue;
+      const plan = DEMO_SCHEDULES[index]!;
+      await prisma.employeeScheduleVersion.create({
+        data: {
+          employeeId: employee.id,
+          effectiveDate: dateOnly(EC141_START),
+          cycleWeeks: plan.weeks.length,
+          cycleAnchorDate: dateOnly(EC141_ANCHOR_MONDAY),
+          note: 'Escala 5x2 (demonstração)',
+          createdById: admin.id,
+          days: {
+            create: plan.weeks.flatMap((rest, cycleWeek) =>
+              WEEK.map((weekday) =>
+                rest.includes(weekday)
+                  ? { cycleWeek, weekday, isWorkday: false }
+                  : {
+                      cycleWeek,
+                      weekday,
+                      isWorkday: true,
+                      startMinute: 8 * 60,
+                      endMinute: 17 * 60,
+                      breakStartMinute: plan.lunch,
+                      breakEndMinute: plan.lunch + 60,
+                    },
+              ),
+            ),
+          },
+        },
+      });
+    }
+
     // Punch history, filled incrementally up to now.
     const holidayDates = new Set(HOLIDAYS.map((h) => h.date));
     const now = new Date();
@@ -298,8 +411,16 @@ async function main(): Promise<void> {
     let created = 0;
     let untouchedDays = 0;
 
+    const layers = await loadEmployeeScheduleLayers(
+      prisma,
+      employees.map((employee) => employee.id),
+      DEMO_HISTORY_START,
+      today,
+    );
+
     for (const employee of employees) {
       const firstDay = localDateString(employee.createdAt);
+      const layer = layers.get(employee.id);
       for (
         let businessDate = firstDay;
         businessDate <= today;
@@ -307,7 +428,14 @@ async function main(): Promise<void> {
       ) {
         if (holidayDates.has(businessDate)) continue;
 
-        const planned = plannedPunches(employee.normalizedLogin, businessDate)
+        const escala = layer
+          ? planEmployeeDay(layer.versions, layer.overrides, businessDate)
+          : null;
+        const planned = plannedPunches(
+          employee.normalizedLogin,
+          businessDate,
+          escala === null ? undefined : escala.shift,
+        )
           .map((minute) => localInstant(businessDate, minute))
           .filter((instant) => instant <= now);
         if (planned.length === 0) continue;

@@ -77,6 +77,7 @@ export const teamScheduleSchema = z.object({
       login: z.string(),
       hasAvatar: z.boolean(),
       hasOwnSchedule: z.boolean(),
+      ownScheduleFrom: z.string().nullable().catch(null),
       days: z.array(scheduleCellSchema),
       weeks: z.array(weekTotalSchema),
       issues: z.array(complianceIssueSchema),

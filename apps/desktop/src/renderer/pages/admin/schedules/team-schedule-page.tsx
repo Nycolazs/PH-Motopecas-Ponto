@@ -88,8 +88,12 @@ export function TeamSchedulePage(): React.JSX.Element {
   const peopleWithIssues = rows.filter((row) =>
     row.issues.some((issue) => issue.businessDate <= weekEnd && issue.severity === 'ERROR'),
   );
+  // Who still has no own escala starting by the transition date.
   const pendingTransition =
-    today < TRANSITION_START ? rows.filter((row) => !row.hasOwnSchedule).length : 0;
+    today < TRANSITION_START
+      ? rows.filter((row) => row.ownScheduleFrom === null || row.ownScheduleFrom > TRANSITION_START)
+          .length
+      : 0;
 
   return (
     <div className="space-y-5">
@@ -121,9 +125,9 @@ export function TeamSchedulePage(): React.JSX.Element {
           <div>
             <strong className="block">Escala 5x2 obrigatória a partir de 15/12/2026</strong>
             Cada pessoa passa a ter 2 folgas por semana. {pendingTransition}{' '}
-            {pendingTransition === 1 ? 'colaborador ainda segue' : 'colaboradores ainda seguem'} só
-            o horário da loja. Use <strong>Montar escala</strong> em cada linha e escolha a data
-            15/12/2026.
+            {pendingTransition === 1 ? 'colaborador ainda não tem' : 'colaboradores ainda não têm'}{' '}
+            escala a partir dessa data. Use <strong>Montar escala</strong> na linha de cada um e
+            escolha a data 15/12/2026.
           </div>
         </div>
       )}
@@ -236,13 +240,20 @@ export function TeamSchedulePage(): React.JSX.Element {
                           <div className="truncate font-semibold text-slate-900 dark:text-white">
                             {formatDisplayName(row.name)}
                           </div>
+                          {row.ownScheduleFrom !== null && row.ownScheduleFrom > today && (
+                            <span className="block text-[11px] font-semibold text-emerald-700 dark:text-emerald-300">
+                              Nova escala a partir de {dayMonth(row.ownScheduleFrom)}
+                            </span>
+                          )}
                           <button
                             type="button"
                             onClick={() => setEditing(row)}
                             className="inline-flex items-center gap-1 text-xs font-semibold text-blue-700 hover:underline dark:text-blue-300"
                           >
                             <WandSparkles className="h-3 w-3" aria-hidden="true" />
-                            {row.hasOwnSchedule ? 'Alterar escala' : 'Montar escala'}
+                            {row.hasOwnSchedule || row.ownScheduleFrom !== null
+                              ? 'Alterar escala'
+                              : 'Montar escala'}
                           </button>
                         </div>
                       </div>
