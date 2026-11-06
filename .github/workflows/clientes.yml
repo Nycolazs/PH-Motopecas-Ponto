@@ -57,19 +57,40 @@ jobs:
             exit 0
           fi
 
+          # Merge and push; if someone pushed to the branch meanwhile, fetch and try again.
+          sync_branch() {
+            local branch=$1 attempt
+            for attempt in 1 2 3; do
+              git fetch -q origin "$branch" develop
+              git checkout -q -B "$branch" "origin/$branch"
+              if git merge-base --is-ancestor origin/develop HEAD; then
+                echo "$branch: já tem tudo do develop."
+                return 0
+              fi
+              git merge --no-edit -m "chore(sync): develop → $branch" origin/develop || {
+                git merge --abort
+                return 2
+              }
+              if git push origin "HEAD:$branch"; then
+                echo "$branch: atualizado com o develop."
+                return 0
+              fi
+              echo "$branch mudou durante a sincronização; tentando de novo ($attempt)."
+              sleep 5
+            done
+            return 1
+          }
+
           ready=()
           for branch in $(git for-each-ref --format='%(refname:strip=3)' 'refs/remotes/origin/clientes/'); do
             if [ -n "$ONLY" ] && [ "$branch" != "$ONLY" ]; then continue; fi
-            git checkout -q -B "$branch" "origin/$branch"
-            if git merge-base --is-ancestor origin/develop HEAD; then
-              echo "$branch: já tem tudo do develop."
+            status=0
+            sync_branch "$branch" || status=$?
+            if [ "$status" -eq 0 ]; then
               ready+=("$branch")
-            elif git merge --no-edit -m "chore(sync): develop → $branch" origin/develop; then
-              git push origin "HEAD:$branch"
-              echo "$branch: atualizado com o develop."
-              ready+=("$branch")
+            elif [ "$status" -eq 1 ]; then
+              echo "::error::$branch não pôde ser atualizado (push recusado 3 vezes)."
             else
-              git merge --abort
               head="sync/develop-para-${branch#clientes/}"
               git checkout -q -B "$head" origin/develop
               git push --force origin "HEAD:$head"
