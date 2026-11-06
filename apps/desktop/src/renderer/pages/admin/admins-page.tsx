@@ -346,10 +346,14 @@ export function AdminUsersPage(): React.JSX.Element {
           )}
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            <label
+              htmlFor="admins-nome-completo"
+              className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+            >
               Nome Completo *
             </label>
             <input
+              id="admins-nome-completo"
               type="text"
               required
               value={formName}
@@ -360,10 +364,14 @@ export function AdminUsersPage(): React.JSX.Element {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            <label
+              htmlFor="admins-login"
+              className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+            >
               Login *
             </label>
             <input
+              id="admins-login"
               type="text"
               required
               value={formLogin}
@@ -374,10 +382,14 @@ export function AdminUsersPage(): React.JSX.Element {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            <label
+              htmlFor="admins-senha-inicial"
+              className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+            >
               Senha Inicial *
             </label>
             <input
+              id="admins-senha-inicial"
               type="password"
               required
               value={formPassword}
@@ -422,10 +434,14 @@ export function AdminUsersPage(): React.JSX.Element {
             )}
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              <label
+                htmlFor="admins-nome-completo-2"
+                className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+              >
                 Nome Completo *
               </label>
               <input
+                id="admins-nome-completo-2"
                 type="text"
                 required
                 value={formName}
@@ -435,10 +451,14 @@ export function AdminUsersPage(): React.JSX.Element {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              <label
+                htmlFor="admins-login-2"
+                className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+              >
                 Login *
               </label>
               <input
+                id="admins-login-2"
                 type="text"
                 required
                 value={formLogin}
@@ -483,10 +503,14 @@ export function AdminUsersPage(): React.JSX.Element {
             )}
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              <label
+                htmlFor="admins-nova-senha"
+                className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+              >
                 Nova Senha *
               </label>
               <input
+                id="admins-nova-senha"
                 type="password"
                 required
                 value={formPassword}

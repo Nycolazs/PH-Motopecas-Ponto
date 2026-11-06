@@ -683,10 +683,14 @@ export function RegulationsWizardPage(): React.JSX.Element {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label
+                  htmlFor="regulations-wizard-nome-fantasia"
+                  className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+                >
                   Nome Fantasia *
                 </label>
                 <input
+                  id="regulations-wizard-nome-fantasia"
                   type="text"
                   value={form.tradeName}
                   onChange={(e) => setForm({ ...form, tradeName: e.target.value })}
@@ -696,10 +700,14 @@ export function RegulationsWizardPage(): React.JSX.Element {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label
+                  htmlFor="regulations-wizard-razao-social"
+                  className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+                >
                   Razão Social *
                 </label>
                 <input
+                  id="regulations-wizard-razao-social"
                   type="text"
                   value={form.legalName}
                   onChange={(e) => setForm({ ...form, legalName: e.target.value })}
@@ -709,10 +717,14 @@ export function RegulationsWizardPage(): React.JSX.Element {
               </div>
 
               <div className="sm:col-span-2">
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label
+                  htmlFor="regulations-wizard-cnpj"
+                  className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+                >
                   CNPJ *
                 </label>
                 <input
+                  id="regulations-wizard-cnpj"
                   type="text"
                   value={form.cnpj}
                   onChange={(e) => setForm({ ...form, cnpj: e.target.value })}
@@ -722,10 +734,14 @@ export function RegulationsWizardPage(): React.JSX.Element {
               </div>
 
               <div className="sm:col-span-2">
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label
+                  htmlFor="regulations-wizard-apresentacao-institucional-da-empresa"
+                  className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+                >
                   Apresentação Institucional da Empresa *
                 </label>
                 <textarea
+                  id="regulations-wizard-apresentacao-institucional-da-empresa"
                   rows={3}
                   value={form.presentation}
                   onChange={(e) => setForm({ ...form, presentation: e.target.value })}
@@ -815,10 +831,14 @@ export function RegulationsWizardPage(): React.JSX.Element {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label
+                  htmlFor="regulations-wizard-carga-horaria-semanal"
+                  className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+                >
                   Carga Horária Semanal *
                 </label>
                 <input
+                  id="regulations-wizard-carga-horaria-semanal"
                   type="text"
                   value={form.weeklyHours}
                   onChange={(e) => setForm({ ...form, weeklyHours: e.target.value })}
@@ -828,10 +848,14 @@ export function RegulationsWizardPage(): React.JSX.Element {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label
+                  htmlFor="regulations-wizard-intervalo-intrajornada-minutos"
+                  className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+                >
                   Intervalo Intrajornada (minutos) *
                 </label>
                 <input
+                  id="regulations-wizard-intervalo-intrajornada-minutos"
                   type="number"
                   min={15}
                   max={180}
@@ -869,10 +893,14 @@ export function RegulationsWizardPage(): React.JSX.Element {
               </div>
 
               <div className="sm:col-span-3">
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label
+                  htmlFor="regulations-wizard-politica-e-autorizacao-de-horas-extras"
+                  className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+                >
                   Política e Autorização de Horas Extras *
                 </label>
                 <textarea
+                  id="regulations-wizard-politica-e-autorizacao-de-horas-extras"
                   rows={2}
                   value={form.overtimePolicy}
                   onChange={(e) => setForm({ ...form, overtimePolicy: e.target.value })}
@@ -881,10 +909,14 @@ export function RegulationsWizardPage(): React.JSX.Element {
               </div>
 
               <div className="sm:col-span-3">
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label
+                  htmlFor="regulations-wizard-regras-gerais-de-registro-de-ponto"
+                  className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+                >
                   Regras Gerais de Registro de Ponto *
                 </label>
                 <textarea
+                  id="regulations-wizard-regras-gerais-de-registro-de-ponto"
                   rows={3}
                   value={form.punchRules}
                   onChange={(e) => setForm({ ...form, punchRules: e.target.value })}
@@ -910,10 +942,14 @@ export function RegulationsWizardPage(): React.JSX.Element {
 
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label
+                  htmlFor="regulations-wizard-apresentacao-pessoal-e-uso-de-uniformes-"
+                  className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+                >
                   Apresentação Pessoal e Uso de Uniformes/EPIs *
                 </label>
                 <textarea
+                  id="regulations-wizard-apresentacao-pessoal-e-uso-de-uniformes-"
                   rows={2}
                   value={form.dressCode}
                   onChange={(e) => setForm({ ...form, dressCode: e.target.value })}
@@ -922,10 +958,14 @@ export function RegulationsWizardPage(): React.JSX.Element {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label
+                  htmlFor="regulations-wizard-atendimento-ao-cliente-e-urbanidade"
+                  className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+                >
                   Atendimento ao Cliente e Urbanidade *
                 </label>
                 <textarea
+                  id="regulations-wizard-atendimento-ao-cliente-e-urbanidade"
                   rows={2}
                   value={form.customerServiceEthics}
                   onChange={(e) => setForm({ ...form, customerServiceEthics: e.target.value })}
@@ -934,10 +974,14 @@ export function RegulationsWizardPage(): React.JSX.Element {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label
+                  htmlFor="regulations-wizard-sigilo-segredo-comercial-e-confidenciali"
+                  className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+                >
                   Sigilo, Segredo Comercial e Confidencialidade *
                 </label>
                 <textarea
+                  id="regulations-wizard-sigilo-segredo-comercial-e-confidenciali"
                   rows={2}
                   value={form.confidentiality}
                   onChange={(e) => setForm({ ...form, confidentiality: e.target.value })}
@@ -1027,10 +1071,14 @@ export function RegulationsWizardPage(): React.JSX.Element {
 
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label
+                  htmlFor="regulations-wizard-uso-de-internet-e-rede-corporativa"
+                  className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+                >
                   Uso de Internet e Rede Corporativa *
                 </label>
                 <textarea
+                  id="regulations-wizard-uso-de-internet-e-rede-corporativa"
                   rows={2}
                   value={form.internetUsage}
                   onChange={(e) => setForm({ ...form, internetUsage: e.target.value })}
@@ -1039,10 +1087,14 @@ export function RegulationsWizardPage(): React.JSX.Element {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label
+                  htmlFor="regulations-wizard-uso-de-aparelhos-pessoais-e-celulares"
+                  className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+                >
                   Uso de Aparelhos Pessoais e Celulares *
                 </label>
                 <textarea
+                  id="regulations-wizard-uso-de-aparelhos-pessoais-e-celulares"
                   rows={2}
                   value={form.personalDevicePolicy}
                   onChange={(e) => setForm({ ...form, personalDevicePolicy: e.target.value })}
@@ -1051,10 +1103,14 @@ export function RegulationsWizardPage(): React.JSX.Element {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label
+                  htmlFor="regulations-wizard-conservacao-de-ferramentas-e-equipamento"
+                  className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+                >
                   Conservação de Ferramentas e Equipamentos *
                 </label>
                 <textarea
+                  id="regulations-wizard-conservacao-de-ferramentas-e-equipamento"
                   rows={2}
                   value={form.companyEquipmentCare}
                   onChange={(e) => setForm({ ...form, companyEquipmentCare: e.target.value })}
@@ -1063,10 +1119,14 @@ export function RegulationsWizardPage(): React.JSX.Element {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label
+                  htmlFor="regulations-wizard-canais-oficiais-de-comunicacao-interna"
+                  className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+                >
                   Canais Oficiais de Comunicação Interna *
                 </label>
                 <textarea
+                  id="regulations-wizard-canais-oficiais-de-comunicacao-interna"
                   rows={2}
                   value={form.communicationTools}
                   onChange={(e) => setForm({ ...form, communicationTools: e.target.value })}
@@ -1092,10 +1152,14 @@ export function RegulationsWizardPage(): React.JSX.Element {
 
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label
+                  htmlFor="regulations-wizard-advertencia-verbal"
+                  className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+                >
                   Advertência Verbal *
                 </label>
                 <textarea
+                  id="regulations-wizard-advertencia-verbal"
                   rows={2}
                   value={form.warningVerbalRules}
                   onChange={(e) => setForm({ ...form, warningVerbalRules: e.target.value })}
@@ -1104,10 +1168,14 @@ export function RegulationsWizardPage(): React.JSX.Element {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label
+                  htmlFor="regulations-wizard-advertencia-escrita"
+                  className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+                >
                   Advertência Escrita *
                 </label>
                 <textarea
+                  id="regulations-wizard-advertencia-escrita"
                   rows={2}
                   value={form.warningWrittenRules}
                   onChange={(e) => setForm({ ...form, warningWrittenRules: e.target.value })}
@@ -1116,10 +1184,14 @@ export function RegulationsWizardPage(): React.JSX.Element {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label
+                  htmlFor="regulations-wizard-suspensao-disciplinar"
+                  className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+                >
                   Suspensão Disciplinar *
                 </label>
                 <textarea
+                  id="regulations-wizard-suspensao-disciplinar"
                   rows={2}
                   value={form.suspensionRules}
                   onChange={(e) => setForm({ ...form, suspensionRules: e.target.value })}
@@ -1128,10 +1200,14 @@ export function RegulationsWizardPage(): React.JSX.Element {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label
+                  htmlFor="regulations-wizard-demissao-por-justa-causa-art-482-clt"
+                  className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+                >
                   Demissão por Justa Causa (Art. 482 CLT) *
                 </label>
                 <textarea
+                  id="regulations-wizard-demissao-por-justa-causa-art-482-clt"
                   rows={2}
                   value={form.terminationRules}
                   onChange={(e) => setForm({ ...form, terminationRules: e.target.value })}
@@ -1140,10 +1216,14 @@ export function RegulationsWizardPage(): React.JSX.Element {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label
+                  htmlFor="regulations-wizard-observacoes-sobre-a-gradacao-de-penalida"
+                  className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+                >
                   Observações sobre a Gradação de Penalidades
                 </label>
                 <textarea
+                  id="regulations-wizard-observacoes-sobre-a-gradacao-de-penalida"
                   rows={2}
                   value={form.progressionNotes}
                   onChange={(e) => setForm({ ...form, progressionNotes: e.target.value })}
@@ -1170,10 +1250,14 @@ export function RegulationsWizardPage(): React.JSX.Element {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label
+                  htmlFor="regulations-wizard-titulo-do-documento"
+                  className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+                >
                   Título do Documento *
                 </label>
                 <input
+                  id="regulations-wizard-titulo-do-documento"
                   type="text"
                   value={form.title}
                   onChange={(e) => setForm({ ...form, title: e.target.value })}

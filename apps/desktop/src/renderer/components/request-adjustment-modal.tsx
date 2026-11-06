@@ -143,10 +143,14 @@ export function RequestAdjustmentModal({
         </div>
 
         <div>
-          <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">
+          <label
+            htmlFor="request-adjustment-modal-justificativa-motivo-do-ajuste"
+            className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1"
+          >
             Justificativa / Motivo do Ajuste:
           </label>
           <textarea
+            id="request-adjustment-modal-justificativa-motivo-do-ajuste"
             required
             rows={3}
             maxLength={500}
