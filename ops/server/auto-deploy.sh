@@ -13,6 +13,10 @@ STATE_DIR="${STATE_DIR:-/home/nyc/.ph-ponto-deploy}"
 RETRY_AFTER_SECONDS="${RETRY_AFTER_SECONDS:-600}"
 API_CONTAINER="${API_CONTAINER:-ph-ponto-api-1}"
 WEB_URL="${WEB_URL:-http://127.0.0.1:5173/}"
+# Branch this server follows (customer branches: clientes/<nome>; legacy: main).
+DEPLOY_BRANCH="${DEPLOY_BRANCH:-main}"
+# The web panel title starts with the brand product name (packages/shared/src/brand.ts).
+WEB_TITLE="${WEB_TITLE:-PH-Ponto}"
 
 log() { echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] $*"; }
 
@@ -22,7 +26,7 @@ flock -n 9 || exit 0
 
 cd "$APP_DIR" || { log "ERRO: diretório $APP_DIR não encontrado."; exit 1; }
 
-if ! git fetch origin main --quiet 2>"$STATE_DIR/fetch.err"; then
+if ! git fetch origin "$DEPLOY_BRANCH" --quiet 2>"$STATE_DIR/fetch.err"; then
   # Network hiccups are common; only log when they persist (marker older than 10 min).
   if [ ! -f "$STATE_DIR/fetch-failing" ]; then touch "$STATE_DIR/fetch-failing"; fi
   if [ -n "$(find "$STATE_DIR/fetch-failing" -mmin +10 2>/dev/null)" ]; then
@@ -33,7 +37,7 @@ if ! git fetch origin main --quiet 2>"$STATE_DIR/fetch.err"; then
 fi
 rm -f "$STATE_DIR/fetch-failing"
 
-REMOTE_COMMIT="$(git rev-parse origin/main)"
+REMOTE_COMMIT="$(git rev-parse "origin/$DEPLOY_BRANCH")"
 DEPLOYED_COMMIT="$(cat "$STATE_DIR/deployed-commit" 2>/dev/null || true)"
 [ "$REMOTE_COMMIT" = "$DEPLOYED_COMMIT" ] && exit 0
 
@@ -49,8 +53,8 @@ fail() {
   exit 1
 }
 
-log "Novo commit na main: $REMOTE_COMMIT (implantado: ${DEPLOYED_COMMIT:-nenhum}). Atualizando..."
-git reset --hard origin/main --quiet || fail "git reset"
+log "Novo commit em $DEPLOY_BRANCH: $REMOTE_COMMIT (implantado: ${DEPLOYED_COMMIT:-nenhum}). Atualizando..."
+git reset --hard "origin/$DEPLOY_BRANCH" --quiet || fail "git reset"
 
 docker compose build || fail "docker compose build"
 docker compose up -d || fail "docker compose up"
@@ -67,10 +71,10 @@ done
 # (a single try failed right after start and made every deploy retry every 10 minutes).
 web_ok=""
 for _ in $(seq 1 30); do
-  if grep -q "<title>PH-Ponto" <(curl -fsS -m 10 "$WEB_URL" 2>/dev/null); then web_ok="yes"; break; fi
+  if grep -q "<title>$WEB_TITLE" <(curl -fsS -m 10 "$WEB_URL" 2>/dev/null); then web_ok="yes"; break; fi
   sleep 2
 done
-[ -n "$web_ok" ] || fail "painel web não respondeu com o PH-Ponto em $WEB_URL"
+[ -n "$web_ok" ] || fail "painel web não respondeu com o título \"$WEB_TITLE\" em $WEB_URL"
 
 echo "$REMOTE_COMMIT" >"$STATE_DIR/deployed-commit"
 rm -f "$STATE_DIR/failed-commit"

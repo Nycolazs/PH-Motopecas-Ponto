@@ -14,7 +14,7 @@ test('a deploy is only recorded after the API and the web panel are healthy', ()
   const source = readFileSync(script, 'utf8');
   const recorded = source.indexOf('>"$STATE_DIR/deployed-commit"');
   assert.ok(recorded > source.indexOf('Health.Status'), 'records after the API health check');
-  assert.ok(recorded > source.indexOf('<title>PH-Ponto'), 'records after the web panel check');
+  assert.ok(recorded > source.indexOf('<title>$WEB_TITLE'), 'records after the web panel check');
   assert.match(source, /flock -n 9/);
 });
 
@@ -23,4 +23,11 @@ test('the web panel check waits for nginx instead of trying once', () => {
   const check = source.slice(source.indexOf('web_ok=""'), source.indexOf('[ -n "$web_ok" ]'));
   assert.match(check, /for _ in \$\(seq 1 \d+\)/);
   assert.match(check, /sleep \d/);
+});
+
+test('the deployed branch and the expected panel title are configurable per customer', () => {
+  const source = readFileSync(script, 'utf8');
+  assert.match(source, /DEPLOY_BRANCH="\$\{DEPLOY_BRANCH:-main\}"/);
+  assert.match(source, /git reset --hard "origin\/\$DEPLOY_BRANCH"/);
+  assert.doesNotMatch(source, /origin\/main/);
 });
