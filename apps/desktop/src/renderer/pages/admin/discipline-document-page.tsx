@@ -607,10 +607,14 @@ export function DisciplineDocumentPage(): React.JSX.Element {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                <label
+                  htmlFor="discipline-document-local-da-ocorrencia"
+                  className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1"
+                >
                   Local da Ocorrência
                 </label>
                 <input
+                  id="discipline-document-local-da-ocorrencia"
                   type="text"
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
@@ -621,10 +625,14 @@ export function DisciplineDocumentPage(): React.JSX.Element {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+              <label
+                htmlFor="discipline-document-motivo-resumo-do-fato"
+                className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5"
+              >
                 Motivo / Resumo do Fato *
               </label>
               <input
+                id="discipline-document-motivo-resumo-do-fato"
                 type="text"
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
@@ -657,10 +665,14 @@ export function DisciplineDocumentPage(): React.JSX.Element {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+              <label
+                htmlFor="discipline-document-referencia-ao-regimento-interno-clausula"
+                className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5"
+              >
                 Referência ao Regimento Interno (Cláusula / Artigo)
               </label>
               <input
+                id="discipline-document-referencia-ao-regimento-interno-clausula"
                 type="text"
                 value={internalClauseRef}
                 onChange={(e) => setInternalClauseRef(e.target.value)}
@@ -694,10 +706,14 @@ export function DisciplineDocumentPage(): React.JSX.Element {
             {documentType === 'DISCIPLINE_WRITTEN' && (
               <div className="pt-2 border-t border-slate-100 dark:border-slate-800/80 space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                  <label
+                    htmlFor="discipline-document-fundamentacao-legal-clt"
+                    className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5"
+                  >
                     Fundamentação Legal (CLT)
                   </label>
                   <input
+                    id="discipline-document-fundamentacao-legal-clt"
                     type="text"
                     value={legalBasisRefWritten}
                     onChange={(e) => setLegalBasisRefWritten(e.target.value)}
@@ -734,10 +750,14 @@ export function DisciplineDocumentPage(): React.JSX.Element {
               <div className="pt-2 border-t border-slate-100 dark:border-slate-800/80 space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    <label
+                      htmlFor="discipline-document-dias-de-suspensao"
+                      className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+                    >
                       Dias de Suspensão *
                     </label>
                     <input
+                      id="discipline-document-dias-de-suspensao"
                       type="number"
                       min={1}
                       max={30}
@@ -786,10 +806,14 @@ export function DisciplineDocumentPage(): React.JSX.Element {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                  <label
+                    htmlFor="discipline-document-fundamentacao-legal-clt-2"
+                    className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5"
+                  >
                     Fundamentação Legal (CLT)
                   </label>
                   <input
+                    id="discipline-document-fundamentacao-legal-clt-2"
                     type="text"
                     value={legalBasisRefSuspension}
                     onChange={(e) => setLegalBasisRefSuspension(e.target.value)}
@@ -1196,10 +1220,14 @@ export function DisciplineDocumentPage(): React.JSX.Element {
             </p>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+              <label
+                htmlFor="discipline-document-justificativa-obrigatoria-de-anulacao"
+                className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5"
+              >
                 Justificativa Obrigatória de Anulação *
               </label>
               <textarea
+                id="discipline-document-justificativa-obrigatoria-de-anulacao"
                 value={voidReason}
                 onChange={(e) => setVoidReason(e.target.value)}
                 rows={3}

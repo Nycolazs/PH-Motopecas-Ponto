@@ -549,10 +549,14 @@ export function DocumentsArchivePage(): React.JSX.Element {
             </p>
 
             <div className="space-y-1.5">
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+              <label
+                htmlFor="documents-archive-justificativa-da-anulacao"
+                className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300"
+              >
                 Justificativa da Anulação *
               </label>
               <textarea
+                id="documents-archive-justificativa-da-anulacao"
                 rows={3}
                 value={voidReason}
                 onChange={(e) => setVoidReason(e.target.value)}

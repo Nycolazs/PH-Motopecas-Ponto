@@ -513,10 +513,14 @@ export function CultureDocumentPage(): React.JSX.Element {
 
             {/* Motto / Slogan */}
             <div className="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-1.5">
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+              <label
+                htmlFor="culture-document-lema-ou-slogan-institucional-opcional"
+                className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300"
+              >
                 Lema ou Slogan Institucional (Opcional)
               </label>
               <input
+                id="culture-document-lema-ou-slogan-institucional-opcional"
                 type="text"
                 value={form.motto}
                 onChange={(e) => setForm({ ...form, motto: e.target.value })}

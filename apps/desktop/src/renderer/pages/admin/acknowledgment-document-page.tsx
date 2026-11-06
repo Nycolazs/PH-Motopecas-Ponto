@@ -398,10 +398,14 @@ export function AcknowledgmentDocumentPage(): React.JSX.Element {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            <label
+              htmlFor="acknowledgment-document-cpf-do-colaborador"
+              className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+            >
               CPF do Colaborador
             </label>
             <input
+              id="acknowledgment-document-cpf-do-colaborador"
               type="text"
               readOnly
               value={employeeProfile?.cpf || 'Não cadastrado no perfil'}

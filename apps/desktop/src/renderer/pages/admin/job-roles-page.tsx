@@ -284,10 +284,14 @@ function CreateJobRoleModal({
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1 sm:col-span-2">
-              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+              <label
+                htmlFor="job-roles-titulo-do-cargo"
+                className="text-xs font-semibold text-slate-700 dark:text-slate-300"
+              >
                 Título do Cargo *
               </label>
               <input
+                id="job-roles-titulo-do-cargo"
                 {...register('title', { required: 'Título é obrigatório' })}
                 type="text"
                 placeholder="Ex: Vendedor"
@@ -299,10 +303,14 @@ function CreateJobRoleModal({
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+              <label
+                htmlFor="job-roles-departamento-setor"
+                className="text-xs font-semibold text-slate-700 dark:text-slate-300"
+              >
                 Departamento / Setor
               </label>
               <input
+                id="job-roles-departamento-setor"
                 {...register('department')}
                 type="text"
                 placeholder="Ex: Atendimento"
@@ -311,10 +319,14 @@ function CreateJobRoleModal({
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+              <label
+                htmlFor="job-roles-codigo-cbo"
+                className="text-xs font-semibold text-slate-700 dark:text-slate-300"
+              >
                 Código CBO
               </label>
               <input
+                id="job-roles-codigo-cbo"
                 {...register('cbo')}
                 type="text"
                 placeholder="Ex: 9144-05"
@@ -323,10 +335,14 @@ function CreateJobRoleModal({
             </div>
 
             <div className="space-y-1 sm:col-span-2">
-              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+              <label
+                htmlFor="job-roles-descricao-sumaria-das-atribuicoes"
+                className="text-xs font-semibold text-slate-700 dark:text-slate-300"
+              >
                 Descrição Sumária das Atribuições *
               </label>
               <textarea
+                id="job-roles-descricao-sumaria-das-atribuicoes"
                 {...register('description', { required: 'Descrição é obrigatória' })}
                 rows={3}
                 placeholder="Descreva as funções básicas do cargo..."
@@ -631,10 +647,14 @@ function PublishVersionModal({
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-3">
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+              <label
+                htmlFor="job-roles-codigo-cbo-opcional"
+                className="text-xs font-semibold text-slate-700 dark:text-slate-300"
+              >
                 Código CBO (opcional)
               </label>
               <input
+                id="job-roles-codigo-cbo-opcional"
                 {...register('cbo')}
                 type="text"
                 placeholder="Ex: 9144-05"
@@ -643,10 +663,14 @@ function PublishVersionModal({
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+              <label
+                htmlFor="job-roles-descricao-atualizada-das-atribuicoes"
+                className="text-xs font-semibold text-slate-700 dark:text-slate-300"
+              >
                 Descrição Atualizada das Atribuições *
               </label>
               <textarea
+                id="job-roles-descricao-atualizada-das-atribuicoes"
                 {...register('description', { required: 'Descrição é obrigatória' })}
                 rows={3}
                 placeholder="Descreva as novas funções e responsabilidades atualizadas..."

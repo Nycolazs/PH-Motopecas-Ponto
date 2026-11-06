@@ -485,10 +485,14 @@ export function PerformanceReviewPage(): React.JSX.Element {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label
+                  htmlFor="performance-review-periodo-avaliado"
+                  className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+                >
                   Período Avaliado *
                 </label>
                 <input
+                  id="performance-review-periodo-avaliado"
                   type="text"
                   value={form.evaluationPeriod}
                   onChange={(e) => setForm({ ...form, evaluationPeriod: e.target.value })}
@@ -510,10 +514,14 @@ export function PerformanceReviewPage(): React.JSX.Element {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label
+                  htmlFor="performance-review-nome-do-avaliador"
+                  className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+                >
                   Nome do Avaliador *
                 </label>
                 <input
+                  id="performance-review-nome-do-avaliador"
                   type="text"
                   value={form.evaluatorName}
                   onChange={(e) => setForm({ ...form, evaluatorName: e.target.value })}
@@ -522,10 +530,14 @@ export function PerformanceReviewPage(): React.JSX.Element {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label
+                  htmlFor="performance-review-cargo-funcao-do-avaliador"
+                  className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+                >
                   Cargo / Função do Avaliador
                 </label>
                 <input
+                  id="performance-review-cargo-funcao-do-avaliador"
                   type="text"
                   value={form.evaluatorRole}
                   onChange={(e) => setForm({ ...form, evaluatorRole: e.target.value })}
@@ -559,10 +571,14 @@ export function PerformanceReviewPage(): React.JSX.Element {
 
             {form.supersedesReviewId && (
               <div className="pt-2">
-                <label className="block text-xs font-semibold text-amber-700 dark:text-amber-400 mb-1">
+                <label
+                  htmlFor="performance-review-justificativa-da-substituicao-retificaca"
+                  className="block text-xs font-semibold text-amber-700 dark:text-amber-400 mb-1"
+                >
                   Justificativa da Substituição / Retificação *
                 </label>
                 <input
+                  id="performance-review-justificativa-da-substituicao-retificaca"
                   type="text"
                   value={form.supersessionReason}
                   onChange={(e) => setForm({ ...form, supersessionReason: e.target.value })}
@@ -668,10 +684,14 @@ export function PerformanceReviewPage(): React.JSX.Element {
 
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                <label
+                  htmlFor="performance-review-pontos-fortes-e-destaques"
+                  className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5"
+                >
                   Pontos Fortes e Destaques
                 </label>
                 <textarea
+                  id="performance-review-pontos-fortes-e-destaques"
                   rows={3}
                   value={form.strengths}
                   onChange={(e) => setForm({ ...form, strengths: e.target.value })}
@@ -681,10 +701,14 @@ export function PerformanceReviewPage(): React.JSX.Element {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                <label
+                  htmlFor="performance-review-oportunidades-de-melhoria"
+                  className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5"
+                >
                   Oportunidades de Melhoria
                 </label>
                 <textarea
+                  id="performance-review-oportunidades-de-melhoria"
                   rows={3}
                   value={form.improvements}
                   onChange={(e) => setForm({ ...form, improvements: e.target.value })}
@@ -694,10 +718,14 @@ export function PerformanceReviewPage(): React.JSX.Element {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                <label
+                  htmlFor="performance-review-plano-de-acao-e-metas-de-desenvolvimento"
+                  className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5"
+                >
                   Plano de Ação e Metas de Desenvolvimento
                 </label>
                 <textarea
+                  id="performance-review-plano-de-acao-e-metas-de-desenvolvimento"
                   rows={3}
                   value={form.actionPlan}
                   onChange={(e) => setForm({ ...form, actionPlan: e.target.value })}
@@ -708,10 +736,14 @@ export function PerformanceReviewPage(): React.JSX.Element {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                  <label
+                    htmlFor="performance-review-comentarios-gerais-do-avaliador"
+                    className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5"
+                  >
                     Comentários Gerais do Avaliador
                   </label>
                   <textarea
+                    id="performance-review-comentarios-gerais-do-avaliador"
                     rows={3}
                     value={form.evaluatorComments}
                     onChange={(e) => setForm({ ...form, evaluatorComments: e.target.value })}
@@ -721,10 +753,14 @@ export function PerformanceReviewPage(): React.JSX.Element {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                  <label
+                    htmlFor="performance-review-comentarios-reacao-do-colaborador-opcion"
+                    className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5"
+                  >
                     Comentários / Reação do Colaborador (Opcional)
                   </label>
                   <textarea
+                    id="performance-review-comentarios-reacao-do-colaborador-opcion"
                     rows={3}
                     value={form.employeeComments}
                     onChange={(e) => setForm({ ...form, employeeComments: e.target.value })}
@@ -1052,10 +1088,14 @@ export function PerformanceReviewPage(): React.JSX.Element {
               referente a <strong>{reviewToSupersede.evaluationPeriod}</strong> como substituída.
             </p>
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+              <label
+                htmlFor="performance-review-motivo-justificativa-da-substituicao"
+                className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5"
+              >
                 Motivo / Justificativa da Substituição *
               </label>
               <textarea
+                id="performance-review-motivo-justificativa-da-substituicao"
                 rows={3}
                 value={manualSupersedeReason}
                 onChange={(e) => setManualSupersedeReason(e.target.value)}
