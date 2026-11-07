@@ -139,7 +139,7 @@ export function TeamSchedulePage(): React.JSX.Element {
       )}
 
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-xs dark:border-slate-800 dark:bg-slate-900">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
             aria-label="Semana anterior"
@@ -148,7 +148,7 @@ export function TeamSchedulePage(): React.JSX.Element {
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
-          <strong className="min-w-[190px] text-center text-sm text-slate-800 dark:text-slate-100">
+          <strong className="min-w-[170px] text-center text-sm text-slate-800 dark:text-slate-100">
             Semana de {dayMonth(weekStart)} a {dayMonth(weekEnd)}
           </strong>
           <button
@@ -163,7 +163,7 @@ export function TeamSchedulePage(): React.JSX.Element {
             <button
               type="button"
               onClick={() => setWeekStart(mondayOf(today))}
-              className="rounded-lg px-3 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-50 dark:text-blue-300 dark:hover:bg-blue-950/40"
+              className="whitespace-nowrap rounded-lg px-3 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-50 dark:text-blue-300 dark:hover:bg-blue-950/40"
             >
               Esta semana
             </button>
