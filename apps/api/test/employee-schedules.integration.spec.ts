@@ -324,6 +324,44 @@ describe('escala do colaborador (5x2) with real PostgreSQL', () => {
     ).toBe(2);
   });
 
+  it('warns before a one-day adjustment breaks the rules, and saves once confirmed', async () => {
+    await asAdmin(http().post(`/employee-schedules/${employeeId}/versions`))
+      .send({ effectiveDate: '2026-12-21', weeks: [week([Weekday.SATURDAY, Weekday.SUNDAY])] })
+      .expect(201);
+
+    // 08:00–22:00 is far above the daily limit.
+    const longDay = {
+      employeeId,
+      businessDate: '2026-12-22',
+      isWorkday: true,
+      startMinute: 480,
+      endMinute: 1320,
+      breakStartMinute: 720,
+      breakEndMinute: 780,
+      note: 'Inventário',
+    };
+    const refused = await asAdmin(http().post('/employee-schedules/overrides/adjustment'))
+      .send(longDay)
+      .expect(422);
+    expect(refused.body.code).toBe('SCHEDULE_COMPLIANCE_ISSUES');
+    expect(Object.keys(refused.body.details)).toContain('DAILY_HOURS_EXCEEDED');
+    expect(await prisma.scheduleOverride.count({ where: { employeeId } })).toBe(0);
+
+    // Working on a rest day leaves a single folga that week.
+    await asAdmin(http().post('/employee-schedules/overrides/adjustment'))
+      .send({ ...longDay, businessDate: '2026-12-26', endMinute: 1020, note: 'Cobrir colega' })
+      .expect(422);
+
+    await asAdmin(http().post('/employee-schedules/overrides/adjustment'))
+      .send({ ...longDay, confirmIssues: true })
+      .expect(201);
+    // A day off never needs confirmation.
+    await asAdmin(http().post('/employee-schedules/overrides/adjustment'))
+      .send({ employeeId, businessDate: '2026-12-23', isWorkday: false, note: 'Folga extra' })
+      .expect(201);
+    expect(await prisma.scheduleOverride.count({ where: { employeeId } })).toBe(2);
+  });
+
   it('keeps holidays and vacations above the escala', async () => {
     await asAdmin(http().post(`/employee-schedules/${employeeId}/versions`))
       .send({ effectiveDate: '2026-12-21', weeks: [week([Weekday.WEDNESDAY, Weekday.SUNDAY])] })

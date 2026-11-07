@@ -71,6 +71,13 @@ export function DayActionModal({
     setError(null);
   }, [isOpen, cell]);
 
+  // A warning is about what was sent; changing the request asks the server again.
+  useEffect(() => {
+    setProblems([]);
+    setConfirm(false);
+    setError(null);
+  }, [action, otherDate, start, end, breakStart, breakEnd]);
+
   const isRest = cell?.status === 'REST';
   const swapTargetStatus = isRest ? 'WORK' : 'REST';
   const candidates = otherDays.filter(
@@ -103,6 +110,7 @@ export function DayActionModal({
         employeeId: employee.id,
         businessDate: cell.businessDate,
         note: trimmed,
+        confirmIssues: confirm,
         ...(action === 'DAY_OFF'
           ? { isWorkday: false }
           : {
@@ -222,11 +230,7 @@ export function DayActionModal({
                 ) : (
                   <select
                     value={otherDate}
-                    onChange={(event) => {
-                      setOtherDate(event.target.value);
-                      setProblems([]);
-                      setConfirm(false);
-                    }}
+                    onChange={(event) => setOtherDate(event.target.value)}
                     className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 dark:border-slate-600 dark:bg-slate-800"
                   >
                     <option value="">Escolha o dia…</option>

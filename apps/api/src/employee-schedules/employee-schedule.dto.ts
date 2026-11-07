@@ -152,6 +152,11 @@ export class CreateScheduleAdjustmentDto extends ShiftInputDto {
   @MinLength(3, { message: 'Descreva o motivo com pelo menos 3 caracteres.' })
   @MaxLength(240, { message: 'O motivo deve ter no máximo 240 caracteres.' })
   public note!: string;
+
+  @ApiPropertyOptional({ default: false })
+  @IsOptional()
+  @IsBoolean()
+  public confirmIssues?: boolean;
 }
 
 export class MoveRestDayDto {

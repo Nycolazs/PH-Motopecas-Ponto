@@ -1513,7 +1513,12 @@ export class ApiClient {
   }
 
   public async createScheduleAdjustment(
-    input: ShiftInput & { employeeId: string; businessDate: string; note: string },
+    input: ShiftInput & {
+      employeeId: string;
+      businessDate: string;
+      note: string;
+      confirmIssues?: boolean;
+    },
   ): Promise<void> {
     await this.request('/employee-schedules/overrides/adjustment', scheduleMutationSchema, {
       method: 'POST',
