@@ -20,6 +20,7 @@ import type {
   ScheduleVersion,
   Vacation,
 } from '../../api/contracts.js';
+import { NationalHolidaysNotice } from '../../components/national-holidays-notice.js';
 import { AvatarImage } from '../../components/avatar-image.js';
 import { DateInput } from '../../components/date-input.js';
 import { Modal } from '../../components/modal.js';
@@ -690,6 +691,9 @@ export function AdminSettingsPage(): React.JSX.Element {
             <p className="text-xs text-slate-500">
               Exceções por data sobrepõem os horários semanais padrão
             </p>
+            <div className="mt-3">
+              <NationalHolidaysNotice />
+            </div>
           </div>
 
           <div className="overflow-x-auto">

@@ -21,6 +21,7 @@ import type {
 } from '../../../api/schedule-contracts.js';
 import { useApiClient } from '../../../auth/use-auth.js';
 import { AvatarImage } from '../../../components/avatar-image.js';
+import { NationalHolidaysNotice } from '../../../components/national-holidays-notice.js';
 import { PageHeader } from '../../../components/page-header.js';
 import { businessDateFromInstant } from '../../../lib/business-date.js';
 import { formatDisplayName } from '../../../lib/format.js';
@@ -118,6 +119,8 @@ export function TeamSchedulePage(): React.JSX.Element {
           </button>
         }
       />
+
+      <NationalHolidaysNotice compact />
 
       {pendingTransition > 0 && (
         <div className="flex items-start gap-3 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100">

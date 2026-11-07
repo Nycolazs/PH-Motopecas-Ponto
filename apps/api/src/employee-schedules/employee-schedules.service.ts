@@ -607,6 +607,24 @@ export class EmployeeSchedulesService {
       });
     }
     const shift = shiftFromInput(input, dateBR(input.businessDate));
+    const newErrors = await this.assertCompliantChange(
+      employee,
+      [
+        {
+          id: 'sim-adjustment',
+          businessDate: input.businessDate,
+          isWorkday: shift !== null,
+          startMinute: shift?.startMinute ?? null,
+          endMinute: shift?.endMinute ?? null,
+          breakStartMinute: shift?.breakStartMinute ?? null,
+          breakEndMinute: shift?.breakEndMinute ?? null,
+          reason: 'ADJUSTMENT',
+          note: input.note,
+        },
+      ],
+      input.confirmIssues === true,
+      'O ajuste deixa a jornada fora das regras. Revise ou confirme que deseja salvar assim.',
+    );
     const override = await this.prisma.$transaction(
       async (tx) => {
         await this.assertNoActiveOverride(tx, input.employeeId, [input.businessDate]);
@@ -635,6 +653,7 @@ export class EmployeeSchedulesService {
               reason: 'ADJUSTMENT',
               isWorkday: shift !== null,
               note: input.note,
+              confirmedIssues: newErrors.map((issue) => issue.message).join(' | ') || null,
             },
           },
           tx,
@@ -675,23 +694,20 @@ export class EmployeeSchedulesService {
 
     const first = input.restDate < input.newRestDate ? input.restDate : input.newRestDate;
     const last = input.restDate < input.newRestDate ? input.newRestDate : input.restDate;
-    const computeFrom = mondayOf(first);
-    const computeTo = addDays(mondayOf(last), 6);
     const [settings, calendar] = await Promise.all([
       this.getSettings(),
-      this.loadCalendar([input.employeeId], computeFrom, computeTo),
+      this.loadCalendar([input.employeeId], first, last),
     ]);
-    const startDate = this.firstWorkDate(employee);
-    const before = this.buildRow(
+    const current = this.buildRow(
       input.employeeId,
-      startDate,
+      this.firstWorkDate(employee),
       calendar,
-      computeFrom,
-      computeTo,
+      first,
+      last,
       settings,
     );
-    const restCell = before.days.find((day) => day.businessDate === input.restDate);
-    const workCell = before.days.find((day) => day.businessDate === input.newRestDate);
+    const restCell = current.days.find((day) => day.businessDate === input.restDate);
+    const workCell = current.days.find((day) => day.businessDate === input.newRestDate);
     if (restCell?.status !== 'REST') {
       throw new BadRequestException({
         code: 'INVALID_SWAP',
@@ -737,34 +753,12 @@ export class EmployeeSchedulesService {
         note: input.note,
       },
     ];
-    const layer = calendar.layers.get(input.employeeId) ?? { versions: [], overrides: [] };
-    calendar.layers.set(input.employeeId, {
-      versions: layer.versions,
-      overrides: [...layer.overrides, ...simulated],
-    });
-    const after = this.buildRow(
-      input.employeeId,
-      startDate,
-      calendar,
-      computeFrom,
-      computeTo,
-      settings,
+    const newErrors = await this.assertCompliantChange(
+      employee,
+      simulated,
+      input.confirmIssues === true,
+      'A troca deixa a jornada fora das regras. Revise ou confirme que deseja trocar assim.',
     );
-    const newErrors = after.issues.filter(
-      (issue) =>
-        issue.severity === 'ERROR' &&
-        !before.issues.some(
-          (old) => old.code === issue.code && old.businessDate === issue.businessDate,
-        ),
-    );
-    if (newErrors.length > 0 && input.confirmIssues !== true) {
-      throw new UnprocessableEntityException({
-        code: 'SCHEDULE_COMPLIANCE_ISSUES',
-        message:
-          'A troca deixa a jornada fora das regras. Revise ou confirme que deseja trocar assim.',
-        details: issueDetails(newErrors),
-      });
-    }
 
     const ids = await this.prisma.$transaction(
       async (tx) => {
@@ -816,7 +810,56 @@ export class EmployeeSchedulesService {
       },
       { isolationLevel: 'Serializable' },
     );
-    return { ids, swapId, issues: after.issues };
+    return { ids, swapId };
+  }
+
+  /**
+   * Simulates one-day changes and refuses (422) when they create a compliance error that was
+   * not there before, unless the administrator confirmed. Returns the new errors it accepted.
+   */
+  private async assertCompliantChange(
+    employee: { id: string; createdAt: Date },
+    simulated: EmployeeScheduleOverrideInput[],
+    confirmed: boolean,
+    message: string,
+  ) {
+    const dates = simulated.map((item) => item.businessDate).sort();
+    const computeFrom = addDays(mondayOf(dates[0]!), -7);
+    const computeTo = addDays(mondayOf(dates[dates.length - 1]!), 13);
+    const [settings, calendar] = await Promise.all([
+      this.getSettings(),
+      this.loadCalendar([employee.id], computeFrom, computeTo),
+    ]);
+    const startDate = this.firstWorkDate(employee);
+    const before = this.buildRow(
+      employee.id,
+      startDate,
+      calendar,
+      computeFrom,
+      computeTo,
+      settings,
+    );
+    const layer = calendar.layers.get(employee.id) ?? { versions: [], overrides: [] };
+    calendar.layers.set(employee.id, {
+      versions: layer.versions,
+      overrides: [...layer.overrides, ...simulated],
+    });
+    const after = this.buildRow(employee.id, startDate, calendar, computeFrom, computeTo, settings);
+    const newErrors = after.issues.filter(
+      (issue) =>
+        issue.severity === 'ERROR' &&
+        !before.issues.some(
+          (old) => old.code === issue.code && old.businessDate === issue.businessDate,
+        ),
+    );
+    if (newErrors.length > 0 && !confirmed) {
+      throw new UnprocessableEntityException({
+        code: 'SCHEDULE_COMPLIANCE_ISSUES',
+        message,
+        details: issueDetails(newErrors),
+      });
+    }
+    return newErrors;
   }
 
   public async revokeOverride(
