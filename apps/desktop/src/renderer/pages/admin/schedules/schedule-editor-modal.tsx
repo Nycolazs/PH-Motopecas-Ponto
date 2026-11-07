@@ -89,6 +89,8 @@ export interface ScheduleEditorModalProps {
   /** Rest days the person has today (pre-fills the custom model). */
   currentRestDays?: readonly ScheduleWeekday[];
   defaultShift?: DefaultShift;
+  /** First day to offer (e.g. the Monday of the 5x2 transition week); defaults to next Monday. */
+  suggestedDate?: string | undefined;
 }
 
 type Mode = 'FIXED' | 'ROTATING' | 'COMPANY';
@@ -103,6 +105,7 @@ export function ScheduleEditorModal({
   employee,
   currentRestDays,
   defaultShift = STANDARD_SHIFT,
+  suggestedDate,
 }: ScheduleEditorModalProps): React.JSX.Element | null {
   const api = useApiClient();
   const toast = useToast();
@@ -123,7 +126,9 @@ export function ScheduleEditorModal({
   useEffect(() => {
     if (!isOpen) return;
     const nextMonday = mondayOf(today) === today ? today : addDays(mondayOf(today), 7);
-    setEffectiveDate(nextMonday);
+    setEffectiveDate(
+      suggestedDate !== undefined && suggestedDate >= today ? suggestedDate : nextMonday,
+    );
     setMode('FIXED');
     setShift(defaultShift);
     const rest =
@@ -255,8 +260,12 @@ export function ScheduleEditorModal({
             <DateInput value={effectiveDate} onChange={setEffectiveDate} min={today} />
           </label>
           <p className="flex items-start gap-2 rounded-lg bg-blue-50 p-3 text-xs text-blue-900 dark:bg-blue-950/40 dark:text-blue-200">
-            <Info className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />O ponto já registrado não
-            muda. A escala nova vale do dia escolhido em diante; até lá continua valendo a atual.
+            <Info className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+            <span>
+              {effectiveDate === suggestedDate && suggestedDate !== undefined
+                ? `A escala 5x2 é obrigatória a partir de 15/12/2026, uma terça. Começar na segunda, ${dayMonth(suggestedDate)}, garante 2 folgas já na semana da mudança.`
+                : 'O ponto já registrado não muda. A escala nova vale do dia escolhido em diante; até lá continua valendo a atual.'}
+            </span>
           </p>
         </section>
 

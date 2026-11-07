@@ -141,7 +141,9 @@ export function checkCompliance(
   );
   for (const monday of completeWeeks) {
     const week = Array.from({ length: 7 }, (_, offset) => byDate.get(addDays(monday, offset))!);
-    const limits = effectiveLimits(monday, options);
+    // A week is judged by the rule in force on its last day: the week the law changes
+    // already follows the new rule.
+    const limits = effectiveLimits(addDays(monday, 6), options);
     const total = week.reduce((sum, day) => sum + day.plannedMinutes, 0);
     if (total > limits.weeklyLimitMinutes) {
       issues.push({

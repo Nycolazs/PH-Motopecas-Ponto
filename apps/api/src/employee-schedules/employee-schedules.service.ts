@@ -1352,7 +1352,7 @@ export class EmployeeSchedulesService {
       const slice = days.slice(index, index + 7);
       const weekStart = slice[0]!.businessDate;
       if (weekdayForBusinessDate(weekStart) !== 'MONDAY') continue;
-      const limits = effectiveLimits(weekStart, options);
+      const limits = effectiveLimits(slice[6]!.businessDate, options);
       weeks.push({
         weekStart,
         plannedMinutes: slice.reduce((sum, day) => sum + day.plannedMinutes, 0),
