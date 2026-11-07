@@ -34,7 +34,7 @@ const TIME_ZONE_OFFSET_HOURS = 3; // America/Sao_Paulo / America/Fortaleza (no D
 const DEMO_HISTORY_START = '2026-09-01';
 const MS_PER_DAY = 86_400_000;
 
-const EC141_START = '2026-12-15';
+// Monday of the week the 5x2 becomes mandatory (15/12/2026): the transition week gets 2 folgas.
 const EC141_ANCHOR_MONDAY = '2026-12-14';
 const WEEK = [
   Weekday.MONDAY,
@@ -378,7 +378,7 @@ async function main(): Promise<void> {
       await prisma.employeeScheduleVersion.create({
         data: {
           employeeId: employee.id,
-          effectiveDate: dateOnly(EC141_START),
+          effectiveDate: dateOnly(EC141_ANCHOR_MONDAY),
           cycleWeeks: plan.weeks.length,
           cycleAnchorDate: dateOnly(EC141_ANCHOR_MONDAY),
           note: 'Escala 5x2 (demonstração)',

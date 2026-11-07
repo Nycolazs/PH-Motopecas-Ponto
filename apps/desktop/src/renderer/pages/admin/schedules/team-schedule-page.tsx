@@ -40,6 +40,8 @@ import { WorkRegimeModal } from './work-regime-modal.js';
 
 /** First business day of the EC 141 transition (two rest days per week). */
 export const TRANSITION_START = '2026-12-15';
+/** Monday of the transition week: starting here gives that week its two rest days. */
+export const TRANSITION_MONDAY = '2026-12-14';
 
 function restDaysOf(row: TeamScheduleRow): ScheduleWeekday[] {
   return row.days
@@ -129,8 +131,9 @@ export function TeamSchedulePage(): React.JSX.Element {
             <strong className="block">Escala 5x2 obrigatória a partir de 15/12/2026</strong>
             Cada pessoa passa a ter 2 folgas por semana. {pendingTransition}{' '}
             {pendingTransition === 1 ? 'colaborador ainda não tem' : 'colaboradores ainda não têm'}{' '}
-            escala a partir dessa data. Use <strong>Montar escala</strong> na linha de cada um e
-            escolha a data 15/12/2026.
+            escala a partir dessa data. Use <strong>Montar escala</strong> na linha de cada um: a
+            data já vem preenchida com a segunda-feira 14/12/2026, para a semana da mudança ter 2
+            folgas.
           </div>
         </div>
       )}
@@ -388,6 +391,12 @@ export function TeamSchedulePage(): React.JSX.Element {
           employee={{ id: editing.employeeId, name: editing.name }}
           currentRestDays={restDaysOf(editing)}
           defaultShift={shiftOf(editing)}
+          suggestedDate={
+            today < TRANSITION_START &&
+            (editing.ownScheduleFrom === null || editing.ownScheduleFrom > TRANSITION_START)
+              ? TRANSITION_MONDAY
+              : undefined
+          }
         />
       )}
       <DayActionModal
