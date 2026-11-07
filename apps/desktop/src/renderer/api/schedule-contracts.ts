@@ -163,6 +163,11 @@ export const myScheduleSchema = z.object({
   hasOwnSchedule: z.boolean(),
   days: z.array(scheduleCellSchema),
   weeks: z.array(weekTotalSchema),
+  /** First week of an escala published for later; null when nothing changes soon. */
+  nextChange: z
+    .object({ effectiveDate: z.string(), days: z.array(scheduleCellSchema) })
+    .nullable()
+    .catch(null),
 });
 export type MySchedule = z.infer<typeof myScheduleSchema>;
 
