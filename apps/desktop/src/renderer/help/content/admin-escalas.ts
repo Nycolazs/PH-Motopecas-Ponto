@@ -58,7 +58,7 @@ export const ADMIN_SCHEDULE_ARTICLES: HelpArticle[] = [
           },
           {
             title: 'Escolha a data de início',
-            text: 'A escala vale do dia escolhido em diante. O ponto que já foi registrado não muda. Para a mudança da lei, use 15/12/2026.',
+            text: 'A escala vale do dia escolhido em diante. O ponto que já foi registrado não muda. Para a mudança da lei, use a segunda-feira 14/12/2026 (o sistema já sugere): assim a semana da mudança também tem 2 folgas.',
           },
           {
             title: 'Escolha um modelo',

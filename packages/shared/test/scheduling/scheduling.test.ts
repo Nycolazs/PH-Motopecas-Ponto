@@ -16,7 +16,7 @@ import {
   type WorkPattern,
 } from '../../src/index.js';
 
-// PH Motopeças today: Mon–Fri 08–17 with lunch, Saturday 08–12, closed on Sunday.
+// A typical store today: Mon–Fri 08–17 with lunch, Saturday 08–12, closed on Sunday.
 const WEEKDAY_44 = shift('08:00', '17:48', '12:00', '13:00'); // 8h48 (Saturday compensation)
 const WEEKDAY_8H = shift('08:00', '17:00', '12:00', '13:00');
 const WEEKDAY_8H24 = shift('08:00', '17:24', '12:00', '13:00');
@@ -155,6 +155,17 @@ describe('compliance checks', () => {
     expect(after[0]?.message).toBe(
       'Semana de 21/12/2026: 1 folga(s); são necessárias 2 (feriado não conta como folga).',
     );
+  });
+
+  it('judges the week the law changes (14–20/12/2026) by the new rule', () => {
+    const transition = checkCompliance(
+      planRange(today6x1, [], '2026-12-14', '2026-12-20'),
+      NO_AGREEMENT,
+    );
+    expect(transition.map((issue) => issue.code)).toEqual([
+      'NOT_ENOUGH_REST_DAYS',
+      'WEEKLY_HOURS_EXCEEDED',
+    ]);
   });
 
   it('allows 8h24 days only with a collective agreement', () => {
