@@ -484,12 +484,27 @@ export class EmployeeSchedulesService {
     const from = this.today();
     const to = addDays(mondayOf(from), Math.min(Math.max(weeks, 1), 6) * 7 - 1);
     const overview = await this.getEmployeeOverview(employeeId, from, to);
+    // An escala published for later (e.g. the 5x2 from 14/12) is shown ahead of time, so the
+    // person knows their new rest days before the change; only within the next 120 days.
+    const upcoming = overview.versions
+      .filter((version) => version.effectiveDate > to)
+      .sort((left, right) => left.effectiveDate.localeCompare(right.effectiveDate))[0];
+    let nextChange: { effectiveDate: string; days: typeof overview.days } | null = null;
+    if (upcoming !== undefined && upcoming.effectiveDate <= addDays(from, 120)) {
+      const firstWeek = await this.getEmployeeOverview(
+        employeeId,
+        upcoming.effectiveDate,
+        addDays(upcoming.effectiveDate, 6),
+      );
+      nextChange = { effectiveDate: upcoming.effectiveDate, days: firstWeek.days };
+    }
     return {
       from,
       to,
       hasOwnSchedule: overview.hasOwnSchedule,
       days: overview.days,
       weeks: overview.weeks,
+      nextChange,
     };
   }
 
