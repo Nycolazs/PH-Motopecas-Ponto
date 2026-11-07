@@ -410,6 +410,23 @@ describe('escala do colaborador (5x2) with real PostgreSQL', () => {
     const mine = await asEmployee(http().get('/employee-schedules/me')).expect(200);
     expect(mine.body.days.length).toBeGreaterThanOrEqual(7);
     expect(mine.body.days[0].businessDate).toBe('2026-12-21');
+    expect(mine.body.nextChange).toBeNull();
+
+    // An escala published for later is shown ahead of time.
+    await asAdmin(http().post(`/employee-schedules/${employeeId}/versions`))
+      .send({ effectiveDate: '2027-02-01', weeks: [week([Weekday.SATURDAY, Weekday.SUNDAY])] })
+      .expect(201);
+    const ahead = await asEmployee(http().get('/employee-schedules/me')).expect(200);
+    expect(ahead.body.nextChange.effectiveDate).toBe('2027-02-01');
+    expect(ahead.body.nextChange.days.map((day: { status: string }) => day.status)).toEqual([
+      'WORK',
+      'WORK',
+      'WORK',
+      'WORK',
+      'WORK',
+      'REST',
+      'REST',
+    ]);
     await asEmployee(http().get(`/employee-schedules/${colleagueId}`))
       .query({ from: '2026-12-21', to: '2026-12-27' })
       .expect(403);

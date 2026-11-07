@@ -45,6 +45,24 @@ export function MyScheduleCard(): React.JSX.Element | null {
           ))}
         </ol>
       )}
+      {schedule.data?.nextChange && (
+        <div className="mt-4 rounded-lg border border-blue-200 bg-blue-50 p-3 dark:border-blue-900 dark:bg-blue-950/40">
+          <p className="mb-2 text-sm font-semibold text-blue-900 dark:text-blue-100">
+            Sua escala muda a partir de {dayMonth(schedule.data.nextChange.effectiveDate)}. A
+            primeira semana fica assim:
+          </p>
+          <ol className="grid grid-cols-4 gap-2 sm:grid-cols-7">
+            {schedule.data.nextChange.days.map((day) => (
+              <li key={day.businessDate} className="text-center">
+                <span className="mb-1 block text-[11px] font-semibold text-slate-600 dark:text-slate-300">
+                  {WEEKDAY_SHORT[day.weekday]} {dayMonth(day.businessDate)}
+                </span>
+                <ScheduleCellChip cell={day} compact />
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
     </section>
   );
 }
